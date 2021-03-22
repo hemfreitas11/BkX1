@@ -1,0 +1,55 @@
+language: en_US
+
+# What you need to type to cancel the text inputs in the plugin.
+cancel-input: 'cancel'
+
+# Choose if you want the plugin to display 5 or 15 kits per page.
+expanded-kit-list: false
+
+# Cost to start a duel. Both players need to pay it
+duel-cost: 100
+
+# Change to true if you want to allow the fighters to drop items during the duel
+player-drop-item: false
+
+# When this is enabled everyone in the server will get a message when a duel starts, ends, and when someone is being challenged.
+# This is great for when a player trash talks everyone and never accepts a duel request. Everyone will be able to see it
+broadcast-to-all: true
+
+# This is how long the plugin will wait for an answer when a player is challenged
+challenge-expire: 30
+
+duel-bet:
+  min: 1000
+  max: 5000
+
+gui-buttons:
+  # Next page button
+  next-page:
+    byte: 5
+    damage: 5
+    material: WOOL
+    ammount: 1
+    name: '&aNext Page'
+    lore:
+      - '&7Go to page &a{page-number}'
+
+  # Previous page button
+  previous-page:
+    byte: 14
+    damage: 14
+    material: WOOL
+    ammount: 1
+    name: '&cPrevious Page'
+    lore:
+      - '&7Go to page &c{page-number}'
+
+  # The button for using your own items in the duel.
+  no-kit-button:
+    byte: 0
+    damage: 0
+    material: ITEM_FRAME
+    ammount: 1
+    name: '&6Use player items'
+    lore:
+      - '&eOwn items'

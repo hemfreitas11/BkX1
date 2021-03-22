@@ -1,0 +1,65 @@
+commands:
+
+  usage-format: '&cUsage: {usage}'
+
+  x1:
+    command: 'x1'
+    description: 'Plugin main command.'
+    usage: '/x1 <fight | config>'
+
+info:
+  request-message:
+    accept-button: '&2&l[HERE]'
+    deny-button: '&c&l[HERE]'
+    accept-hover: '&2Click to accept.'
+    deny-hover: '&cClick to deny.'
+    message:
+      - ' '
+      - '&7*--------------------*=/[|]\=*--------------------*'
+      - ' '
+      - '&7The player &a&l{player} &7challenged you to a duel!'
+      - ' '
+      - '&7Kit: &a{kit}'
+      - '&7Arena: &a{arena}'
+      - '&7Item drop: {item-drop} &7'
+      - '&7Experience drop: {exp-drop}'
+      - '&7Price: &a{price}'
+      - ' '
+      - '&7Click {accept-button} &7to accept or click {deny-button} &7to deny.'
+      - ' '
+      - '&7The request will expire in &c{seconds} &7seconds.'
+      - ' '
+      - '&7*-----------------------------------------------*'
+      - ' '
+  broadcast-to-all:
+      - '&7*--------------------*=/[|]\=*--------------------*'
+      - '&7The player &a&l{fighter1} &7challenged &a&l{fighter2} &7to a duel!'
+      - '&7&a&l{fighter2} &7has &c{expire} &7seconds to answer.'
+      - ' '
+      - '&7Kit: &a{kit}'
+      - '&7Arena: &a{arena}'
+      - '&7Item drop: {item-drop} &7'
+      - '&7*-----------------------------------------------*'
+  kit-selected: '&aKit selected! Click the ''Next'' button to continue.'
+  arena-selected: '&aArena selected! Click the ''Next'' button to continue.'
+  time-remaining: '&7Teleporting in &a{seconds}'
+  input:
+    shop-name: '&7Enter the name of the shop'
+    countdown: '&7Cancelling in &c{seconds}'
+    type-to-cancel: '&7Type &c{cancel-input}&7 to cancel'
+  warped:
+    title: '&aYou teleported to'
+    subtitle: '&2{location-name}'
+
+error:
+  input:
+    awaiting-input: '&cYou can''t use commands now. Type ''{cancel-input}'' to cancel.'
+    canceled: '&cYou canceled the input.'
+    timedout: '&cYou didn''t type anything.'
+  already-waiting: '&cYou are already waiting a teleport.'
+  no-permission: 'You don''t have permission to do this.'
+  warp-canceled-title: '&cTeleport canceled.'
+  warp-canceled-cause:
+    dealt-damage: '&cYou attacked.'
+    took-damage: '&cYou took damage.'
+    moved: '&cYou moved.'
