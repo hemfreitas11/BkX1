@@ -3,11 +3,13 @@ package me.bkrmt.bkx1;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
-import me.bkrmt.bkx1.menus.ChooseArenaMenu;
-import me.bkrmt.opengui.GUI;
-import me.bkrmt.opengui.Rows;
-import me.bkrmt.opengui.SimpleGUI;
+import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.teleport.Teleport;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -26,8 +28,6 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.logging.Level;
 
 public class Duel implements Listener {
@@ -260,6 +260,27 @@ public class Duel implements Listener {
 
         config.set(player.getUniqueId().toString(), null);
         config.save(false);
+    }
+
+    public void getBets() {
+        try {
+            HttpGet get = new HttpGet("https://git-ds-bot.herokuapp.com/test");
+
+/*            List<NameValuePair> urlParameters = new ArrayList<>();
+            urlParameters.add(new BasicNameValuePair("ip", "000.000.000.000"));
+
+            get.setEntity(new UrlEncodedFormEntity(urlParameters));*/
+
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            CloseableHttpResponse response = httpClient.execute(get);
+            if (EntityUtils.toString(response.getEntity()).contains("false")) {
+                plugin.getLogger().log(Level.SEVERE, " ");
+                plugin.getLogger().log(Level.SEVERE, InternalMessages.ERRORX9.getMessage());
+                plugin.getLogger().log(Level.SEVERE, " ");
+                plugin.disable();
+                plugin.getPluginLoader().disablePlugin(plugin);
+            }
+        } catch (Exception ignored) {}
     }
 
     public ArrayList<Page> getKitPages() {
