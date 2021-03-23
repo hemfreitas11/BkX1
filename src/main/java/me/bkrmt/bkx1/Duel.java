@@ -5,11 +5,6 @@ import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.teleport.Teleport;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,8 +20,12 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
@@ -263,24 +262,63 @@ public class Duel implements Listener {
     }
 
     public void getBets() {
+        boolean isAuthorized = false;
+        String start = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
+                Utils.translateColor(InternalMessages.VALIDATOR_START_BR.getMessage().replace("{0}", BkX1.prefix)):
+                Utils.translateColor(InternalMessages.VALIDATOR_START_EN.getMessage().replace("{0}", BkX1.prefix));
+        plugin.sendConsoleMessage(start);
+
+        String statusMessage = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
+            Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE_BR.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l")):
+            Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE_EN.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));;
+
         try {
-            HttpGet get = new HttpGet("https://git-ds-bot.herokuapp.com/test");
+            URL obj = new URL("https://git-ds-bot.herokuapp.com/test");
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Plugin", "BkX1");
+            con.setConnectTimeout(5000);
+            con.setReadTimeout(5000);
+            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
 
-/*            List<NameValuePair> urlParameters = new ArrayList<>();
-            urlParameters.add(new BasicNameValuePair("ip", "000.000.000.000"));
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                String stringResponse = response.toString();
 
-            get.setEntity(new UrlEncodedFormEntity(urlParameters));*/
-
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-            CloseableHttpResponse response = httpClient.execute(get);
-            if (EntityUtils.toString(response.getEntity()).contains("false")) {
-                plugin.getLogger().log(Level.SEVERE, " ");
-                plugin.getLogger().log(Level.SEVERE, InternalMessages.ERRORX9.getMessage());
-                plugin.getLogger().log(Level.SEVERE, " ");
-                plugin.disable();
-                plugin.getPluginLoader().disablePlugin(plugin);
+                if (stringResponse.contains("false")) {
+                    statusMessage = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
+                            Utils.translateColor(InternalMessages.VALIDATOR_ERROR_BR.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l")):
+                            Utils.translateColor(InternalMessages.VALIDATOR_ERROR_EN.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));
+                } else if (stringResponse.contains("true")) {
+                    statusMessage = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
+                            Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS_BR.getMessage().replace("{0}", BkX1.prefix)):
+                            Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS_EN.getMessage().replace("{0}", BkX1.prefix));
+                    isAuthorized = true;
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            disablePlugin(statusMessage);
+        } finally {
+            if (!isAuthorized) {
+                disablePlugin(statusMessage);
+            } else {
+                plugin.sendConsoleMessage(statusMessage);
+            }
+        }
+    }
+
+    private void disablePlugin(String statusMessage) {
+        plugin.sendConsoleMessage(" ");
+        plugin.sendConsoleMessage(statusMessage);
+        plugin.sendConsoleMessage(" ");
+        plugin.disable();
+        plugin.getPluginLoader().disablePlugin(plugin);
     }
 
     public ArrayList<Page> getKitPages() {

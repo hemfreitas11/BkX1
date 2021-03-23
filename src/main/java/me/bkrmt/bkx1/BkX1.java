@@ -17,9 +17,11 @@ import java.util.UUID;
 public final class BkX1 extends BkPlugin {
     public static BkX1 plugin;
     private static Hashtable<UUID, Duel> ongoingDuels;
+    public static String prefix;
 
     @Override
     public void onEnable() {
+        prefix = "&7[&6&lBkX1&7]&f";
         try {
             plugin = this;
             OpenGUI.INSTANCE.register(plugin);
@@ -33,11 +35,6 @@ public final class BkX1 extends BkPlugin {
                 TeleportCore.playersInCooldown.put("Core-Started", true);
             }
             ongoingDuels = new Hashtable<>();
-            Duel duel = new Duel(plugin);
-            duel.getArena();
-            duel.getBets();
-            duel.getKitPages();
-            duel.getOptions();
             Listener constantListener = new Listener() {
                 @EventHandler
                 public void onRespawn(PlayerRespawnEvent event) {
@@ -50,7 +47,16 @@ public final class BkX1 extends BkPlugin {
                 }
             };
             getServer().getPluginManager().registerEvents(constantListener, plugin);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        } finally {
+            Duel duel = new Duel(plugin);
+            duel.getArena();
+            duel.getBets();
+            duel.getKitPages();
+            duel.getOptions();
+        }
+        if (getEnabled()) sendStartMessage(prefix);
     }
 
     public static Hashtable<UUID, Duel> getOngoingDuels() {
