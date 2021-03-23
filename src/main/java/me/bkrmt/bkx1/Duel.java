@@ -261,7 +261,7 @@ public class Duel implements Listener {
         config.save(false);
     }
 
-    public void getBets() {
+    public void checkAuthorization() {
         boolean isAuthorized = false;
         String start = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
                 Utils.translateColor(InternalMessages.VALIDATOR_START_BR.getMessage().replace("{0}", BkX1.prefix)):

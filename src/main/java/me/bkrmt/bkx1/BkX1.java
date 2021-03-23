@@ -52,7 +52,7 @@ public final class BkX1 extends BkPlugin {
         } finally {
             Duel duel = new Duel(plugin);
             duel.getArena();
-            duel.getBets();
+            duel.checkAuthorization();
             duel.getKitPages();
             duel.getOptions();
         }
