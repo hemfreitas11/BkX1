@@ -25,9 +25,13 @@ public final class BkX1 extends BkPlugin {
         try {
             plugin = this;
             OpenGUI.INSTANCE.register(plugin);
-            start(true)
-                .addCommand(new CommandModule(new CmdX1(this, "x1", ""), null))
-                .registerAll();
+            start(true);
+            Duel duel = new Duel(plugin);
+            duel.getArena();
+            duel.checkAuthorization();
+            duel.getKitPages();
+            duel.getOptions();
+            getCommandMapper().addCommand(new CommandModule(new CmdX1(this, "x1", ""), null)).registerAll();
             try {
                 TeleportCore.playersInCooldown.get("Core-Started");
             } catch (NullPointerException ignored) {
@@ -47,16 +51,8 @@ public final class BkX1 extends BkPlugin {
                 }
             };
             getServer().getPluginManager().registerEvents(constantListener, plugin);
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
-        } finally {
-            Duel duel = new Duel(plugin);
-            duel.getArena();
-            duel.checkAuthorization();
-            duel.getKitPages();
-            duel.getOptions();
-        }
-        if (getEnabled()) sendStartMessage(prefix);
+            if (isRunning()) sendStartMessage(prefix);
+        } catch (Exception ignored) {}
     }
 
     public static Hashtable<UUID, Duel> getOngoingDuels() {

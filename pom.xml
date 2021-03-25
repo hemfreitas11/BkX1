@@ -108,6 +108,18 @@
             <version>1.13</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>me.bkrmt.bkcore</groupId>
+            <artifactId>validator</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.riversun</groupId>
+            <artifactId>java-promise</artifactId>
+            <version>1.1.0</version>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>me.bkrmt</groupId>
