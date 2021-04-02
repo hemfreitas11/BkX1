@@ -13,12 +13,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.math.BigDecimal;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,8 +27,9 @@ public class Arena {
     private Location location1;
     private Location location2;
     private Location spectators;
-    private BigDecimal price;
+    private double price;
     private BkPlugin plugin;
+    private int id;
     private final Configuration config;
     private boolean isInUse;
 
@@ -37,6 +37,15 @@ public class Arena {
         this.plugin = plugin;
         this.config = plugin.getConfig("arenas", arenaName);
         this.isInUse = getConfig().getBoolean("in-use");
+        this.price = config.getDouble("price");
+        if (config.getInt("id") > 1000 ) {
+            this.id = config.getInt("id");
+        } else {
+            int newId = generateArenaID();
+            this.id = newId;
+            config.set("id", newId);
+            config.save(false);
+        }
 
         if (config.get("name") == null) setName(arenaName);
         else name = config.getString("name");
@@ -57,6 +66,22 @@ public class Arena {
             location2 = config.getLocation("locations.fighter2");
             spectators = config.getLocation("locations.spectators");
         }
+    }
+
+    private int generateArenaID() {
+        int returnId = Utils.getRandomInRange(1001, 9999);
+        File[] listFiles = plugin.getFile("", "arenas").listFiles();
+        if (listFiles.length > 0) {
+            int[] arenaIds = new int[listFiles.length];
+            for (int c = 0; c < arenaIds.length; c++) {
+                arenaIds[c] = plugin.getConfig("arenas", listFiles[c].getName()).getInt("id");
+            }
+
+            while (Arrays.asList(arenaIds).contains(returnId)) {
+                returnId = Utils.getRandomInRange(1001, 9999);
+            }
+        }
+        return returnId;
     }
 
     public void setLocation1(Location location1) {
@@ -147,6 +172,29 @@ public class Arena {
         menu.openGui(player);
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public static boolean ownsArena(Player player, String arenaName) {
+        arenaName = ChatColor.stripColor(arenaName);
+        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
+        String uuid = String.valueOf(player.getUniqueId());
+        if (config.get(uuid+".arenas") == null) return false;
+        List<String> ownedKits = config.getStringList(uuid+".arenas");
+        return ownedKits.contains(arenaName);
+    }
+
+    public static void addOwner(Player player, String arenaName) {
+        arenaName = ChatColor.stripColor(arenaName);
+        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
+        String uuid = String.valueOf(player.getUniqueId());
+        List<String> ownedKits = config.get(uuid+".arenas") == null ? new ArrayList<>() : config.getStringList(uuid+".arenas");
+        ownedKits.add(arenaName);
+        config.set(uuid + ".arenas", ownedKits);
+        config.save(false);
+    }
+
     private void setLocation(Player player, String key) {
         player.closeInventory();
         getConfig().setLocation("locations." + key, player.getLocation());
@@ -182,7 +230,7 @@ public class Arena {
         return spectators;
     }
 
-    public void setPrice(BigDecimal price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -202,7 +250,7 @@ public class Arena {
         config.save(false);
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 

@@ -208,9 +208,42 @@ public class Duel implements Listener {
         }
 
         //Teleport player back
-        fighter1.teleport(fighter1Return);
-        fighter2.teleport(fighter2Return);
+        returnLocation(player);
+    }
 
+    private void returnLocation(Player player) {
+        if (player.getUniqueId().equals(fighter1.getUniqueId())) {
+            fighter2.teleport(fighter2Return);
+        } else {
+            fighter1.teleport(fighter1Return);
+        }
+        waitForPickUp(player);
+    }
+
+    private void waitForPickUp(Player player) {
+        int time = getOptions().contains(DuelOptions.OWN_ITEMS) ? plugin.getConfig().getInt("time-to-pick-items") : 3;
+        if (getOptions().contains(DuelOptions.OWN_ITEMS)) player.sendMessage("You have " + time + " seconds to pickup the items");
+        final int[] timesRun = {0};
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                plugin.sendActionBar(player, "Leaving arena in " + String.valueOf(time-timesRun[0]));
+                timesRun[0]++;
+                if (timesRun[0] > time) {
+                    plugin.sendActionBar(player, "");
+                    if (player.getUniqueId().equals(fighter1.getUniqueId())) {
+                        fighter1.teleport(fighter1Return);
+                    } else {
+                        fighter2.teleport(fighter2Return);
+                    }
+                    finish();
+                    cancel();
+                }
+            }
+        }.runTaskTimer(plugin, 0, 20);
+    }
+
+    private void finish() {
         //Give player reward
 
         HandlerList.unregisterAll(duelListener);
@@ -262,18 +295,10 @@ public class Duel implements Listener {
     }
 
     public void checkAuthorization() {
-        String start = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
-                Utils.translateColor(InternalMessages.VALIDATOR_START_BR.getMessage().replace("{0}", BkX1.prefix)):
-                Utils.translateColor(InternalMessages.VALIDATOR_START_EN.getMessage().replace("{0}", BkX1.prefix));
-        String noResponse = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
-            Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE_BR.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l")):
-            Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE_EN.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));;
-        String success = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
-                            Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS_BR.getMessage().replace("{0}", BkX1.prefix)):
-                            Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS_EN.getMessage().replace("{0}", BkX1.prefix));
-        String error = plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_BR") ?
-                            Utils.translateColor(InternalMessages.VALIDATOR_ERROR_BR.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l")):
-                            Utils.translateColor(InternalMessages.VALIDATOR_ERROR_EN.getMessage().replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));
+        String start = Utils.translateColor(InternalMessages.VALIDATOR_START.getMessage(plugin).replace("{0}", BkX1.prefix));
+        String noResponse = Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE.getMessage(plugin).replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));
+        String success = Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS.getMessage(plugin).replace("{0}", BkX1.prefix));
+        String error = Utils.translateColor(InternalMessages.VALIDATOR_ERROR.getMessage(plugin).replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));
         plugin.setRunning(false);
         BukkitTask validationTimeout = new BukkitRunnable() {
             @Override
@@ -291,8 +316,8 @@ public class Duel implements Listener {
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("plugin", plugin.getName().toLowerCase());
-            con.setConnectTimeout(5000);
-            con.setReadTimeout(5000);
+            /*con.setConnectTimeout(5000);
+            con.setReadTimeout(5000);*/
             if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(
                         con.getInputStream()));
@@ -320,6 +345,7 @@ public class Duel implements Listener {
                 validationTimeout.cancel();
             }
         } catch(Exception ignored) {
+            ignored.printStackTrace();
             plugin.getPluginLoader().disablePlugin(plugin);
             Bukkit.getConsoleSender().sendMessage(" ");
             Bukkit.getConsoleSender().sendMessage(noResponse);

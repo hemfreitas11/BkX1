@@ -7,10 +7,13 @@ import me.bkrmt.opengui.GUI;
 import me.bkrmt.opengui.ItemBuilder;
 import me.bkrmt.opengui.Rows;
 import me.bkrmt.opengui.SimpleGUI;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,6 +59,7 @@ public class ChooseArenaMenu {
         newLore.add(plugin.getLangFile().get("info.arena-selected"));
 
         int arenaIndex = 0;
+        boolean first = true;
         for (Page page : pages) {
             if (!page.isBuilt()) {
                 int index = 10;
@@ -63,22 +67,76 @@ public class ChooseArenaMenu {
                     if (arenaIndex < tempSize) {
                         if (getArenas().size() > 0) {
                             int finalIndex = index++;
-                            Arena arena = getArenas().get(arenaIndex++);
-                            page.setItem(finalIndex,
-                                    new ItemBuilder(arena.getDisplayItem()),
-                                    event -> {
-                                        if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                            arena.showEditMenu(duel);
-                                        } else if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                            Page.clearUnclickable(pages);
-                                            page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()),  newLore);
-                                            duel.setArena(arena);
-                                            refreshButtons(duel);
+                            if (first) {
+                                ItemStack randomDisplay = plugin.getConfig().getItemStack("gui-buttons.random-arena-button");
+                                ItemBuilder randomArena = new ItemBuilder(randomDisplay);
+                                int inte = (int) (Math.random() * arenas.size());
+
+                                page.setItem(10, randomArena, event -> {
+                                    Page.clearUnclickable(duel.getKitPages());
+                                    List<String> randomLore = new ArrayList<>();
+                                    randomLore.add(" ");
+                                    randomLore.add(plugin.getLangFile().get("info.arena-selected"));
+
+                                    page.setUnclickable(10, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(10).getPageItem().getItem().getItemMeta().getDisplayName()), randomLore);
+                                    System.out.println(inte);
+                                    duel.setArena(arenas.get(inte));
+                                    duel.getOptions().add(DuelOptions.RANDOM_ARENA);
+                                    refreshButtons(duel);
+                                });
+                                first = false;
+                            } else {
+                                Arena arena = getArenas().get(arenaIndex++);
+                                ItemStack display = arena.getDisplayItem();
+                                List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
+                                double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
+                                if (arena.getPrice() == 0 || Arena.ownsArena(duel.getFighter1(), ChatColor.stripColor(arena.getName()))) {
+                                    economyLore.add(" ");
+                                    if (arena.getPrice() == 0) economyLore.add("§aArena Grátis");
+                                    else economyLore.add("§aVoce comprou essa arena");
+                                } else {
+                                    economyLore.add(" ");
+                                    economyLore.add("§aPreco: §2" + arena.getPrice());
+                                    economyLore.add(" ");
+                                    if (playerMoney > arena.getPrice()) economyLore.add("§aClique para comprar");
+                                    else economyLore.add("§cSaldo insuficiente para comprar");
+                                }
+                                ItemMeta meta = display.getItemMeta();
+                                meta.setLore(economyLore);
+                                display.setItemMeta(meta);
+
+                                page.setItem(finalIndex,
+                                        new ItemBuilder(display),
+                                        event -> {
+                                            if (arena.getPrice() == 0 || Arena.ownsArena(duel.getFighter1(), ChatColor.stripColor(arena.getName()))) {
+                                                if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                    arena.showEditMenu(duel);
+                                                } else if (!page.getItems().get(event.getSlot()).isUnclickable()) {
+                                                    Page.clearUnclickable(pages);
+                                                    page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                                    duel.setArena(arena);
+                                                    duel.getOptions().remove(DuelOptions.RANDOM_ARENA);
+                                                    refreshButtons(duel);
+                                                }
+                                            } else {
+                                                if (playerMoney > arena.getPrice()) {
+                                                    EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
+                                                    if (r.transactionSuccess()) {
+                                                        Arena.addOwner((Player) event.getWhoClicked(), arena.getName());
+                                                        event.getWhoClicked().sendMessage("§aVoce comprou a arena " + arena.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
+                                                        event.getWhoClicked().closeInventory();
+                                                        page.setBuilt(false);
+                                                        ChooseArenaMenu.showGUI(duel);
+                                                    } else {
+                                                        event.getWhoClicked().sendMessage(String.format("An error occured: %s", r.errorMessage));
+                                                    }
+                                                }
+                                            }
                                         }
-                                    }
-                            );
-                            if (duel.getArena() != null && duel.getArena().getName().equals(arena.getName())) {
-                                page.setUnclickable(finalIndex, false, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(finalIndex).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                );
+                                if (duel.getArena() != null && duel.getArena().getName().equals(arena.getName())) {
+                                    page.setUnclickable(finalIndex, false, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(finalIndex).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                }
                             }
                         }
 
@@ -134,8 +192,10 @@ public class ChooseArenaMenu {
                 tempLore.add("§cbefore continuing.");
                 displayName = "§cNext";
             } else {
-                String arena = Utils.translateColor(duel.getArena().getName());
-                tempLore.add("§7You selected: §a" + arena);
+                String arena = duel.getOptions().contains(DuelOptions.RANDOM_ARENA) ?
+                        "&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI" :
+                        Utils.translateColor(duel.getArena().getName());
+                tempLore.add("§7You selected: §a" + Utils.translateColor(arena));
 
                 tempLore.add(" ");
                 tempLore.add("§aClick here to continue.");

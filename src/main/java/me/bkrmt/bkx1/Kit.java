@@ -1,6 +1,7 @@
 package me.bkrmt.bkx1;
 
 import me.bkrmt.bkcore.config.Configuration;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -10,7 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,12 +18,13 @@ public class Kit {
     private final String name;
     private final ItemStack displayItem;
     private final List<ItemStack> items;
-    private BigDecimal price;
+    private double price;
     private final Configuration config;
 
     public Kit(Configuration config) {
         this.config = config;
         this.name = config.getString("name");
+        this.price = config.getDouble("price");
 
         this.displayItem = config.getItemStack("display-item");
         ItemMeta tempMeta = displayItem.getItemMeta();
@@ -118,6 +119,25 @@ public class Kit {
         }
     }
 
+    public static boolean ownsKit(Player player, String kitName) {
+        kitName = ChatColor.stripColor(kitName);
+        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
+        String uuid = String.valueOf(player.getUniqueId());
+        if (config.get(uuid+".kits") == null) return false;
+        List<String> ownedKits = config.getStringList(uuid+".kits");
+        return ownedKits.contains(kitName);
+    }
+
+    public static void addOwner(Player player, String kitName) {
+        kitName = ChatColor.stripColor(kitName);
+        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
+        String uuid = String.valueOf(player.getUniqueId());
+        List<String> ownedKits = config.get(uuid+".kits") == null ? new ArrayList<>() : config.getStringList(uuid+".kits");
+        ownedKits.add(kitName);
+        config.set(uuid + ".kits", ownedKits);
+        config.save(false);
+    }
+
     public ItemStack getDisplayItem() {
         return displayItem;
     }
@@ -130,7 +150,7 @@ public class Kit {
         return items;
     }
 
-    public BigDecimal getPrice() {
+    public double getPrice() {
         return price;
     }
 

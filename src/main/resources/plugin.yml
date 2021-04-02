@@ -1,6 +1,8 @@
 name: BkX1
 version: ${project.version}
 main: me.bkrmt.bkx1.BkX1
+depend:
+  - Vault
 api-version: 1.13
 authors: [ Bkr__ ]
 description: X1 Plugin

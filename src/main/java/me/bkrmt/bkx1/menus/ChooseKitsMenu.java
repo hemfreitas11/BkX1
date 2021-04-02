@@ -1,17 +1,18 @@
 package me.bkrmt.bkx1.menus;
 
 import me.bkrmt.bkcore.Utils;
-import me.bkrmt.bkx1.Duel;
-import me.bkrmt.bkx1.DuelOptions;
-import me.bkrmt.bkx1.Kit;
-import me.bkrmt.bkx1.Page;
+import me.bkrmt.bkx1.*;
 import me.bkrmt.opengui.GUI;
 import me.bkrmt.opengui.ItemBuilder;
 import me.bkrmt.opengui.Rows;
 import me.bkrmt.opengui.SimpleGUI;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.io.File;
@@ -62,8 +63,11 @@ public class ChooseKitsMenu {
 
         ItemBuilder ownItems = new ItemBuilder(playerHead);
 
+        ItemBuilder randomItems = new ItemBuilder(plugin.getConfig().getItemStack("gui-buttons.random-kit-button"));
+
         int kitIndex = 0;
         boolean first = true;
+        boolean second = false;
 
         for (Page page : duel.getKitPages()) {
             if (!page.isBuilt()) {
@@ -72,6 +76,7 @@ public class ChooseKitsMenu {
                     if (kitIndex < kits.size()) {
                         int finalKitIndex = kitIndex++;
                         int finalIndex = index;
+                        int inte = (int) (Math.random() * kits.size());
                         if (first) {
                             page.setItem(10, ownItems, event -> {
                                 Page.clearUnclickable(duel.getKitPages());
@@ -82,24 +87,76 @@ public class ChooseKitsMenu {
                                 duel.setKit(null);
                                 duel.getOptions().add(DuelOptions.OWN_ITEMS);
                                 duel.getOptions().remove(DuelOptions.DROP_ITEMS);
+                                duel.getOptions().remove(DuelOptions.RANDOM_KIT);
                                 refreshButtons(duel);
                             });
                             first = false;
+                            second = true;
+                        } else if (second) {
+                            page.setItem(11, randomItems, event -> {
+                                Page.clearUnclickable(duel.getKitPages());
+                                List<String> lore = new ArrayList<>();
+                                lore.add(" ");
+                                lore.add(plugin.getLangFile().get("info.kit-selected"));
+                                page.setUnclickable(11, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(11).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                duel.setKit(kits.get(inte));
+                                duel.getOptions().remove(DuelOptions.OWN_ITEMS);
+                                duel.getOptions().remove(DuelOptions.DROP_ITEMS);
+                                duel.getOptions().add(DuelOptions.RANDOM_KIT);
+                                page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                refreshButtons(duel);
+                            });
+                            second = false;
                         } else {
+                            Kit kit = kits.get(finalKitIndex);
+                            ItemStack display = kit.getDisplayItem();
+                            List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
+                            double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
+                            if (kit.getPrice() == 0 || Kit.ownsKit(duel.getFighter1(), ChatColor.stripColor(kit.getName()))) {
+                                economyLore.add(" ");
+                                if (kit.getPrice() == 0) economyLore.add("§aKit Grátis");
+                                else economyLore.add("§aVoce comprou esse kit");
+                            } else {
+                                economyLore.add(" ");
+                                economyLore.add("§aPreco: §2" + kit.getPrice());
+                                economyLore.add(" ");
+                                if (playerMoney > kit.getPrice()) economyLore.add("§aClique para comprar");
+                                else economyLore.add("§cSaldo insuficiente para comprar");
+                            }
+                            ItemMeta meta = display.getItemMeta();
+                            meta.setLore(economyLore);
+                            display.setItemMeta(meta);
+
                             page.setItem(finalIndex,
-                                    new ItemBuilder(kits.get(finalKitIndex).getDisplayItem()),
+                                    new ItemBuilder(display),
                                     event -> {
-                                        duel.setKit(kits.get(finalKitIndex));
-                                        if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                            duel.getOptions().remove(DuelOptions.OWN_ITEMS);
-                                            duel.getOptions().remove(DuelOptions.DROP_ITEMS);
-                                            Page.clearUnclickable(duel.getKitPages());
-                                            List<String> lore = new ArrayList<>();
-                                            lore.add(" ");
-                                            lore.add(plugin.getLangFile().get("info.kit-selected"));
-                                            page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                        if (kit.getPrice() == 0 || Kit.ownsKit(duel.getFighter1(), ChatColor.stripColor(kit.getName()))) {
                                             duel.setKit(kits.get(finalKitIndex));
-                                            refreshButtons(duel);
+                                            if (!page.getItems().get(event.getSlot()).isUnclickable()) {
+                                                duel.getOptions().remove(DuelOptions.OWN_ITEMS);
+                                                duel.getOptions().remove(DuelOptions.DROP_ITEMS);
+                                                duel.getOptions().remove(DuelOptions.RANDOM_KIT);
+                                                Page.clearUnclickable(duel.getKitPages());
+                                                List<String> lore = new ArrayList<>();
+                                                lore.add(" ");
+                                                lore.add(plugin.getLangFile().get("info.kit-selected"));
+                                                page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                                duel.setKit(kits.get(finalKitIndex));
+                                                refreshButtons(duel);
+                                            }
+                                        } else {
+                                            if (playerMoney > kit.getPrice()) {
+                                                EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), kit.getPrice());
+                                                if(r.transactionSuccess()) {
+                                                    Kit.addOwner((Player) event.getWhoClicked(), kit.getName());
+                                                    event.getWhoClicked().sendMessage("§aVoce comprou o kit " + kit.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
+                                                    event.getWhoClicked().closeInventory();
+                                                    page.setBuilt(false);
+                                                    ChooseKitsMenu.showGUI(duel);
+                                                } else {
+                                                    event.getWhoClicked().sendMessage(String.format("An error occured: %s", r.errorMessage));
+                                                }
+                                            }
                                         }
                                     });
                         }
@@ -135,8 +192,15 @@ public class ChooseKitsMenu {
                 tempLore.add("§cbefore continuing.");
                 displayName = "§cNext";
             } else {
-                String kit = duel.getOptions().contains(DuelOptions.OWN_ITEMS) ? "Own items" : Utils.translateColor(duel.getKit().getName());
-                tempLore.add("§7You selected: §a" + kit);
+                String kit;
+                if (duel.getOptions().contains(DuelOptions.OWN_ITEMS)){
+                    kit = "Own items";
+                } else if (duel.getOptions().contains(DuelOptions.RANDOM_KIT)) {
+                    kit = "&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI";
+                } else {
+                    kit = Utils.translateColor(duel.getKit().getName());
+                }
+                tempLore.add("§7You selected: §a" + Utils.translateColor(kit));
                 if (duel.getOptions().contains(DuelOptions.OWN_ITEMS)) {
                     String itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? "§aEnabled" : "§cDisabled";
                     tempLore.add("§7Item drop is: " + itemDrop);

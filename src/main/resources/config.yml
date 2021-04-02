@@ -19,6 +19,9 @@ broadcast-to-all: true
 # This is how long the plugin will wait for an answer when a player is challenged
 challenge-expire: 30
 
+# Time for the plugin to teleport the player out of the arena
+time-to-pick-items: 10
+
 duel-bet:
   min: 1000
   max: 5000
@@ -53,3 +56,23 @@ gui-buttons:
     name: '&6Use player items'
     lore:
       - '&eOwn items'
+
+  # The button for using your own items in the duel.
+  random-kit-button:
+    byte: 0
+    damage: 0
+    material: ENDER_PEARL
+    ammount: 1
+    name: '&eRandom Kit'
+    lore:
+      - '&eSelect a random kit'
+
+  # The button for using your own items in the duel.
+  random-arena-button:
+    byte: 0
+    damage: 0
+    material: ENDER_PEARL
+    ammount: 1
+    name: '&eRandom Arena'
+    lore:
+      - '&eSelect a random arena'
