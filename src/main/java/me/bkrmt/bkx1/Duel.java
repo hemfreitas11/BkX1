@@ -211,7 +211,6 @@ public class Duel implements Listener {
 
         arena.setInUse(false);
 
-
         //Teleport player back
         returnLocation(player);
     }

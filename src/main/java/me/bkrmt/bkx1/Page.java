@@ -50,14 +50,14 @@ public class Page {
             if (nextButton.getItemMeta().getLore() != null) {
                 nextButton.setItemMeta(translateLore(nextButton, nextPage));
             }
-        }
             gui.setItem(slots[1], new ItemBuilder(nextButton), event -> nextPage.openGui((Player) event.getWhoClicked()));
+        }
         if (previousPage != null) {
             if (backButton.getItemMeta().getLore() != null) {
                 backButton.setItemMeta(translateLore(backButton, previousPage));
             }
-        }
             gui.setItem(slots[0], new ItemBuilder(backButton), event -> previousPage.openGui((Player) event.getWhoClicked()));
+        }
         return this;
     }
 
