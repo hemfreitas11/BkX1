@@ -87,6 +87,8 @@ public class Duel implements Listener {
             fighter1.sendMessage("Starting duel...");
             fighter2.sendMessage("Starting duel...");
 
+            arena.setInUse(true);
+
             //Teleport player 1
             this.fighter1Return = fighter1.getLocation();
             new Teleport(plugin, fighter1, false)
@@ -206,6 +208,9 @@ public class Duel implements Listener {
         if (kit != null) {
             returnItems(plugin, player);
         }
+
+        arena.setInUse(false);
+
 
         //Teleport player back
         returnLocation(player);

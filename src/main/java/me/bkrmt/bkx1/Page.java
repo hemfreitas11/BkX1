@@ -10,7 +10,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Page {
     private final int pageNumber;
@@ -47,14 +50,14 @@ public class Page {
             if (nextButton.getItemMeta().getLore() != null) {
                 nextButton.setItemMeta(translateLore(nextButton, nextPage));
             }
-            gui.setItem(slots[1], new ItemBuilder(nextButton), event -> nextPage.openGui((Player) event.getWhoClicked()));
         }
+            gui.setItem(slots[1], new ItemBuilder(nextButton), event -> nextPage.openGui((Player) event.getWhoClicked()));
         if (previousPage != null) {
             if (backButton.getItemMeta().getLore() != null) {
                 backButton.setItemMeta(translateLore(backButton, previousPage));
             }
-            gui.setItem(slots[0], new ItemBuilder(backButton), event -> previousPage.openGui((Player) event.getWhoClicked()));
         }
+            gui.setItem(slots[0], new ItemBuilder(backButton), event -> previousPage.openGui((Player) event.getWhoClicked()));
         return this;
     }
 
@@ -65,14 +68,11 @@ public class Page {
                 temp[0] = 0;
                 temp[1] = 8;
                 break;
-            case THREE:
-                temp[0] = 9;
-                temp[1] = 17;
-                break;
             case FOUR:
                 temp[0] = 27;
                 temp[1] = 35;
                 break;
+            case THREE:
             case FIVE:
                 temp[0] = 18;
                 temp[1] = 26;

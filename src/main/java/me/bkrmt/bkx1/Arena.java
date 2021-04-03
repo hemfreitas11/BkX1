@@ -21,11 +21,9 @@ public class Arena extends Purchasable {
     private Location location1;
     private Location location2;
     private Location spectators;
-    private boolean isInUse;
 
     public Arena(BkPlugin plugin, String arenaName) {
         super(plugin, arenaName, "arenas");
-        this.isInUse = getConfig().getBoolean("in-use");
 
         if (getConfig().get("locations") == null) {
             location1 = null;
@@ -134,11 +132,10 @@ public class Arena extends Purchasable {
     }
 
     public boolean isInUse() {
-        return isInUse;
+        return getConfig().getBoolean("in-use");
     }
 
     public void setInUse(boolean inUse) {
-        this.isInUse = inUse;
         getConfig().set("in-use", inUse);
         getConfig().save(false);
     }

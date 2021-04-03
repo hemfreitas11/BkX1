@@ -6,6 +6,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class DuelRequest {
         this.duel = duel;
         this.plugin = duel.getPlugin();
         tpaMessage = new TextComponent("");
-        kit = duel.getKit() != null ? duel.getKit().getName() : "Own Items";
+        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(duel.getKit().getName())) : "Own Items";
         arena = duel.getArena().getName();
         itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? Utils.translateColor("&2Yes") : Utils.translateColor("&4No");
         expDrop = duel.getOptions().contains(DuelOptions.DROP_EXP) ? Utils.translateColor("&2Yes") : Utils.translateColor("&4No");
@@ -45,6 +46,7 @@ public class DuelRequest {
         BkX1.getOngoingDuels().put(targetPlayer.getUniqueId(), duel);
         if (plugin.getConfig().getBoolean("broadcast-to-all")) broadcastToAll();
         targetPlayer.spigot().sendMessage(tpaMessage);
+        duel.getFighter2().performCommand("x1 accept");
     }
 
     private void broadcastToAll() {

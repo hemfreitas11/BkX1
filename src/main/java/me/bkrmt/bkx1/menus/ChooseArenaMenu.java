@@ -7,6 +7,7 @@ import me.bkrmt.opengui.GUI;
 import me.bkrmt.opengui.ItemBuilder;
 import me.bkrmt.opengui.Rows;
 import me.bkrmt.opengui.SimpleGUI;
+import me.bkrmt.teleport.Teleport;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -29,19 +30,33 @@ public class ChooseArenaMenu {
         arenas = new ArrayList<>();
         pages = new ArrayList<>();
 
-        File[] listFiles = plugin.getFile("", "arenas").listFiles();
-        if (listFiles.length > 0) {
-            for (File arena : listFiles) {
-                arenas.add(new Arena(plugin, arena.getName().replace(".yml", "")));
+
+        if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
+            for (Duel ongoingDuel : BkX1.getOngoingDuels().values()) {
+                boolean contains = false;
+                for (Arena arena : arenas) {
+                    if (arena.getId() == ongoingDuel.getArena().getId()) {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains) arenas.add(ongoingDuel.getArena());
+            }
+        } else {
+            File[] listFiles = plugin.getFile("", "arenas").listFiles();
+            if (listFiles.length > 0) {
+                for (File arena : listFiles) {
+                    arenas.add(new Arena(plugin, arena.getName().replace(".yml", "")));
+                }
             }
         }
 
         Page previousPage = null;
         int tempSize = getArenas().size() > 0 ? getArenas().size() : 1;
-
-        int pagesSize = (int) Math.ceil((double) tempSize/(double) 7);
+        int rowSize = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? 5 : 7;
+        int pagesSize = (int) Math.ceil((double) tempSize / (double) rowSize);
         for (int c = 0; c < pagesSize; c++) {
-            Page page = new Page(plugin, new SimpleGUI(new GUI("&cChoose the arena " + (c+1) + "/" + pagesSize, Rows.FOUR)), c+1);
+            Page page = new Page(plugin, new SimpleGUI(new GUI("&cChoose the arena " + (c + 1) + "/" + pagesSize, duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR)), c + 1);
             pages.add(page);
             if (previousPage != null) {
                 page.setPreviousPage(previousPage);
@@ -61,13 +76,13 @@ public class ChooseArenaMenu {
         int arenaIndex = 0;
         boolean first = true;
         for (Page page : pages) {
-            if (!page.isBuilt()) {
-                int index = 10;
-                for (int i = 0; i < 7; i++) {
+            if (!page.isBuilt() || duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
+                int index = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? 11 : 10;
+                for (int i = 0; i < rowSize; i++) {
                     if (arenaIndex < tempSize) {
                         if (getArenas().size() > 0) {
-                            int finalIndex = index++;
-                            if (first) {
+                            int finalIndex = index;
+                            if (first && !duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                                 ItemStack randomDisplay = plugin.getConfig().getItemStack("gui-buttons.random-arena-button");
                                 ItemBuilder randomArena = new ItemBuilder(randomDisplay);
                                 int inte = (int) (Math.random() * arenas.size());
@@ -87,54 +102,86 @@ public class ChooseArenaMenu {
                             } else {
                                 Arena arena = getArenas().get(arenaIndex++);
                                 ItemStack display = arena.getDisplayItem();
-                                List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                                 double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
-                                if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
-                                    economyLore.add(" ");
-                                    if (arena.getPrice() == 0) economyLore.add("§aArena Grátis");
-                                    else economyLore.add("§aVoce comprou essa arena");
-                                } else {
-                                    economyLore.add(" ");
-                                    economyLore.add("§aPreco: §2" + arena.getPrice());
-                                    economyLore.add(" ");
-                                    if (playerMoney >= arena.getPrice()) economyLore.add("§aClique para comprar");
-                                    else economyLore.add("§cSaldo insuficiente para comprar");
-                                }
-                                ItemMeta meta = display.getItemMeta();
-                                meta.setLore(economyLore);
-                                display.setItemMeta(meta);
 
-                                page.setItem(finalIndex,
-                                        new ItemBuilder(display),
-                                        event -> {
-                                            if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
-                                                if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                                    arena.showEditMenu(duel);
-                                                } else if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                                    Page.clearUnclickable(pages);
-                                                    page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
-                                                    duel.setArena(arena);
-                                                    duel.getOptions().remove(DuelOptions.RANDOM_ARENA);
-                                                    refreshButtons(duel);
-                                                }
-                                            } else {
-                                                if (playerMoney >= arena.getPrice()) {
-                                                    EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
-                                                    if (r.transactionSuccess()) {
-                                                        arena.addOwner((Player) event.getWhoClicked());
-                                                        event.getWhoClicked().sendMessage("§aVoce comprou a arena " + arena.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
-                                                        event.getWhoClicked().closeInventory();
-                                                        page.setBuilt(false);
-                                                        ChooseArenaMenu.showGUI(duel);
-                                                    } else {
-                                                        event.getWhoClicked().sendMessage(String.format("An error occured: %s", r.errorMessage));
+                                if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
+                                    List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
+                                    if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
+                                        economyLore.add(" ");
+                                        if (arena.getPrice() == 0) economyLore.add("§aArena Grátis");
+                                        else economyLore.add("§aVoce comprou essa arena");
+                                    } else {
+                                        economyLore.add(" ");
+                                        economyLore.add("§aPreco: §2" + arena.getPrice());
+                                        economyLore.add(" ");
+                                        if (playerMoney >= arena.getPrice()) economyLore.add("§aClique para comprar");
+                                        else economyLore.add("§cSaldo insuficiente para comprar");
+                                    }
+                                    ItemMeta meta = display.getItemMeta();
+                                    meta.setLore(economyLore);
+                                    display.setItemMeta(meta);
+                                } else {
+                                    Duel spectatedDuel = findDuel(arena);
+
+                                    if (spectatedDuel != null) {
+                                        List<String> economyLore = arena.getConfig().getLore("display-item.lore");
+                                        economyLore.add(" ");
+                                        economyLore.add("§7Fighter 1: §a" + spectatedDuel.getFighter1().getName());
+                                        economyLore.add("§7Fighter 2: §a" + spectatedDuel.getFighter2().getName());
+                                        economyLore.add(" ");
+                                        economyLore.add("§aClick to go to the arena!");
+                                        ItemMeta meta = display.getItemMeta();
+                                        meta.setLore(economyLore);
+                                        display.setItemMeta(meta);
+                                    }
+                                }
+
+                                if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
+                                    if (arena.isInUse()) {
+                                        page.setItem(finalIndex, new ItemBuilder(display), event -> {
+                                            duel.getFighter1().closeInventory();
+                                            new Teleport(plugin, duel.getFighter1(), false)
+                                                    .setLocation(arena.getName(), arena.getSpectators())
+                                                    .setDuration(3)
+                                                    .setIsCancellable(true)
+                                                    .startTeleport();
+                                        });
+                                        index++;
+                                    }
+                                } else {
+                                    page.setItem(finalIndex,
+                                            new ItemBuilder(display),
+                                            event -> {
+                                                if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
+                                                    if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                        arena.showEditMenu(duel);
+                                                    } else if (!page.getItems().get(event.getSlot()).isUnclickable()) {
+                                                        Page.clearUnclickable(pages);
+                                                        page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                                        duel.setArena(arena);
+                                                        duel.getOptions().remove(DuelOptions.RANDOM_ARENA);
+                                                        refreshButtons(duel);
+                                                    }
+                                                } else {
+                                                    if (playerMoney >= arena.getPrice()) {
+                                                        EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
+                                                        if (r.transactionSuccess()) {
+                                                            arena.addOwner((Player) event.getWhoClicked());
+                                                            event.getWhoClicked().sendMessage("§aVoce comprou a arena " + arena.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
+                                                            event.getWhoClicked().closeInventory();
+                                                            page.setBuilt(false);
+                                                            ChooseArenaMenu.showGUI(duel);
+                                                        } else {
+                                                            event.getWhoClicked().sendMessage(String.format("An error occured: %s", r.errorMessage));
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                );
-                                if (duel.getArena() != null && duel.getArena().getName().equals(arena.getName())) {
-                                    page.setUnclickable(finalIndex, false, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(finalIndex).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                    );
+                                    if (duel.getArena() != null && duel.getArena().getName().equals(arena.getName())) {
+                                        page.setUnclickable(finalIndex, false, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(finalIndex).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                    }
+                                    index++;
                                 }
                             }
                         }
@@ -158,9 +205,11 @@ public class ChooseArenaMenu {
                                         .sendInput();
                             });
                         } else {
-                            page.setItem(29, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true, "§aGo back to kits", lore)), event -> {
-                                ChooseKitsMenu.showGUI(duel);
-                            });
+                            if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
+                                page.setItem(29, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true, "§aGo back to kits", lore)), event -> {
+                                    ChooseKitsMenu.showGUI(duel);
+                                });
+                            }
                         }
                     } else break;
                 }
@@ -172,8 +221,19 @@ public class ChooseArenaMenu {
         pages.get(0).openGui(duel.getFighter1());
     }
 
+    private static Duel findDuel(Arena arena) {
+        Duel spectatedDuel = null;
+        for (Duel ongoingDuel : BkX1.getOngoingDuels().values()) {
+            if (arena.getId() == ongoingDuel.getArena().getId()) {
+                spectatedDuel = ongoingDuel;
+                break;
+            }
+        }
+        return spectatedDuel;
+    }
+
     private static void refreshButtons(Duel duel) {
-        if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+        if (!duel.getOptions().contains(DuelOptions.EDIT_MODE) && !duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
             nextButton(duel);
         }
     }
