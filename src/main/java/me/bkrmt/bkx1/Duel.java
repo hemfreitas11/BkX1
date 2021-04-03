@@ -304,54 +304,49 @@ public class Duel implements Listener {
             @Override
             public void run() {
                 if (!plugin.isRunning()) {
-                    Bukkit.getConsoleSender().sendMessage(" ");
-                    Bukkit.getConsoleSender().sendMessage(noResponse);
-                    Bukkit.getConsoleSender().sendMessage(" ");
+                    sendError(noResponse);
                 }
             }
         }.runTaskLater(plugin, 15*20);
         plugin.sendConsoleMessage(start);
         try {
-            URL obj = new URL("https://git-ds-bot.herokuapp.com/ver");
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("plugin", plugin.getName().toLowerCase());
-            /*con.setConnectTimeout(5000);
-            con.setReadTimeout(5000);*/
-            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(
-                        con.getInputStream()));
+            URL url = new URL("https://git-ds-bot.herokuapp.com/ver");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("plugin", plugin.getName().toLowerCase());
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        connection.getInputStream()));
                 String inputLine;
                 StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
+                while ((inputLine = reader.readLine()) != null) {
                     response.append(inputLine);
                 }
-                in.close();
+                reader.close();
                 String stringResponse = response.toString();
                 if (stringResponse.contains("true")) {
                     plugin.setRunning(true);
                     validationTimeout.cancel();
                     plugin.sendConsoleMessage(success);
                 } else {
-                    Bukkit.getConsoleSender().sendMessage(" ");
-                    Bukkit.getConsoleSender().sendMessage(error);
-                    Bukkit.getConsoleSender().sendMessage(" ");
+                    sendError(error);
                     validationTimeout.cancel();
                 }
             } else {
-                Bukkit.getConsoleSender().sendMessage(" ");
-                Bukkit.getConsoleSender().sendMessage(noResponse);
-                Bukkit.getConsoleSender().sendMessage(" ");
+                sendError(noResponse);
                 validationTimeout.cancel();
             }
         } catch(Exception ignored) {
-            ignored.printStackTrace();
             plugin.getPluginLoader().disablePlugin(plugin);
-            Bukkit.getConsoleSender().sendMessage(" ");
-            Bukkit.getConsoleSender().sendMessage(noResponse);
-            Bukkit.getConsoleSender().sendMessage(" ");
+            sendError(noResponse);
             validationTimeout.cancel();
         }
+    }
+
+    private void sendError(String error) {
+        Bukkit.getConsoleSender().sendMessage(" ");
+        Bukkit.getConsoleSender().sendMessage(error);
+        Bukkit.getConsoleSender().sendMessage(" ");
     }
 
     public ArrayList<Page> getKitPages() {
