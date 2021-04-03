@@ -1,41 +1,27 @@
 package me.bkrmt.bkx1;
 
-import me.bkrmt.bkcore.config.Configuration;
-import org.bukkit.ChatColor;
+import me.bkrmt.bkcore.BkPlugin;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Kit {
-    private final String name;
-    private final ItemStack displayItem;
+public class Kit extends Purchasable {
     private final List<ItemStack> items;
-    private double price;
-    private final Configuration config;
 
-    public Kit(Configuration config) {
-        this.config = config;
-        this.name = config.getString("name");
-        this.price = config.getDouble("price");
-
-        this.displayItem = config.getItemStack("display-item");
-        ItemMeta tempMeta = displayItem.getItemMeta();
-        tempMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-        displayItem.setItemMeta(tempMeta);
+    public Kit(BkPlugin plugin, String kitName) {
+        super(plugin, kitName, "kits");
 
         items = new ArrayList<>();
 
-        ConfigurationSection section = config.getConfigurationSection("items");
+        ConfigurationSection section = getConfig().getConfigurationSection("items");
         for (String key : section.getKeys(false)) {
-            items.add(config.getItemStack("items." + key));
+            items.add(getConfig().getItemStack("items." + key));
         }
     }
 
@@ -98,6 +84,10 @@ public class Kit {
         inv.setBoots(null);
     }
 
+    public List<ItemStack> getItems() {
+        return items;
+    }
+
     public static boolean hasAvaliableSlot(Player player){
         Inventory inv = player.getInventory();
         for (ItemStack item: inv.getContents()) {
@@ -117,44 +107,5 @@ public class Kit {
         } else {
             inventory.addItem(item);
         }
-    }
-
-    public static boolean ownsKit(Player player, String kitName) {
-        kitName = ChatColor.stripColor(kitName);
-        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
-        String uuid = String.valueOf(player.getUniqueId());
-        if (config.get(uuid+".kits") == null) return false;
-        List<String> ownedKits = config.getStringList(uuid+".kits");
-        return ownedKits.contains(kitName);
-    }
-
-    public static void addOwner(Player player, String kitName) {
-        kitName = ChatColor.stripColor(kitName);
-        Configuration config = BkX1.plugin.getConfig("player-purchases.yml");
-        String uuid = String.valueOf(player.getUniqueId());
-        List<String> ownedKits = config.get(uuid+".kits") == null ? new ArrayList<>() : config.getStringList(uuid+".kits");
-        ownedKits.add(kitName);
-        config.set(uuid + ".kits", ownedKits);
-        config.save(false);
-    }
-
-    public ItemStack getDisplayItem() {
-        return displayItem;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<ItemStack> getItems() {
-        return items;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public Configuration getConfig() {
-        return config;
     }
 }

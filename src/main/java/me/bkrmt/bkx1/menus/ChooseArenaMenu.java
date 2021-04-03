@@ -32,7 +32,7 @@ public class ChooseArenaMenu {
         File[] listFiles = plugin.getFile("", "arenas").listFiles();
         if (listFiles.length > 0) {
             for (File arena : listFiles) {
-                arenas.add(new Arena(plugin, arena.getName()));
+                arenas.add(new Arena(plugin, arena.getName().replace(".yml", "")));
             }
         }
 
@@ -44,8 +44,8 @@ public class ChooseArenaMenu {
             Page page = new Page(plugin, new SimpleGUI(new GUI("&cChoose the arena " + (c+1) + "/" + pagesSize, Rows.FOUR)), c+1);
             pages.add(page);
             if (previousPage != null) {
-                previousPage.setNextPage(page);
                 page.setPreviousPage(previousPage);
+                previousPage.setNextPage(page);
             }
             previousPage = page;
         }
@@ -79,7 +79,6 @@ public class ChooseArenaMenu {
                                     randomLore.add(plugin.getLangFile().get("info.arena-selected"));
 
                                     page.setUnclickable(10, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(10).getPageItem().getItem().getItemMeta().getDisplayName()), randomLore);
-                                    System.out.println(inte);
                                     duel.setArena(arenas.get(inte));
                                     duel.getOptions().add(DuelOptions.RANDOM_ARENA);
                                     refreshButtons(duel);
@@ -90,7 +89,7 @@ public class ChooseArenaMenu {
                                 ItemStack display = arena.getDisplayItem();
                                 List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                                 double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
-                                if (arena.getPrice() == 0 || Arena.ownsArena(duel.getFighter1(), ChatColor.stripColor(arena.getName()))) {
+                                if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
                                     economyLore.add(" ");
                                     if (arena.getPrice() == 0) economyLore.add("§aArena Grátis");
                                     else economyLore.add("§aVoce comprou essa arena");
@@ -98,7 +97,7 @@ public class ChooseArenaMenu {
                                     economyLore.add(" ");
                                     economyLore.add("§aPreco: §2" + arena.getPrice());
                                     economyLore.add(" ");
-                                    if (playerMoney > arena.getPrice()) economyLore.add("§aClique para comprar");
+                                    if (playerMoney >= arena.getPrice()) economyLore.add("§aClique para comprar");
                                     else economyLore.add("§cSaldo insuficiente para comprar");
                                 }
                                 ItemMeta meta = display.getItemMeta();
@@ -108,7 +107,7 @@ public class ChooseArenaMenu {
                                 page.setItem(finalIndex,
                                         new ItemBuilder(display),
                                         event -> {
-                                            if (arena.getPrice() == 0 || Arena.ownsArena(duel.getFighter1(), ChatColor.stripColor(arena.getName()))) {
+                                            if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
                                                 if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                     arena.showEditMenu(duel);
                                                 } else if (!page.getItems().get(event.getSlot()).isUnclickable()) {
@@ -119,10 +118,10 @@ public class ChooseArenaMenu {
                                                     refreshButtons(duel);
                                                 }
                                             } else {
-                                                if (playerMoney > arena.getPrice()) {
+                                                if (playerMoney >= arena.getPrice()) {
                                                     EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
                                                     if (r.transactionSuccess()) {
-                                                        Arena.addOwner((Player) event.getWhoClicked(), arena.getName());
+                                                        arena.addOwner((Player) event.getWhoClicked());
                                                         event.getWhoClicked().sendMessage("§aVoce comprou a arena " + arena.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
                                                         event.getWhoClicked().closeInventory();
                                                         page.setBuilt(false);
@@ -146,7 +145,7 @@ public class ChooseArenaMenu {
                                     String arenaName = Utils.cleanString(input.toLowerCase()
                                             .replace(" ", "-")
                                             .replaceAll("\\P{L}+", ""));
-                                    Arena newArena = new Arena(plugin, arenaName + ".yml");
+                                    Arena newArena = new Arena(plugin, arenaName);
                                     newArena.setName(input);
                                     duel.setArena(null);
                                     ChooseArenaMenu.showGUI(duel);

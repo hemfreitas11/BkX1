@@ -31,9 +31,11 @@ public class ChooseKitsMenu {
         if (kitsFolder.listFiles().length > 0) {
             for (File kit : kitsFolder.listFiles()) {
                 try {
-                    kits.add(new Kit(plugin.getConfig("kits", kit.getName())));
+                    kits.add(new Kit(plugin, kit.getName().replace(".yml", "")));
                 } catch (Exception ignored) {
                     plugin.getServer().getLogger().log(Level.SEVERE, "The kit in the file '" + kit.getName() + "' is corrupted and could not be loaded.");
+                    ignored.printStackTrace();
+                    return;
                 }
             }
         }
@@ -112,7 +114,7 @@ public class ChooseKitsMenu {
                             ItemStack display = kit.getDisplayItem();
                             List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                             double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
-                            if (kit.getPrice() == 0 || Kit.ownsKit(duel.getFighter1(), ChatColor.stripColor(kit.getName()))) {
+                            if (kit.getPrice() == 0 || kit.isOwner(duel.getFighter1())) {
                                 economyLore.add(" ");
                                 if (kit.getPrice() == 0) economyLore.add("§aKit Grátis");
                                 else economyLore.add("§aVoce comprou esse kit");
@@ -120,7 +122,7 @@ public class ChooseKitsMenu {
                                 economyLore.add(" ");
                                 economyLore.add("§aPreco: §2" + kit.getPrice());
                                 economyLore.add(" ");
-                                if (playerMoney > kit.getPrice()) economyLore.add("§aClique para comprar");
+                                if (playerMoney >= kit.getPrice()) economyLore.add("§aClique para comprar");
                                 else economyLore.add("§cSaldo insuficiente para comprar");
                             }
                             ItemMeta meta = display.getItemMeta();
@@ -130,7 +132,7 @@ public class ChooseKitsMenu {
                             page.setItem(finalIndex,
                                     new ItemBuilder(display),
                                     event -> {
-                                        if (kit.getPrice() == 0 || Kit.ownsKit(duel.getFighter1(), ChatColor.stripColor(kit.getName()))) {
+                                        if (kit.getPrice() == 0 || kit.isOwner(duel.getFighter1())) {
                                             duel.setKit(kits.get(finalKitIndex));
                                             if (!page.getItems().get(event.getSlot()).isUnclickable()) {
                                                 duel.getOptions().remove(DuelOptions.OWN_ITEMS);
@@ -145,10 +147,10 @@ public class ChooseKitsMenu {
                                                 refreshButtons(duel);
                                             }
                                         } else {
-                                            if (playerMoney > kit.getPrice()) {
+                                            if (playerMoney >= kit.getPrice()) {
                                                 EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), kit.getPrice());
                                                 if(r.transactionSuccess()) {
-                                                    Kit.addOwner((Player) event.getWhoClicked(), kit.getName());
+                                                    kit.addOwner((Player) event.getWhoClicked());
                                                     event.getWhoClicked().sendMessage("§aVoce comprou o kit " + kit.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
                                                     event.getWhoClicked().closeInventory();
                                                     page.setBuilt(false);
