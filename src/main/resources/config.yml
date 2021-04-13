@@ -22,6 +22,8 @@ challenge-expire: 30
 # Time for the plugin to teleport the player out of the arena
 time-to-pick-items: 10
 
+random-selection: '&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI'
+
 duel-bet:
   min: 1000
   max: 5000
@@ -45,7 +47,7 @@ gui-buttons:
     ammount: 1
     name: '&cPrevious Page'
     lore:
-      - '&7Go to page &c{page-number}'
+      - '&7Go back to page &c{page-number}'
 
   # The button for using your own items in the duel.
   no-kit-button:

@@ -32,10 +32,12 @@ public class DuelRequest {
         this.duel = duel;
         this.plugin = duel.getPlugin();
         tpaMessage = new TextComponent("");
-        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(duel.getKit().getName())) : "Own Items";
+        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(duel.getKit().getName())) : plugin.getLangFile().get("info.own-items");
         arena = duel.getArena().getName();
-        itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? Utils.translateColor("&2Yes") : Utils.translateColor("&4No");
-        expDrop = duel.getOptions().contains(DuelOptions.DROP_EXP) ? Utils.translateColor("&2Yes") : Utils.translateColor("&4No");
+        String yes = plugin.getLangFile().get("info.true");
+        String no = plugin.getLangFile().get("info.false");
+        itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? yes : no;
+        expDrop = duel.getOptions().contains(DuelOptions.DROP_EXP) ? yes : no;
         price = "0000";
         expire = String.valueOf(plugin.getConfig().getInt("challenge-expire"));
         buildMessage();

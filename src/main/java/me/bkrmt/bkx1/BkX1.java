@@ -6,15 +6,19 @@ import me.bkrmt.bkcore.command.CommandModule;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.bkx1.commands.CmdX1;
+import me.bkrmt.bkx1.events.StatsUpdateEvent;
+import me.bkrmt.bkx1.stats.StatsManager;
 import me.bkrmt.opengui.OpenGUI;
 import me.bkrmt.teleport.TeleportCore;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+import java.io.File;
 import java.util.Hashtable;
 import java.util.UUID;
 
@@ -23,6 +27,7 @@ public final class BkX1 extends BkPlugin {
     private static Hashtable<UUID, Duel> ongoingDuels;
     public static String prefix;
     public static Economy econ;
+    private static StatsManager statsManager;
 
     @Override
     public void onEnable() {
@@ -31,8 +36,13 @@ public final class BkX1 extends BkPlugin {
             plugin = this;
             OpenGUI.INSTANCE.register(plugin);
             start(true);
-            getConfig("player-purchases.yml");
-            if (!setupEconomy() ) {
+            File playerData = getFile("player-data", "");
+            if (!playerData.exists()) playerData.mkdir();
+
+            getConfig("player-data", "player-purchases.yml");
+            getConfig("player-data", "player-stats.yml");
+
+            if (!setupEconomy()) {
                 plugin.sendConsoleMessage(Utils.translateColor(InternalMessages.NO_ECONOMY.getMessage(plugin).replace("{0}", prefix)));
                 getServer().getPluginManager().disablePlugin(this);
             } else {
@@ -51,8 +61,23 @@ public final class BkX1 extends BkPlugin {
                 ongoingDuels = new Hashtable<>();
                 Listener constantListener = new Listener() {
                     @EventHandler
+                    public void onStatUpdate(StatsUpdateEvent event) {
+                        StatsManager.printStats(event.getNewStatsList());
+                    }
+
+                    @EventHandler
                     public void onRespawn(PlayerRespawnEvent event) {
-                        Configuration config = getConfig("player-inventories.yml");
+                        Configuration config = getConfig("player-data", "player-inventories.yml");
+                        Player player = event.getPlayer();
+
+                        if (config.get(player.getUniqueId().toString()) != null) {
+                            Duel.returnItems(plugin, player);
+                        }
+                    }
+
+                    @EventHandler
+                    public void onJoin(PlayerJoinEvent event) {
+                        Configuration config = getConfig("player-data", "player-inventories.yml");
                         Player player = event.getPlayer();
 
                         if (config.get(player.getUniqueId().toString()) != null) {
@@ -61,9 +86,14 @@ public final class BkX1 extends BkPlugin {
                     }
                 };
                 getServer().getPluginManager().registerEvents(constantListener, plugin);
-                if (isRunning()) sendStartMessage(prefix);
+                statsManager = new StatsManager(this);
+                if (isRunning()) {
+                    sendStartMessage(prefix);
+                }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
     }
 
     private boolean setupEconomy() {
@@ -80,5 +110,9 @@ public final class BkX1 extends BkPlugin {
 
     public static Hashtable<UUID, Duel> getOngoingDuels() {
         return ongoingDuels;
+    }
+
+    public static StatsManager getStatsManager() {
+        return statsManager;
     }
 }

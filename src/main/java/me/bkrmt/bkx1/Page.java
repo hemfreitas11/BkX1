@@ -23,9 +23,8 @@ public class Page {
     private boolean isBuilt;
     private final ItemStack backButton;
     private final ItemStack nextButton;
-    private Map<Integer, PageItem> itemStorage;
+    private final Map<Integer, PageItem> itemStorage;
     private BkPlugin plugin;
-//    private final
 
     public Page(BkPlugin plugin, SimpleGUI gui, int pageNumber) {
         this.plugin = plugin;
@@ -116,6 +115,10 @@ public class Page {
                 }
             }
         }
+    }
+
+    public BkPlugin getPlugin() {
+        return plugin;
     }
 
     public boolean isBuilt() {

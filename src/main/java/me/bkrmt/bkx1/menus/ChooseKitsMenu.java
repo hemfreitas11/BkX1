@@ -45,7 +45,7 @@ public class ChooseKitsMenu {
         Page previousPage = null;
         int pagesSize = (int) Math.ceil((double)kits.size()/(double) (isExpanded ? 15 : 7));
         for (int c = 0; c < pagesSize; c++) {
-            Page page = new Page(plugin, new SimpleGUI(new GUI("&cChoose your Kit " + (c+1) + "/" + pagesSize, (isExpanded ? Rows.FIVE : Rows.FOUR))), c+1);
+            Page page = new Page(plugin, new SimpleGUI(new GUI(plugin.getLangFile().get("info.choose-kit-title").replace("{page}", String.valueOf(c+1)).replace("{total-pages}", String.valueOf(pagesSize)), (isExpanded ? Rows.FIVE : Rows.FOUR))), c+1);
             duel.getKitPages().add(page);
             if (previousPage != null) {
                 previousPage.setNextPage(page);
@@ -116,14 +116,14 @@ public class ChooseKitsMenu {
                             double playerMoney = BkX1.econ.getBalance(duel.getFighter1());
                             if (kit.getPrice() == 0 || kit.isOwner(duel.getFighter1())) {
                                 economyLore.add(" ");
-                                if (kit.getPrice() == 0) economyLore.add("§aKit Grátis");
-                                else economyLore.add("§aVoce comprou esse kit");
+                                if (kit.getPrice() == 0) economyLore.add(plugin.getLangFile().get("info.free-kit"));
+                                else economyLore.add(plugin.getLangFile().get("info.kit-bought"));
                             } else {
                                 economyLore.add(" ");
                                 economyLore.add("§aPreco: §2" + kit.getPrice());
                                 economyLore.add(" ");
-                                if (playerMoney >= kit.getPrice()) economyLore.add("§aClique para comprar");
-                                else economyLore.add("§cSaldo insuficiente para comprar");
+                                if (playerMoney >= kit.getPrice()) economyLore.add(plugin.getLangFile().get("info.click-to-buy"));
+                                else economyLore.add(plugin.getLangFile().get("info.not-enough-money"));
                             }
                             ItemMeta meta = display.getItemMeta();
                             meta.setLore(economyLore);
@@ -195,20 +195,22 @@ public class ChooseKitsMenu {
                 displayName = "§cNext";
             } else {
                 String kit;
+                String enabled = plugin.getLangFile().get("info.enabled");
+                String disabled = plugin.getLangFile().get("info.disabled");
                 if (duel.getOptions().contains(DuelOptions.OWN_ITEMS)){
-                    kit = "Own items";
+                    kit = plugin.getLangFile().get("info.own-items");
                 } else if (duel.getOptions().contains(DuelOptions.RANDOM_KIT)) {
-                    kit = "&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI";
+                    kit = Utils.translateColor(plugin.getConfig().getString("random-selection"));
                 } else {
                     kit = Utils.translateColor(duel.getKit().getName());
                 }
                 tempLore.add("§7You selected: §a" + Utils.translateColor(kit));
                 if (duel.getOptions().contains(DuelOptions.OWN_ITEMS)) {
-                    String itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? "§aEnabled" : "§cDisabled";
+                    String itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? enabled : disabled;
                     tempLore.add("§7Item drop is: " + itemDrop);
                 }
 
-                String dropExp = duel.getOptions().contains(DuelOptions.DROP_EXP) ? "§aEnabled" : "§cDisabled";
+                String dropExp = duel.getOptions().contains(DuelOptions.DROP_EXP) ? enabled : disabled;
                 tempLore.add("§7Experience drop is: " + dropExp);
 
                 tempLore.add(" ");
@@ -296,86 +298,3 @@ public class ChooseKitsMenu {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*if (isExpanded) {
-            for (Page page : pages) {
-                int index = 11;
-                for (int c = 0; c < 3; c++) {
-                    if (kitIndex == kits.size()) break;
-                    for (int i = 0; i < 5; i++) {
-                        if (kitIndex < kits.size()) {
-                            int finalKitIndex = kitIndex;
-                            page.getGui().setItem(index++,
-                                    new ItemBuilder(kits.get(kitIndex++).getDisplayItem()),
-                                    event -> {
-                                        duel.setKit(kits.get(finalKitIndex));
-                                    });
-                        } else break;
-                    }
-                    index += 4;
-                }
-            }
-        } else {
-            for (Page page : pages) {
-                int index = 10;
-                for (int i = 0; i < 7; i++) {
-                    if (kitIndex < kits.size()) {
-                        if (first) {
-                            page.setItem(10, ownItems, event -> {
-                                Page.clearUnclickable(pages);
-                                page.setUnclickable(10);
-                                duel.getOptions().add(DuelOptions.OWN_ITEMS);
-                            });
-                            index++;
-                            first = false;
-                        } else {
-                            int finalKitIndex = kitIndex;
-                            int finalIndex = index++;
-
-                            page.setItem(finalIndex,
-                                    new ItemBuilder(kits.get(kitIndex++).getDisplayItem()),
-                                    event -> {
-//                                    duel.setKit(kits.get(finalKitIndex));
-//                                    ChooseArenaMenu.showGUI(duel);
-                                        if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                            Page.clearUnclickable(pages);
-                                            page.setUnclickable(finalIndex);
-                                            duel.setKit(kits.get(finalKitIndex));
-                                        }
-                                    });
-                        }
-                    } else break;
-                }
-
-                page.setItem(31, nextButton, event -> {
-                    if (duel.getKit() == null && !duel.getOptions().contains(DuelOptions.OWN_ITEMS)) {
-                        System.out.println("lkasjdlaks jdlçkja çsldjçl kajsçlk ");
-                    } else {
-                        ChooseArenaMenu.showGUI(duel);
-                    }
-                });
-            }
-        }*/

@@ -13,9 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Collections;
 
 public class Arena extends Purchasable {
     private Location location1;
@@ -59,17 +57,30 @@ public class Arena extends Purchasable {
         SimpleGUI gui = new SimpleGUI(new GUI(ChatColor.stripColor(getName()), Rows.FIVE));
 
         Page menu = new Page(getPlugin(), gui, 1);
-        List<String> test = new ArrayList<>();
-        test.add("aksjdlkasjdl jasdj ");
-        test.add("asdkqiworsd");
-        test.add("slçakj dd");
 
-        ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true, "Teste", test));
-        ItemBuilder pos1 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getCyanDye(), true, "Teste", test));
-        ItemBuilder pos2 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getRedDye(), true, "Teste", test));
-        ItemBuilder spec = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getEnderEye(), true, "Teste", test));
-        ItemBuilder item = new ItemBuilder(Utils.createItem(Material.ITEM_FRAME, true, "Teste", test));
-        ItemBuilder backButton = new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true, Utils.translateColor("Go back"), test));
+        ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
+                getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-name.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-name.description"))));
+
+        ItemBuilder pos1 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getCyanDye(), true,
+                getPlugin().getLangFile().get("gui-buttons.arena-edit.set-position1.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.set-position1.description"))));
+
+        ItemBuilder pos2 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getRedDye(), true,
+                getPlugin().getLangFile().get("gui-buttons.arena-edit.set-position2.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.set-position2.description"))));
+
+        ItemBuilder spec = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getEnderEye(), true,
+                getPlugin().getLangFile().get("gui-buttons.arena-edit.set-spectator.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.set-spectator.description"))));
+
+        ItemBuilder item = new ItemBuilder(Utils.createItem(Material.ITEM_FRAME, true,
+                getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-display-item.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-display-item.description"))));
+
+        ItemBuilder backButton = new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+                getPlugin().getLangFile().get("gui-buttons.back-button.name"),
+                Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.back-button.description"))));
 
         menu.setItemOnXY(5, 5, backButton, event -> {
             ChooseArenaMenu.showGUI(duel);
@@ -81,33 +92,31 @@ public class Arena extends Purchasable {
                 ChooseArenaMenu.showGUI(duel);
             },
                     input -> {
+                        event.getWhoClicked().sendMessage(getPlugin().getLangFile().get("info.input.cancelled"));
                     })
-                    .setCancellable(false)
-                    .setSubTitle("asdasd")
-                    .setTitle("Digite o nome da arena")
+                    .setCancellable(true)
+                    .setTitle(getPlugin().getLangFile().get("info.input.arena-name"))
+                    .setSubTitle(getPlugin().getLangFile().get("info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
                     .sendInput();
         });
         menu.setItemOnXY(7, 2, item, event -> {
             SimpleGUI tempGui = new SimpleGUI(new GUI(ChatColor.stripColor(getName()), Rows.THREE));
             tempGui.getGuiSettings().setCanDrag(false);
             tempGui.getGuiSettings().setCanEnterItems(true);
-            AtomicInteger cout = new AtomicInteger();
             tempGui.getGuiSettings().setEnteredItemResponse(event1 -> {
                 event.setCancelled(true);
-                player.sendMessage("Item set.");
+                player.sendMessage(getPlugin().getLangFile().get("info.item-set"));
                 setDisplayItem(event.getCursor());
             });
 
             Page page = new Page(getPlugin(), tempGui, 1);
 
-            List<String> lore = new ArrayList<>();
-            lore.add(Utils.translateColor("&aasd lkaskdj lsajk "));
-            lore.add(Utils.translateColor("&4asd saldka"));
-            lore.add(Utils.translateColor("&basd saldka"));
-
-            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true, Utils.translateColor("&6Enter Item"), lore)), event1 -> {
-                showEditMenu(duel);
-            });
+            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+                    getPlugin().getLangFile().get("gui-buttons.arena-edit.enter-item.name"),
+                    Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.arena-edit.enter-item.description")))),
+                    event1 -> {
+                        showEditMenu(duel);
+                    });
 
             page.openGui(player);
         });

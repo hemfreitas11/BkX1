@@ -34,6 +34,8 @@ public class Duel implements Listener {
 
     private Player fighter1;
     private Player fighter2;
+    private Player winner;
+    private Player loser;
 
     private Listener duelListener;
 
@@ -49,6 +51,8 @@ public class Duel implements Listener {
     private Kit kit;
 
     private ArrayList<Page> kitPages;
+
+    private EndCause endDuelCause;
 
     private BukkitTask checkReady;
     private BukkitTask checkStart;
@@ -69,6 +73,8 @@ public class Duel implements Listener {
         }
         fighter1 = null;
         fighter2 = null;
+        winner = null;
+        loser = null;
         fighter1Return = null;
         fighter2Return = null;
         checkReady = null;
@@ -84,8 +90,8 @@ public class Duel implements Listener {
             fighter1.closeInventory();
             fighter2.closeInventory();
 
-            fighter1.sendMessage("Starting duel...");
-            fighter2.sendMessage("Starting duel...");
+            fighter1.sendMessage(getPlugin().getLangFile().get("info.starting-duel"));
+            fighter2.sendMessage(getPlugin().getLangFile().get("info.starting-duel"));
 
             arena.setInUse(true);
 
@@ -123,8 +129,8 @@ public class Duel implements Listener {
                 public void run() {
                     if (!(playersReady[0] && playersReady[1])) {
                         checkReady.cancel();
-                        fighter1.sendMessage("Duel canceled.");
-                        fighter2.sendMessage("Duel canceled.");
+                        fighter1.sendMessage(getPlugin().getLangFile().get("info.duel-cancelled"));
+                        fighter2.sendMessage(getPlugin().getLangFile().get("info.duel-cancelled"));
                         cancel();
                     }
                 }
@@ -154,7 +160,7 @@ public class Duel implements Listener {
 
     private void startListener() {
         this.duelListener = new Listener() {
-            @EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
+            @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
             public void onPlayerDeath(PlayerDeathEvent event) {
                 Player player = event.getEntity();
                 if (isDuelPlayer(player)) {
@@ -164,13 +170,15 @@ public class Duel implements Listener {
                     if (!getOptions().contains(DuelOptions.DROP_EXP)) {
                         event.setKeepLevel(true);
                     }
+                    endDuelCause = EndCause.BATTLE_END;
                     checkDuelEnd(player);
                 }
             }
 
-            @EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
+            @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
             public void onPlayerLeave(PlayerQuitEvent event) {
                 Player player = event.getPlayer();
+                endDuelCause = EndCause.DISCONNECT;
                 if (isDuelPlayer(player)) {
                     checkDuelEnd(player);
                 }
@@ -190,29 +198,35 @@ public class Duel implements Listener {
     private void checkDuelEnd(Player player) {
         if (playersReady[0] && playersReady[1]) {
             if (player.getUniqueId().equals(fighter1.getUniqueId())) {
-                endDuel(fighter2);
+                winner = fighter2;
+                loser = fighter1;
+                endDuel();
             } else if (player.getUniqueId().equals(fighter2.getUniqueId())) {
-                endDuel(fighter1);
+                winner = fighter1;
+                loser = fighter2;
+                endDuel();
             }
         }
     }
 
-    private void endDuel(Player player) {
+    private void endDuel() {
 
         //Broadcast Winner
         for (Player tempPlayer : Bukkit.getOnlinePlayers()) {
-            plugin.sendTitle(tempPlayer, 10, 20, 10, "§6" + player.getName() + " won!", "asd as a qwe  asf");
+            plugin.sendTitle(tempPlayer, 10, 20, 10, "§6" + winner.getName() + " won!", "asd as a qwe  asf");
         }
 
         //Return player items
         if (kit != null) {
-            returnItems(plugin, player);
+            returnItems(plugin, winner);
         }
 
         arena.setInUse(false);
 
+        updateStatistics();
+
         //Teleport player back
-        returnLocation(player);
+        returnLocation(winner);
     }
 
     private void returnLocation(Player player) {
@@ -226,12 +240,13 @@ public class Duel implements Listener {
 
     private void waitForPickUp(Player player) {
         int time = getOptions().contains(DuelOptions.OWN_ITEMS) ? plugin.getConfig().getInt("time-to-pick-items") : 3;
-        if (getOptions().contains(DuelOptions.OWN_ITEMS)) player.sendMessage("You have " + time + " seconds to pickup the items");
+        if (getOptions().contains(DuelOptions.OWN_ITEMS))
+            player.sendMessage(getPlugin().getLangFile().get("info.time-to-pickup").replace("{seconds}", String.valueOf(time)));
         final int[] timesRun = {0};
         new BukkitRunnable() {
             @Override
             public void run() {
-                plugin.sendActionBar(player, "Leaving arena in " + String.valueOf(time-timesRun[0]));
+                plugin.sendActionBar(player, "Leaving arena in " + String.valueOf(time - timesRun[0]));
                 timesRun[0]++;
                 if (timesRun[0] > time) {
                     plugin.sendActionBar(player, "");
@@ -258,7 +273,7 @@ public class Duel implements Listener {
     }
 
     public static void returnItems(BkPlugin plugin, Player player) {
-        Configuration config = plugin.getConfig("player-inventories.yml");
+        Configuration config = plugin.getConfig("player-data", "player-inventories.yml");
         ItemStack[] invContents = null;
         if (plugin.getNmsVer().number < 9) {
             //Join armor contents and inventory
@@ -298,6 +313,34 @@ public class Duel implements Listener {
         config.save(false);
     }
 
+    private void updateStatistics() {
+        if (!endDuelCause.equals(EndCause.PLUGIN_RELOAD)) {
+            Configuration statsConfig = plugin.getConfig("player-data", "player-stats.yml");
+
+            if (statsConfig.get(winner.getUniqueId().toString() + ".name") == null)
+                statsConfig.set(winner.getUniqueId().toString() + ".name", winner.getName());
+
+            if (statsConfig.get(loser.getUniqueId().toString() + ".name") == null)
+                statsConfig.set(loser.getUniqueId().toString() + ".name", loser.getName());
+
+            statsConfig.set(winner.getUniqueId().toString() + ".duels", statsConfig.getInt(winner.getUniqueId().toString() + ".duels") + 1);
+            statsConfig.set(loser.getUniqueId().toString() + ".duels", statsConfig.getInt(loser.getUniqueId().toString() + ".duels") + 1);
+
+            statsConfig.set(winner.getUniqueId().toString() + ".wins", statsConfig.getInt(winner.getUniqueId().toString() + ".wins") + 1);
+            statsConfig.set(loser.getUniqueId().toString() + ".defeats", statsConfig.getInt(loser.getUniqueId().toString() + ".defeats") + 1);
+
+            if (endDuelCause.equals(EndCause.DISCONNECT))
+                statsConfig.set(loser.getUniqueId().toString() + ".disconnects", statsConfig.getInt(loser.getUniqueId().toString() + ".disconnects") + 1);
+
+            statsConfig.save(false);
+            BkX1.getStatsManager().updateStats();
+        } else {
+            // plugin reload
+        }
+
+
+    }
+
     public void checkAuthorization() {
         String start = Utils.translateColor(InternalMessages.VALIDATOR_START.getMessage(plugin).replace("{0}", BkX1.prefix));
         String noResponse = Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE.getMessage(plugin).replace("{0}", "&7[&4&lBkX1&7]&c").replace("{1}", "&b&l"));
@@ -311,7 +354,7 @@ public class Duel implements Listener {
                     sendError(noResponse);
                 }
             }
-        }.runTaskLater(plugin, 15*20);
+        }.runTaskLater(plugin, 15 * 20);
         plugin.sendConsoleMessage(start);
         try {
             URL url = new URL("https://git-ds-bot.herokuapp.com/ver");
@@ -333,14 +376,16 @@ public class Duel implements Listener {
                     validationTimeout.cancel();
                     plugin.sendConsoleMessage(success);
                 } else {
+                    plugin.getPluginLoader().disablePlugin(plugin);
                     sendError(error);
                     validationTimeout.cancel();
                 }
             } else {
+                plugin.getPluginLoader().disablePlugin(plugin);
                 sendError(noResponse);
                 validationTimeout.cancel();
             }
-        } catch(Exception ignored) {
+        } catch (Exception ignored) {
             plugin.getPluginLoader().disablePlugin(plugin);
             sendError(noResponse);
             validationTimeout.cancel();
@@ -369,7 +414,7 @@ public class Duel implements Listener {
             Kit.clearPlayer(fighter1);
             Kit.clearPlayer(fighter2);
 
-            Configuration invStorage = plugin.getConfig("player-inventories.yml");
+            Configuration invStorage = plugin.getConfig("player-data", "player-inventories.yml");
 
             invStorage.set(fighter1.getUniqueId().toString() + ".inventory", player1Inventory[0]);
             invStorage.set(fighter1.getUniqueId().toString() + ".armor", player1Inventory[1]);

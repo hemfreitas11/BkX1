@@ -7,6 +7,73 @@ commands:
     description: 'Plugin main command.'
     usage: '/x1 <fight | config>'
 
+gui-buttons:
+  player-profile:
+    head:
+      name: '&a{player}'
+      description: '&7Stats menu of {player}'
+    wins:
+      name: '&aDuels won'
+      description: '&7Wins: &a{wins}'
+    defeats:
+      name: '&cDuels lost'
+      description: '&7Defeats: &c{defeats}'
+    duels:
+      name: '&aDuels fought'
+      description: '&7Duels: &a{duels}'
+    disconnects:
+      name: '&cTimes disconnected'
+      description: '&7Disconnected: &c{disconnects}'
+    kdr:
+      name: '&aKill/Death ratio'
+      description: '&7KDR: {kdr}'
+
+  back-button:
+    name: '&7Previous menu'
+    description: '&7Go back to the previous menu'
+
+  close-button:
+    name: '&cClose Menu'
+    description: '&7Click to close this menu'
+
+  next-button:
+    enabled:
+      name: '&a&lNext'
+      description: '&7Click here to continue.'
+    disabled:
+      name: '&c&lNext'
+      description:
+        - '§cYou need to select an arena'
+        - '§cbefore continuing.'
+
+  create-arena:
+    name: '&aCreate Arena'
+    description: '&7Click here to input the name of the new arena.'
+
+  back-to-kits:
+    name: '&cGo back to kits'
+    description: '&7Click to go back to the kits menu.'
+
+  arena-edit:
+    edit-name:
+      name: '&aEdit Arena Name'
+      description: '&7Click here to edit the arena name'
+    set-position1:
+      name: '&aSet Position 1'
+      description: '&7Click here to set the position of fighter 1'
+    set-position2:
+      name: '&aSet Position 2'
+      description: '&7Click here to set the position of fighter 2'
+    set-spectator:
+      name: '&aSet Spectator Position'
+      description: '&7Click here to set the position of spectators'
+    edit-display-item:
+      name: '&aEdit Arena Item'
+      description: '&7Click here to edit the arena display item'
+    enter-item:
+      name: '&6Enter Item'
+      description: '&7Put the new item on an empty slot'
+
 info:
   request-message:
     accept-button: '&2&l[HERE]'
@@ -31,31 +98,86 @@ info:
       - ' '
       - '&7*-----------------------------------------------*'
       - ' '
+
   broadcast-to-all:
-      - '&7*--------------------*=/[|]\=*--------------------*'
-      - '&7The player &a&l{fighter1} &7challenged &a&l{fighter2} &7to a duel!'
-      - '&7&a&l{fighter2} &7has &c{expire} &7seconds to answer.'
-      - ' '
-      - '&7Kit: &a{kit}'
-      - '&7Arena: &a{arena}'
-      - '&7Item drop: {item-drop} &7'
-      - '&7*-----------------------------------------------*'
-  kit-selected: '&aKit selected! Click the ''Next'' button to continue.'
-  arena-selected: '&aArena selected! Click the ''Next'' button to continue.'
-  time-remaining: '&7Teleporting in &a{seconds}'
+    - '&7*--------------------*=/[|]\=*--------------------*'
+    - '&7The player &a&l{fighter1} &7challenged &a&l{fighter2} &7to a duel!'
+    - '&7&a&l{fighter2} &7has &c{expire} &7seconds to answer.'
+    - ' '
+    - '&7Kit: &a{kit}'
+    - '&7Arena: &a{arena}'
+    - '&7Item drop: {item-drop} &7'
+    - '&7*-----------------------------------------------*'
+
+  rank-list:
+    header: '&7*------------*=[&a&lPlayer Duel Rank&7]=*------------*'
+    footer: '&7*---------------*=[{previous-page}&7] [{page-numbers}&7] [{next-page}&7]=*---------------*'
+    page-numbers-format: '&a{page-number}&7/&a{total-pages}'
+    rank: '&7Rank {rank}: {player-button} &7| Wins: &a{wins}'
+    top: '&7Top {rank}: {player-button} &7| Wins: &a{wins}'
+
+    previous-page:
+      button: '&a&l<<'
+      hover: '&aClick to go back to the previous page'
+
+    next-page:
+      button: '&a&l>>'
+      hover: '&aClick to go to the next page'
+
+    player-button: '&a&l{player}'
+    hover-message: '&aClick to show this player''s profile'
+
+  player-bought-message:
+    arena: '&aYou bought the arena &2{arena}&a. &aNew balance: &2{balance}'
+    kit: '&aYou bought the kit &2{kit}&a. &aNew balance: &2{balance}'
+
+  duel-declined:
+    self: '&cThe player &4{player} &chas declined your duel challenge'
+    others: '&7You have declined the duel challenge from &4{player} &c.'
+
   input:
-    shop-name: '&7Enter the name of the shop'
-    countdown: '&7Cancelling in &c{seconds}'
+    arena-name: '&7Enter the name of the arena'
     type-to-cancel: '&7Type &c{cancel-input}&7 to cancel'
+    countdown: '&7Cancelling in &c{seconds}'
+    cancelled: '&cInput cancelled'
+
   warped:
     title: '&aYou teleported to'
     subtitle: '&2{location-name}'
 
+  request-sent: '&7Duel challenge sent, awaiting answer...'
+  free-arena: '&aFree arena'
+  free-kit: '&aFree kit'
+  arena-bought: '&aYou bought this arena'
+  kit-bought: '&aYou bought this kit'
+  price: '&aPrice: &2{price}'
+  click-to-buy: '&aClick to buy'
+  not-enough-money: '&cNot enough money to buy'
+  fighter1: '&7Fighter 1: &a{fighter}'
+  fighter2: '&7Fighter 2: &a{fighter}'
+  choose-kit-title: '&8Choose The Kit &a{page}&8/&a{total-pages}'
+  choose-arena-title: '&8Choose The Arena &a{page}&8/&a{total-pages}'
+  own-items: 'Own items'
+  true: '&2Yes'
+  false: '&4No'
+  enabled: '&aEnabled'
+  disabled: '&cDisabled'
+  next: '&a&lNext'
+  you-selected: '&7You selected: {name}'
+  starting-duel: '&aStarting duel...'
+  time-to-pickup: '&7You have &a{seconds} &7to pick up your opponent''s items'
+  item-set: '&aDisplay item set!'
+  kit-selected: '&aKit selected! Click the ''Next'' button to continue.'
+  arena-selected: '&aArena selected! Click the ''Next'' button to continue.'
+  time-remaining: '&7Teleporting in &a{seconds}'
+
 error:
+  corrupt-kit: ''
   input:
     awaiting-input: '&cYou can''t use commands now. Type ''{cancel-input}'' to cancel.'
     canceled: '&cYou canceled the input.'
     timedout: '&cYou didn''t type anything.'
+  duel-cancelled: '&cThe duel has been cancelled...'
   already-waiting: '&cYou are already waiting a teleport.'
   no-permission: 'You don''t have permission to do this.'
   warp-canceled-title: '&cTeleport canceled.'

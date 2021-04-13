@@ -110,7 +110,7 @@ public abstract class Purchasable {
     }
 
     public boolean isOwner(Player player) {
-        Configuration config = getPlugin().getConfig("player-purchases.yml");
+        Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
         if (config.get(uuid+"."+getKeyName()) == null) return false;
         List<String> ownedKits = config.getStringList(uuid+"."+getKeyName());
@@ -118,7 +118,7 @@ public abstract class Purchasable {
     }
 
     public void addOwner(Player player) {
-        Configuration config = getPlugin().getConfig("player-purchases.yml");
+        Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
         List<String> ownedPurchasables = config.get(uuid+"."+getKeyName()) == null ? new ArrayList<>() : config.getStringList(uuid+"."+getKeyName());
         ownedPurchasables.add(String.valueOf(getId()));

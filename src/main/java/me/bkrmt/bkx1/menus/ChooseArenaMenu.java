@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static me.bkrmt.bkx1.BkX1.plugin;
@@ -56,7 +57,7 @@ public class ChooseArenaMenu {
         int rowSize = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? 5 : 7;
         int pagesSize = (int) Math.ceil((double) tempSize / (double) rowSize);
         for (int c = 0; c < pagesSize; c++) {
-            Page page = new Page(plugin, new SimpleGUI(new GUI("&cChoose the arena " + (c + 1) + "/" + pagesSize, duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR)), c + 1);
+            Page page = new Page(plugin, new SimpleGUI(new GUI(plugin.getLangFile().get("info.choose-arena-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR)), c + 1);
             pages.add(page);
             if (previousPage != null) {
                 page.setPreviousPage(previousPage);
@@ -65,10 +66,6 @@ public class ChooseArenaMenu {
             previousPage = page;
         }
 
-        List<String> lore = new ArrayList<>();
-        lore.add("aksjdlaksjdlk");
-        lore.add("sakqplek");
-        lore.add("sakqpleksaldk");
         List<String> newLore = new ArrayList<>();
         newLore.add(" ");
         newLore.add(plugin.getLangFile().get("info.arena-selected"));
@@ -108,14 +105,16 @@ public class ChooseArenaMenu {
                                     List<String> economyLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                                     if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
                                         economyLore.add(" ");
-                                        if (arena.getPrice() == 0) economyLore.add("§aArena Grátis");
-                                        else economyLore.add("§aVoce comprou essa arena");
+                                        if (arena.getPrice() == 0)
+                                            economyLore.add(plugin.getLangFile().get("info.free-arena"));
+                                        else economyLore.add(plugin.getLangFile().get("info.arena-bought"));
                                     } else {
                                         economyLore.add(" ");
-                                        economyLore.add("§aPreco: §2" + arena.getPrice());
+                                        economyLore.add(plugin.getLangFile().get("info.price").replace("{price}", String.valueOf(arena.getPrice())));
                                         economyLore.add(" ");
-                                        if (playerMoney >= arena.getPrice()) economyLore.add("§aClique para comprar");
-                                        else economyLore.add("§cSaldo insuficiente para comprar");
+                                        if (playerMoney >= arena.getPrice())
+                                            economyLore.add(plugin.getLangFile().get("info.click-to-buy"));
+                                        else economyLore.add(plugin.getLangFile().get("info.not-enough-money"));
                                     }
                                     ItemMeta meta = display.getItemMeta();
                                     meta.setLore(economyLore);
@@ -126,10 +125,10 @@ public class ChooseArenaMenu {
                                     if (spectatedDuel != null) {
                                         List<String> economyLore = arena.getConfig().getLore("display-item.lore");
                                         economyLore.add(" ");
-                                        economyLore.add("§7Fighter 1: §a" + spectatedDuel.getFighter1().getName());
-                                        economyLore.add("§7Fighter 2: §a" + spectatedDuel.getFighter2().getName());
+                                        economyLore.add(plugin.getLangFile().get("info.fighter1").replace("{fighter}", spectatedDuel.getFighter1().getName()));
+                                        economyLore.add(plugin.getLangFile().get("info.fighter2").replace("{fighter}", spectatedDuel.getFighter2().getName()));
                                         economyLore.add(" ");
-                                        economyLore.add("§aClick to go to the arena!");
+                                        economyLore.add(plugin.getLangFile().get("info.click-to-buy"));
                                         ItemMeta meta = display.getItemMeta();
                                         meta.setLore(economyLore);
                                         display.setItemMeta(meta);
@@ -167,7 +166,10 @@ public class ChooseArenaMenu {
                                                         EconomyResponse r = BkX1.econ.withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
                                                         if (r.transactionSuccess()) {
                                                             arena.addOwner((Player) event.getWhoClicked());
-                                                            event.getWhoClicked().sendMessage("§aVoce comprou a arena " + arena.getName() + "§a. Novo saldo: " + BkX1.econ.format(r.balance));
+                                                            event.getWhoClicked().sendMessage(plugin.getLangFile()
+                                                                    .get("info.player-bought-message.arena")
+                                                                    .replace("{arena}", arena.getName())
+                                                                    .replace("{balance}", BkX1.econ.format(r.balance)));
                                                             event.getWhoClicked().closeInventory();
                                                             page.setBuilt(false);
                                                             ChooseArenaMenu.showGUI(duel);
@@ -187,7 +189,7 @@ public class ChooseArenaMenu {
                         }
 
                         if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                            page.setItem(31, new ItemBuilder(Utils.createItem(plugin.getHandler().getItemManager().getWritableBook(), true, "§aCreate Arena", lore)), event -> {
+                            page.setItem(31, new ItemBuilder(Utils.createItem(plugin.getHandler().getItemManager().getWritableBook(), true, plugin.getLangFile().get("gui-buttons.create-arena.name"), Collections.singletonList(plugin.getLangFile().get("gui-buttons.create-arena.description")))), event -> {
                                 new PlayerInput(plugin, duel.getFighter1(), input -> {
                                     String arenaName = Utils.cleanString(input.toLowerCase()
                                             .replace(" ", "-")
@@ -200,13 +202,15 @@ public class ChooseArenaMenu {
                                         input -> {
                                         })
                                         .setCancellable(false)
-                                        .setSubTitle("asdasd")
-                                        .setTitle("Digite o nome da arena")
+                                        .setTitle(plugin.getLangFile().get("info.input.arena-name"))
+                                        .setSubTitle(plugin.getLangFile().get("info.input.type-to-cancel").replace("{cancel-input}", plugin.getConfig().getString("cancel-input")))
                                         .sendInput();
                             });
                         } else {
                             if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
-                                page.setItem(29, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true, "§aGo back to kits", lore)), event -> {
+                                page.setItem(29, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+                                        plugin.getLangFile().get("gui-buttons.back-to-kits.name"),
+                                        Collections.singletonList(plugin.getLangFile().get("gui-buttons.back-to-kits.description")))), event -> {
                                     ChooseKitsMenu.showGUI(duel);
                                 });
                             }
@@ -247,18 +251,17 @@ public class ChooseArenaMenu {
             String displayName;
 
             if (duel.getArena() == null) {
-                tempLore.add("§cYou need to select an arena");
-                tempLore.add("§cbefore continuing.");
-                displayName = "§cNext";
+                tempLore.addAll(plugin.getLangFile().getConfig().getStringList("gui-buttons.next-button.disabled.description"));
+                displayName = plugin.getLangFile().get("gui-buttons.next-button.disabled.name");
             } else {
                 String arena = duel.getOptions().contains(DuelOptions.RANDOM_ARENA) ?
-                        "&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI" :
+                        Utils.translateColor(plugin.getConfig().getString("random-selection")) :
                         Utils.translateColor(duel.getArena().getName());
-                tempLore.add("§7You selected: §a" + Utils.translateColor(arena));
+                tempLore.add(plugin.getLangFile().get("info.you-selected").replace("{name}", Utils.translateColor(arena)));
 
                 tempLore.add(" ");
-                tempLore.add("§aClick here to continue.");
-                displayName = "§aNext";
+                tempLore.add(plugin.getLangFile().get("gui-buttons.next-button.enabled.description"));
+                displayName = plugin.getLangFile().get("gui-buttons.next-button.enabled.name");
             }
 
             nextButton = Page.buildButton(Material.SLIME_BALL, displayName, tempLore);
@@ -267,7 +270,7 @@ public class ChooseArenaMenu {
                 if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                     if (duel.getArena() != null) {
                         duel.getFighter1().closeInventory();
-                        duel.getFighter1().sendMessage("Duel request sent.");
+                        duel.getFighter1().sendMessage(plugin.getLangFile().get("info.request-sent"));
                         new DuelRequest(duel).sendMessage();
                     }
                 } else {
