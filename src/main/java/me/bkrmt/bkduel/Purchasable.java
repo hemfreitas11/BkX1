@@ -1,4 +1,4 @@
-package me.bkrmt.bkx1;
+package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
@@ -10,6 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +20,7 @@ public abstract class Purchasable {
     private String purchasableName;
     private final int id;
     private final double price;
-    private final Configuration config;
+    private Configuration config;
     private ItemStack displayItem;
     private final String keyName;
     private final BkPlugin plugin;
@@ -32,7 +35,7 @@ public abstract class Purchasable {
 
         this.price = config.getDouble("price");
 
-        if (config.getInt("id") > 1000 ) {
+        if (config.getInt("id") > 1000) {
             this.id = config.getInt("id");
         } else {
             int newId = generateID();
@@ -42,9 +45,9 @@ public abstract class Purchasable {
         }
 
         if (config.get("display-item") == null) {
-            setDisplayItem(new ItemStack(Material.DIRT));
+            setDisplayItem(Material.DIRT);
         } else {
-            setDisplayItem(config.getItemStack("display-item"));
+            setDisplayItem(config.getItemStack("display-item").getType());
         }
 
     }
@@ -77,7 +80,7 @@ public abstract class Purchasable {
         return plugin;
     }
 
-    public void setDisplayItem(ItemStack item) {
+    public void setDisplayItem(Material item) {
         displayItem = Utils.createItem(item, true, Utils.translateColor(config.getString("name")), config.getStringList("display-item.lore"));
 
         String displayName = getConfig().get("name") == null ? "Unnamed" : Utils.translateColor(getConfig().getString("name"));
@@ -112,28 +115,50 @@ public abstract class Purchasable {
     public boolean isOwner(Player player) {
         Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
-        if (config.get(uuid+"."+getKeyName()) == null) return false;
-        List<String> ownedKits = config.getStringList(uuid+"."+getKeyName());
+        if (config.get(uuid + "." + getKeyName()) == null) return false;
+        List<String> ownedKits = config.getStringList(uuid + "." + getKeyName());
         return ownedKits.contains(String.valueOf(getId()));
     }
 
     public void addOwner(Player player) {
         Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
-        List<String> ownedPurchasables = config.get(uuid+"."+getKeyName()) == null ? new ArrayList<>() : config.getStringList(uuid+"."+getKeyName());
+        List<String> ownedPurchasables = config.get(uuid + "." + getKeyName()) == null ? new ArrayList<>() : config.getStringList(uuid + "." + getKeyName());
         ownedPurchasables.add(String.valueOf(getId()));
         config.set(uuid + "." + getKeyName(), ownedPurchasables);
         config.save(false);
     }
 
-    public void setName(String purchasableName) {
+    public boolean setName(String purchasableName) {
+        boolean returnValue = false;
         String newName = Utils.cleanString(purchasableName.toLowerCase()
-                                            .replaceAll("\\P{L}+", ""));
-        File purchasableFile = getConfig().getFile();
-        purchasableFile.renameTo(plugin.getFile(getKeyName(), newName + ".yml"));
-        config.loadFile(purchasableFile);
-        this.purchasableName = purchasableName;
-        config.set("name", purchasableName);
+                .replaceAll("\\P{L}+", ""));
+
+        if (!newName.isEmpty()) {
+            try {
+                Files.copy(config.getFile().toPath(), plugin.getFile(getKeyName(), newName + ".yml").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            Configuration newConfig = plugin.getConfig(getKeyName(), newName + ".yml");
+            config.getFile().delete();
+            config = newConfig;
+            this.purchasableName = purchasableName;
+            config.set("name", purchasableName);
+            config.save(false);
+            returnValue = true;
+        }
+        return returnValue;
+    }
+
+    public void setDescription(List<String> lore) {
+        ItemMeta meta = displayItem.getItemMeta();
+        meta.setLore(lore);
+        ItemStack newDisplay = displayItem;
+        newDisplay.setItemMeta(meta);
+        displayItem = newDisplay;
+        config.set("display-item.lore", lore);
         config.save(false);
     }
 

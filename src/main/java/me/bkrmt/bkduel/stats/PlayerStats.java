@@ -1,4 +1,4 @@
-package me.bkrmt.bkx1.stats;
+package me.bkrmt.bkduel.stats;
 
 import java.util.UUID;
 

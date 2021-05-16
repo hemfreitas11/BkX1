@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.bkrmt</groupId>
-    <artifactId>bkx1</artifactId>
+    <artifactId>bkduel</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>BkX1</name>
+    <name>BkDuel</name>
 
-    <description>X1 Plugin</description>
+    <description>Duel Plugin</description>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,11 +21,15 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>everything</id>
+            <url>http://repo.citizensnpcs.co/</url>
+        </repository>
     </repositories>
 
     <build>
         <directory>../target</directory>
-        <finalName>BkX1</finalName>
+        <finalName>BkDuel</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -94,6 +98,27 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>net</groupId>
+            <artifactId>citizensnpcs</artifactId>
+            <version>2.0.27</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.gmail.filoghost</groupId>
+            <artifactId>holographicdisplays</artifactId>
+            <version>2.4.6</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>br.com.devpaulo</groupId>
+            <artifactId>legendchat</artifactId>
+            <version>1.1.5</version>
+            <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>me.bkrmt</groupId>
             <artifactId>bkcore</artifactId>
@@ -167,6 +192,12 @@
             <groupId>me.bkrmt.bkcore</groupId>
             <artifactId>teleport</artifactId>
             <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

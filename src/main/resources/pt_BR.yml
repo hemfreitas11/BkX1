@@ -1,65 +1,392 @@
+#
+#     ▄▄▄▄    ██ ▄█▀▓█████▄  █    ██ ▓█████  ██▓
+#    ▓█████▄  ██▄█▒ ▒██▀ ██▌ ██  ▓██▒▓█   ▀ ▓██▒
+#    ▒██▒ ▄██▓███▄░ ░██   █▌▓██  ▒██░▒███   ▒██░
+#    ▒██░█▀  ▓██ █▄ ░▓█▄   ▌▓▓█  ░██░▒▓█  ▄ ▒██░
+#    ░▓█  ▀█▓▒██▒ █▄░▒████▓ ▒▒█████▓ ░▒████▒░██████▄
+#    ░▒▓███▀▒▒ ▒░ ▒▓▒ ▒ ▒ ░░ ▒░ ░░ ▒░▓  ░ ░░ ░ ▒ ▒▒
+#    ▒ ▓▒ ▒▒▓  ▒▒ ▒░ ░ ▒  ▒ ░░▒░ ░ ░  ░ ░  ░   ░ ░
+#    ▒░▒   ░ ░ ░  ░ ░  ░ ░  ░  ░░░ ░ ░     ░    ░
+#     ░    ░ ░ ░    ░       ░   ░    ░       ▒
+#     ░      ░  ░        ░
+#          ░
+#
+#         ® BkPlugins | discord.gg/2MHgyjCuPc
+#                    Made by: Bkr__
+
+# Aqui você pode editar os comandos do plugin, e suas descrições no comando de ajuda
+# *-------------------*=/[Comandos]\=*------------------*
 commands:
-
-  usage-format: '&cUsage: {usage}'
-
-  x1:
+  # Aqui você pode mudar a mensagem de ajuda do plugin
+  help-format:
+    header: '&7*----------------*=/[&6&lBkX1&7]\=*----------------*'
+    help-section: '&7- &a{command} &f- &7{description}'
+    footer: '&7*-----------------*=[&aFeito por: Bkr__&7]=*---------------*'
+    
+  # Mensagem para quando o jogador usar o comando incorretamente
+  usage-format: '&cUse: {usage}'
+  
+  # Comando BkDuel
+  bkduel:
+    command: 'bkx1'
+    description: 'Mostra a ajuda do plugin.'
+    usage: '/bkx1'
+    
+  # Comando X1
+  duel:
     command: 'x1'
-    description: 'Plugin main command.'
-    usage: '/x1 <fight | config>'
+    description: 'Comando principal do plugin.'
+    usage: '/x1 <{subcommands}>'
+    subcommands:
+      challenge:
+        command: 'desafiar'
+        usage: '/x1 desafiar <player>'
+      top:
+        command: 'top'
+        usage: '/x1 top [page]'
+      stats:
+        command: 'stats'
+        usage: '/x1 stats <player>'
+      spectate:
+        command: 'camarote'
+        usage: '/x1 camarote'
+      accept:
+        command: 'aceitar'
+        usage: '/x1 aceitar'
+      decline:
+        command: 'negar'
+        usage: '/x1 negar'
+      edit:
+        command: 'editar'
+        usage: '/x1 editar'
+      npc:
+        command: 'npc'
+        usage: '/x1 npc <atualizar | local>'
+        subcommands:
+          location:
+            command: 'local'
+            usage: '/x1 npc local'
+          update:
+            command: 'atualizar'
+            usage: '/x1 npc atualizar'
+# *-----------------------*=[|]=*-----------------------*
 
+
+# Aqui você pode mudar o nome e a descrição de todos os botões no plugin
+# *-------------------=/[Botões GUI]\=*-----------------*
+gui-buttons:
+  player-profile:
+    head:
+      name: '{shine-lightgreen-bold-size[2]-update[3]} {player}'
+      description: '&7Menu de status do jogador {player}'
+    wins:
+      name: '{shine-lightgreen} X1s ganhos'
+      description: '&7Vitórias: &a{wins}'
+    defeats:
+      name: '{shine-lightred} X1s perdidos'
+      description: '&7Derrotas: &c{defeats}'
+    duels:
+      name: '{shine-lightgreen} X1s lutados'
+      description: '&7X1s: &a{duels}'
+    disconnects:
+      name: '{shine-lightred} Vezes desconectado'
+      description: '&7Desconectou: &c{disconnects}'
+    kdr:
+      name: '{shine-lightgreen} Kill/Death ratio'
+      description: '&7KDR: {kdr}'
+
+  next-page:
+    name: '&aPróxima Página'
+    description: '&7Ir para página &a{page-number}'
+
+  previous-page:
+    name: '&cPágina Anterior'
+    description: '&7Ir para página &c{page-number}'
+
+  no-kit-button:
+    name: '{shine-gold} Próprios Itens'
+    description: '&eUsar seus próprios itens'
+
+  random-kit-button:
+    name: '{shine-yellow}Kit Aleatório'
+    description: '&eSelecionar um kit aleatório'
+
+  random-arena-button:
+    name: '{shine-gold}Arena Aleatória'
+    description: '&eSelecionar uma arena aleatória'
+
+  back-button:
+    name: '&cMenu Anterior'
+    description: '&7Click to go back to the previous menu'
+
+  delete-confirm:
+    name: '&cConfirme para deletar a arena'
+    description: '&7Você tem certeza que quer deletar essa arena?'
+
+  select-bound-kit:
+    name: '&6Selecione um kit (Opcional)'
+    description: '&7Apenas o kit selecionado será permitido nessa arena.'
+
+  no-kit:
+    name: '&6Sem Kit'
+    description: '&7Deixa jogadores usarem qualquer kit nessa arena.'
+
+  delete-button:
+    name: '&cDeletar Arena'
+    description: '&7Clique aqui para deletar a arena.'
+
+  close-button:
+    name: '&cFechar Menu'
+    description: '&7Clique para fechar esse menu.'
+
+  next-button:
+    enabled:
+      name: '{shine-lightgreen-bold} Próximo'
+      description: '&aClique aqui para continuar.'
+    disabled:
+      name: '{shine-lightred-bold} Próximo'
+      description:
+        - '§cVocê precisa selecionar uma'
+        - '§carena antes de continuar.'
+
+  create-arena:
+    name: '{shine-lightgreen-bold} Criar Arena'
+    description: '&7Clique aqui para digitar o nome da nova arena.'
+
+  back-to-kits:
+    name: '&cVoltar Para Kits'
+    description: '&7Clique aqui para voltar ao menu de kits.'
+
+  back-to-arenas:
+    name: '&cVoltar Para Arenas'
+    description: '&7Clique aqui para voltar ao menu de arenas.'
+
+  arena-edit:
+    edit-name:
+      name: '&aEditar Nome da Arena'
+      description: '&7Clique aqui para editar o nome da arena.'
+    edit-description:
+      name: '&aEditar a Descrição da Arena'
+      description: '&7Clique aqui para adicionar uma descrição a arena.'
+    set-position1:
+      name: '&aSetar posição 1'
+      description: '&7Clique aqui para setar a posição do lutador 1.'
+    set-position2:
+      name: '&aSetar posição 2'
+      description: '&7Clique aqui para setar a posição do lutador 2.'
+    set-spectator:
+      name: '&anSetar Camarote'
+      description: '&7Clique aqui para setar a posição do camarote.'
+    set-price:
+      name: '&aSetar o Preço da Arena'
+      description: '&7Clique aqui para setar o preço para comprar essa arena.'
+    edit-display-item:
+      name: '&aEditar o Item da Arena'
+      description: '&7Clique aqui para editar o item do botão da arena.'
+    enter-item:
+      name: '{shine-gold} Coloque o Item'
+      description: '&7Coloque o novo item em um espaço vazio'
+# *-----------------------*=[|]=*-----------------------*
+
+
+# Aqui você pode mudar todas as mensagens do plugin
+# Para remover espaços vazios basta mudar a mensagem de ' ' para ''
+# *---------------*=/[Mensagens Gerais]\=*--------------*
 info:
   request-message:
-    accept-button: '&2&l[HERE]'
-    deny-button: '&c&l[HERE]'
-    accept-hover: '&2Click to accept.'
-    deny-hover: '&cClick to deny.'
+    accept-button: '&2&l[AQUI]'
+    deny-button: '&c&l[AQUI]'
+    accept-hover: '&2Clique para aceitar.'
+    deny-hover: '&cClique para negar.'
     message:
       - ' '
       - '&7*--------------------*=/[|]\=*--------------------*'
       - ' '
-      - '&7The player &a&l{player} &7challenged you to a duel!'
+      - '&7O jogador &a&l{player} &7desafiou você para um X1!'
       - ' '
       - '&7Kit: &a{kit}'
       - '&7Arena: &a{arena}'
-      - '&7Item drop: {item-drop} &7'
-      - '&7Experience drop: {exp-drop}'
-      - '&7Price: &a{price}'
+      - '&7Dropar Items: {item-drop} &7'
+      - '&7Dropar EXP: {exp-drop}'
+      - '&7Preço: &a{price}'
       - ' '
-      - '&7Click {accept-button} &7to accept or click {deny-button} &7to deny.'
+      - '&7Clique {accept-button} &7para aceitar ou clique {deny-button} &7para negar.'
       - ' '
-      - '&7The request will expire in &c{seconds} &7seconds.'
+      - '&7O pedido irá expirar em &c{seconds} &7segundos.'
       - ' '
       - '&7*-----------------------------------------------*'
       - ' '
+
   broadcast-to-all:
-      - '&7*--------------------*=/[|]\=*--------------------*'
-      - '&7The player &a&l{fighter1} &7challenged &a&l{fighter2} &7to a duel!'
-      - '&7&a&l{fighter2} &7has &c{expire} &7seconds to answer.'
-      - ' '
-      - '&7Kit: &a{kit}'
-      - '&7Arena: &a{arena}'
-      - '&7Item drop: {item-drop} &7'
-      - '&7*-----------------------------------------------*'
-  kit-selected: '&aKit selected! Click the ''Next'' button to continue.'
-  arena-selected: '&aArena selected! Click the ''Next'' button to continue.'
-  time-remaining: '&7Teleporting in &a{seconds}'
+    - '&7*--------------------*=/[|]\=*--------------------*'
+    - '&7O jogador &a&l{fighter1} &7desafiou &a&l{fighter2} &7para um X1!'
+    - '&7&a&l{fighter2} &7tem &c{expire} &7segundos para responder.'
+    - ' '
+    - '&7Kit: &a{kit}'
+    - '&7Arena: &a{arena}'
+    - '&7Dropar Items: {item-drop} &7'
+    - '&7*-----------------------------------------------*'
+
+  broadcast-to-all-start:
+    - '&7*--------------------*=/[|]\=*--------------------*'
+    - '&7O X1 entre &a&l{fighter1} &7e &a&l{fighter2} &7começou!'
+    - ' '
+    - '&7Digite &a/x1 camarote &7ou clique {spectate-button} &7para assistir!'
+    - '&7*-----------------------------------------------*'
+
+  spectate-button:
+    button: '&a&l[AQUI]'
+    hover: '&aClique aqui para ir a arena.'
+
+  rank-list:
+    header: '&7*------------*=[&a&lRank X1&7]=*------------*'
+    footer: '&7*---------------*=[{previous-page}&7] [{page-numbers}&7] [{next-page}&7]=*---------------*'
+    page-numbers-format: '&a{page-number}&7/&a{total-pages}'
+    rank: '&7Rank {rank}: {player-button} &7| Ganhou: &a{wins}'
+    top: '&7Top {rank}: {player-button} &7| Ganhou: &a{wins}'
+
+    previous-page:
+      button: '&a&l<<'
+      hover: '&aClique para ir para a página anterior'
+
+    next-page:
+      button: '&a&l>>'
+      hover: '&aClique para ir para a próxima página'
+
+    player-button: '&a&l{player}'
+    hover-message: '&aClique para mostrar o perfil desse jogador.'
+
+  player-bought-message:
+    arena: '&aVocê comprou a arena &2{arena}&a. &aNovo saldo: &2{balance}'
+    kit: '&aVocê comprou o kit &2{kit}&a. &aNovo saldo: &2{balance}'
+
+  duel-declined:
+    self: '&cO jogador &4{player} &cnegou o seu pedido de X1.'
+    others: '&7Você negou o pedido de X1 do jogador &4{player}&c.'
+
   input:
-    shop-name: '&7Enter the name of the shop'
-    countdown: '&7Cancelling in &c{seconds}'
-    type-to-cancel: '&7Type &c{cancel-input}&7 to cancel'
+    arena-name: '&7Digite o nome da arena'
+    arena-description: '&eDigite a nova descrição'
+    arena-description-subtitle: '&7Você pode começar uma nova linha digitando ''&e#&7'''
+    price: '&7Digite o novo preço'
+    type-to-cancel: '&7Digite &c{cancel-input}&7 para cancelar'
+    countdown: '&7Cancelando em &c{seconds}'
+
   warped:
-    title: '&aYou teleported to'
+    title: '&aVocê teleportou para'
     subtitle: '&2{location-name}'
 
+  request-expired:
+    self: '&cO pedido de X1 para o jogador {player} expirou.'
+    others: '&cO pedido de X1 do jogador {player} expirou.'
+
+  waiting-other: '&eEsperando o outro jogador...'
+  go: '&aVai!'
+  seconds-remaining: '&a{seconds}'
+  option-locked: '&cOpção Bloqueada'
+  select-own-items: '&cVocê precisa selecionar ''Proprios Items'''
+  drop-exp-title: '&aDropar Experiência'
+  drop-item-title: '&aDropar Itens'
+  click-to-enable: '&7Clique para habilitar.'
+  click-to-disable: '&7Clique para desabilitar.'
+  enabled-exp-drop: '&7Drop de EXP: &aHabilitado'
+  disabled-exp-drop: '&7Drop de EXP: &cDesabilitado'
+  enabled-item-drop: '&7Drop de itens: &aHabilitado'
+  disabled-item-drop: '&7Drop de itens: &cDesabilitado'
+  item-drop: '&7Drop de itens: {item-drop}'
+  exp-drop: '&7Drop de EXP: {exp-drop}'
+  already-in-use: '&cArena em uso!'
+  currently-fighting: '&cLutando agora: '
+  fighter-vs-fighter: '&4{fighter1} &cvs &4{fighter2}'
+  selected-kit-lore: '&7Kit Selecionado: &a{kit}'
+  bound-kit-lore: '&aKit permitido: {kit}'
+  bound-kit-set: '&aKit definido. Agora jogadores só podem usar o kit selecionado nessa arena.'
+  click-to-select-kit: '&aClique para selecionar esse kit.'
+  select-kit-title: '&7Clique no kit que será usado.'
+  player-profile-title: '&7Perfil do Jogador'
+  confirm: '&aConfirmar'
+  cancel: '&cCancelar'
+  location-set: '&aLocal definido!'
+  npc-updated: '&aNpc atualizado!'
+  arena-deleted: '&aArena deletada com sucesso.'
+  arena-in-use: '&cNão pode editar agora. Arena em uso.'
+  click-to-edit-arena: '&aClique para editar essa arena.'
+  price-set: '&aNovo preço definido!'
+  cost-paid: '&aVocê pagou &2{amount} &apara iniciar o X1. Novo saldo: &2{balance}&a.'
+  duel-end: '&6{player} ganhou!'
+  action-bar-leaving: '&eDeixando a arena em &6{seconds} &esegundos...'
+  request-sent: '&7Pedido de X1 enviado, esperando resposta...'
+  free-arena: '&aArena Grátis'
+  free-kit: '&aKit Grátis'
+  arena-bought: '&aArena comprada.'
+  kit-bought-lore: '&aKit comprado'
+  kit-bought-message: '&aVocê comprou o kit {kit}&a. Novo saldo: {balance}'
+  price: '&aPreço: &2{price}'
+  click-to-buy: '&aClique para comprar'
+  click-to-teleport: '&aClique para teleportar para essa arena'
+  not-enough-money: '&cSem saldo suficiente para comprar.'
+  fighter1: '&7Lutador 1: &a{fighter}'
+  fighter2: '&7Lutador 2: &a{fighter}'
+  choose-kit-title: '&8Escolha o Kit &a{page}&8/&a{total-pages}'
+  choose-arena-title: '&8Escolha a Arena &a{page}&8/&a{total-pages}'
+  own-items: 'Próprios Itens'
+  true: '&2Sim'
+  false: '&4Não'
+  enabled: '&aHabilitado'
+  disabled: '&cDesabilitado'
+  next: '&a&lPróximo'
+  you-selected: '&7Você selecionou: &a{name}'
+  starting-duel: '&aComeçando X1...'
+  time-to-pickup: '&7Você tem &a{seconds} &7segundos para pegar os itens do seu oponente.'
+  item-set: '&aItem de display setado!'
+  kit-selected: '&aKit selecionado! Clique no botão ''Próximo'' para continuar.'
+  arena-selected: '&aArena selecionada! Clique no botão ''Próximo'' para continuar.'
+  time-remaining: '&7Teleportando em &a{seconds}'
+# *-----------------------*=[|]=*-----------------------*
+
+
+# *---------------*=/[Mensagens de Erro]\=*-------------*
 error:
+  invalid-arena: '&cUm ou mais dos locais dessa arena são inválidos. Contate um membro da Staff.'
+  no-npc: '&cUma ou mais das dependencias não foram encontradas.'
+  no-letters: '&cO nome da arena tem que ter pelo menos uma letra.'
+  duel-already-started: '&cEsse X1 já começou.'
+  already-in-duel:
+    self: '&cVocê já está em um X1.'
+    others: '&cEsse jogador já está em um X1.'
+  waiting-reply:
+    self: '&cVocê já está esperando uma resposta de um pedido de X1.'
+    others: '&cEsse jogador já está respondendo a um pedido de X1.'
+  arena-error:
+    not-same-world: '&cAs duas posições dos lutadores precisam estar no mesmo mundo.'
+    invalid-world: '&cO mundo dessa arena não existe.'
+    not-valid-arena: '&cVocê não pode selecionar essa arena, ela não foi configurada corretamente.'
+    invalid-name: '&cEssa arena não tem um nome válido.'
+    no-location-1: '&cEssa arena não tem uma posição para o lutador 1.'
+    no-location-2: '&cEssa arena não tem uma posição para o lutador 2.'
+    no-location-spectators: '&cEssa arena não tem um camarote.'
+  cant-spectate: '&cVocê não pode ir ao camarote enquanto estiver em um X1.'
+  no-valid-arenas: '&cNão existem arenas válidas que podem ser selecionadas.'
+  not-a-number: '&cVocê não digitou um número.'
+  no-money: '&cVocê não tem dinheiro suficiente para fazer isso.'
+  cant-duel-self: '&cVocê não pode lutar contra você mesmo.'
+  no-ranks: '&cNinguém lutou um X1 ainda.'
+  invalid-page: '&cA página &4{page} &cnão existe.'
+  not-in-duel: '&cO jogador &4{player} &cnão está em um duelo.'
+  invalid-player: '&cO jogador &4{player} &cnão está online.'
+  dead-player: '&cO jogador &4{player} &cestá morto.'
+  no-duels: '&cNão tem ninguém lutando X1s agora.'
+  no-challenge: '&cNinguém te desafiou para um X1.'
   input:
-    awaiting-input: '&cYou can''t use commands now. Type ''{cancel-input}'' to cancel.'
-    canceled: '&cYou canceled the input.'
-    timedout: '&cYou didn''t type anything.'
-  already-waiting: '&cYou are already waiting a teleport.'
-  no-permission: 'You don''t have permission to do this.'
-  warp-canceled-title: '&cTeleport canceled.'
+    awaiting-input: '&cVocê não pode usar comandos agora. Digite ''{cancel-input}'' para cancelar.'
+    canceled: '&cVocê cancelou a entrada de dados.'
+    timedout: '&cVocê não digitou nada.'
+  duel-cancelled: '&cO duelo foi cancelado...'
+  already-waiting: '&cVocê já está esperando um teleporte.'
+  no-permission: '&cVocê não tem permissão para fazer isso.'
+  warp-canceled-title: '&cTeleporte cancelado.'
   warp-canceled-cause:
-    dealt-damage: '&cYou attacked.'
-    took-damage: '&cYou took damage.'
-    moved: '&cYou moved.'
+    dealt-damage: '&cVocê atacou.'
+    took-damage: '&cVocê foi atacado.'
+    moved: '&cVocê moveu.'
+# *-----------------------*=[|]=*-----------------------*

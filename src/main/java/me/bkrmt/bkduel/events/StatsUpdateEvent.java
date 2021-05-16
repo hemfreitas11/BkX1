@@ -1,6 +1,6 @@
-package me.bkrmt.bkx1.events;
+package me.bkrmt.bkduel.events;
 
-import me.bkrmt.bkx1.stats.PlayerStats;
+import me.bkrmt.bkduel.stats.PlayerStats;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 

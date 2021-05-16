@@ -1,4 +1,4 @@
-package me.bkrmt.bkx1;
+package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.BkPlugin;
 import org.bukkit.configuration.ConfigurationSection;
@@ -82,6 +82,12 @@ public class Kit extends Purchasable {
         inv.setChestplate(null);
         inv.setLeggings(null);
         inv.setBoots(null);
+        if (BkDuel.PLUGIN.getNmsVer().number > 9) {
+            inv.setItemInMainHand(null);
+            inv.setItemInOffHand(null);
+            inv.setArmorContents(null);
+            inv.setExtraContents(null);
+        }
     }
 
     public List<ItemStack> getItems() {

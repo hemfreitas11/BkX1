@@ -1,12 +1,15 @@
-package me.bkrmt.bkx1.stats;
+package me.bkrmt.bkduel.stats;
 
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.config.Configuration;
-import me.bkrmt.bkx1.BkX1;
-import me.bkrmt.bkx1.events.StatsUpdateEvent;
+import me.bkrmt.bkduel.BkDuel;
+import me.bkrmt.bkduel.commands.CmdDuel;
+import me.bkrmt.bkduel.events.NewTopPlayerEvent;
+import me.bkrmt.bkduel.events.StatsUpdateEvent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -57,9 +60,46 @@ public class StatsManager {
             rankPages.add(pageArray);
         }
 
-        plugin.getServer().getPluginManager().callEvent(new StatsUpdateEvent(oldList, statsList));
+        boolean hasNewTop = false;
+        if (BkDuel.getHologramHook() != null) {
+            PlayerStats oldTop = null;
+            PlayerStats newTop = null;
+            if (oldList.size() > 0) oldTop = oldList.get(0);
+            if (statsList.size() > 0) newTop = statsList.get(0);
+
+            if (oldTop != null) {
+                if (newTop != null) {
+                    if (!oldTop.getUUID().toString().equalsIgnoreCase(statsList.get(0).getUUID().toString())) {
+                        Bukkit.getServer().getPluginManager().callEvent(new NewTopPlayerEvent(oldTop, newTop));
+                        hasNewTop = true;
+                    }
+                }
+            } else {
+                if (newTop != null) {
+                    Bukkit.getServer().getPluginManager().callEvent(new NewTopPlayerEvent(null, newTop));
+                    hasNewTop = true;
+                }
+            }
+        }
+        if (!hasNewTop) plugin.getServer().getPluginManager().callEvent(new StatsUpdateEvent(oldList, statsList));
         oldList = null;
         return this;
+    }
+
+    public static PlayerStats getPlayerStat(String name) {
+        ArrayList<PlayerStats> stats = BkDuel.getStatsManager().getStats();
+        for (PlayerStats stat : stats) {
+            if (stat.getPlayerName().equalsIgnoreCase(name)) return stat;
+        }
+        return null;
+    }
+
+    public static PlayerStats getPlayerStat(UUID uuid) {
+        ArrayList<PlayerStats> stats = BkDuel.getStatsManager().getStats();
+        for (PlayerStats stat : stats) {
+            if (stat.getUUID().toString().equalsIgnoreCase(uuid.toString())) return stat;
+        }
+        return null;
     }
 
     public void sendRankPage(Player player, int page) {
@@ -68,8 +108,8 @@ public class StatsManager {
         String playerFormat = plugin.getLangFile().get("info.rank-list.player-button");
         String hoverMessage = plugin.getLangFile().get("info.rank-list.hover-message");
 
-        ArrayList<PlayerStats> rankPage = new ArrayList<>(BkX1.getStatsManager().getRankPages().get(page));
-        ArrayList<PlayerStats> statsList = BkX1.getStatsManager().getStats();
+        ArrayList<PlayerStats> rankPage = new ArrayList<>(BkDuel.getStatsManager().getRankPages().get(page));
+        ArrayList<PlayerStats> statsList = BkDuel.getStatsManager().getStats();
 
         String header = plugin.getLangFile().get("info.rank-list.header");
         if (!header.isEmpty()) {
@@ -82,7 +122,7 @@ public class StatsManager {
                     .append(components[0].replace("{rank}", String.valueOf((statsList.indexOf(stat) + 1))))
                     .append(playerFormat.replace("{player}", stat.getPlayerName()))
                     .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hoverMessage).create()))
-                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/x1 stats " + stat.getPlayerName()));
+                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + plugin.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("stats") + " " + stat.getPlayerName()));
             if (components.length == 2) {
                 builder
                         .append(components[1].replace("{wins}", String.valueOf(stat.getWins())))
@@ -107,22 +147,34 @@ public class StatsManager {
                 ComponentBuilder footerBuilder = new ComponentBuilder("")
                         .append(part1Components[0])
                         .append(previous)
-                            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(previousHover).create()))
-                            .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/x1 top " + (page-1)))
+                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(previousHover).create()))
+                        .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + plugin.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("top") + " " + (page - 1)))
                         .append(part1Components[1])
-                            .reset()
+                        .reset()
                         .append(pageNumberFormat.replace("{page-number}", String.valueOf(page)).replace("{total-pages}", String.valueOf(rankPages.size())))
                         .append(part2Components[0])
                         .append(next)
-                            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(nextHover).create()))
-                            .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/x1 top " + (page+1)))
+                        .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(nextHover).create()))
+                        .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/" + plugin.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("top") + " " + (page + 1)))
                         .append(part2Components[1])
-                            .reset();
+                        .reset();
                 player.spigot().sendMessage(footerBuilder.create());
             } else {
                 player.sendMessage(footer);
             }
         }
+    }
+
+    public static PlayerStats createStats(Player target) {
+        Configuration statsConfig = BkDuel.PLUGIN.getConfig("player-data", "player-stats.yml");
+        statsConfig.set(target.getUniqueId().toString() + ".name", target.getName());
+        statsConfig.set(target.getUniqueId().toString() + ".duels", 0);
+        statsConfig.set(target.getUniqueId().toString() + ".wins", 0);
+        statsConfig.set(target.getUniqueId().toString() + ".defeats", 0);
+        statsConfig.set(target.getUniqueId().toString() + ".disconnects", 0);
+        statsConfig.save(false);
+        BkDuel.getStatsManager().updateStats();
+        return new PlayerStats(target.getName(), target.getUniqueId(), 0, 0, 0, 0);
     }
 
     public ArrayList<ArrayList<PlayerStats>> getRankPages() {
@@ -131,18 +183,5 @@ public class StatsManager {
 
     public ArrayList<PlayerStats> getStats() {
         return statsList;
-    }
-
-    public static void printStats(ArrayList<PlayerStats> statsList) {
-        for (PlayerStats stat : statsList) {
-            System.out.println(" ");
-            System.out.println("------------");
-            System.out.println("Player: " + stat.getPlayerName());
-            System.out.println("Wins: " + stat.getWins());
-            System.out.println("Defeats: " + stat.getDefeats());
-            System.out.println("Duels: " + stat.getDuels());
-            System.out.println("Disconnects: " + stat.getDisconnects());
-            System.out.println("------------");
-        }
     }
 }

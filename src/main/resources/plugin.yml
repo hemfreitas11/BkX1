@@ -1,8 +1,14 @@
-name: BkX1
+name: BkDuel
 version: ${project.version}
-main: me.bkrmt.bkx1.BkX1
+main: me.bkrmt.bkduel.BkDuel
 depend:
-  - Vault
+  - 'Vault'
+soft-depend:
+  - 'Citizens'
+  - 'HeroChat'
+  - 'HeroChatPro'
+  - 'Legendchat'
+  - 'nChat'
 api-version: 1.13
 authors: [ Bkr__ ]
-description: X1 Plugin
+description: Duel Plugin

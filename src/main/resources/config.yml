@@ -1,80 +1,137 @@
+#
+#     ▄▄▄▄    ██ ▄█▀▓█████▄  █    ██ ▓█████  ██▓
+#    ▓█████▄  ██▄█▒ ▒██▀ ██▌ ██  ▓██▒▓█   ▀ ▓██▒
+#    ▒██▒ ▄██▓███▄░ ░██   █▌▓██  ▒██░▒███   ▒██░
+#    ▒██░█▀  ▓██ █▄ ░▓█▄   ▌▓▓█  ░██░▒▓█  ▄ ▒██░
+#    ░▓█  ▀█▓▒██▒ █▄░▒████▓ ▒▒█████▓ ░▒████▒░██████▄
+#    ░▒▓███▀▒▒ ▒░ ▒▓▒ ▒ ▒ ░░ ▒░ ░░ ▒░▓  ░ ░░ ░ ▒ ▒▒
+#    ▒ ▓▒ ▒▒▓  ▒▒ ▒░ ░ ▒  ▒ ░░▒░ ░ ░  ░ ░  ░   ░ ░
+#    ▒░▒   ░ ░ ░  ░ ░  ░ ░  ░  ░░░ ░ ░     ░    ░
+#     ░    ░ ░ ░    ░       ░   ░    ░       ▒
+#     ░      ░  ░        ░
+#          ░
+#
+#         ® BkPlugins | discord.gg/2MHgyjCuPc
+#                    Made by: Bkr__
+
+# You can add any language by creating a file in the "langs" folder then setting it's name in the "language" option bellow
+# Languages that come with the plugin are: en_US and pt_BR.
+# Você pode adicionar qualquer idioma criando um arquivo na pasta "langs" e adicionando o seu nome na opção "language" abaixo
+# Idiomas suportados por padrão: en_US e pt_BR
 language: en_US
 
-# What you need to type to cancel the text inputs in the plugin.
+# What you need to type to cancel the inputs in the plugin.
+# O que você precisa digitar para cancelar os inputs no plugin.
 cancel-input: 'cancel'
 
-# Choose if you want the plugin to display 5 or 15 kits per page.
+# (In a future version, not implemented yet) Choose if you want the plugin to display 5 or 15 kits per page.
+# (Em uma versão futura, ainda não implementado) Escolha se você quer que o plugin mostre 5 ou 15 kits por página.
 expanded-kit-list: false
 
 # Cost to start a duel. Both players need to pay it
+# Custo para iniciar um X1. Os dois jogadores prrecisam pagar
 duel-cost: 100
 
-# Change to true if you want to allow the fighters to drop items during the duel
+# Change to "true" if you want to allow the fighters to choose if they drop items when they die. They can't allow the drop for kits.
+# Mude para "true" para permitir que os lutadores escolham se eles querem dropar itens ao morrer. Eles não podem dropar itens de kits.
 player-drop-item: false
 
-# When this is enabled everyone in the server will get a message when a duel starts, ends, and when someone is being challenged.
-# This is great for when a player trash talks everyone and never accepts a duel request. Everyone will be able to see it
+# When this is enabled, everyone in the server will get a message when a duel starts, ends, and when someone is being challenged.
+# Quando esta opção está habilitada, todos no servidor receberão uma mensagem quando um X1 começa, termina, e quando alguém é desafiado.
 broadcast-to-all: true
 
 # This is how long the plugin will wait for an answer when a player is challenged
+# Quanto tempo o plugin vai esperar por uma resposta a um desafio X1
 challenge-expire: 30
 
-# Time for the plugin to teleport the player out of the arena
+# When this option is enabled the plugin will close the inventory of all the players when it is reloading. This is used to prevent players from taking items from menus when the plugin is disabled.
+# Quando essa opção está habilitada o plugin irá fechar o inventário de todos os jogadores quando ele está dando reload. Essa opção previne jogadores de tirarem itens do menu quando o plugin está desativado.
+close-inventory-on-reload: true
+
+# How many seconds for the duel to start
+# Quantos segundos para iniciar o X1
+start-countdown: 5
+
+# Time for the plugin to teleport the player out of the arena when they are using their own items.
+# Tempo para o plugin teleportar o jogador para fora da arena quando ele está usando seus próprios itens.
 time-to-pick-items: 10
 
+# This is what shows up when a player selects a random arena or kit.
+# Isso aparece quando um jogador seleciona um kit ou arena aleatória.
 random-selection: '&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI'
 
-duel-bet:
-  min: 1000
-  max: 5000
+# The chat tag for the player with the most duel wins. Supported chat plugins: LegendChat, nChat and HeroChat
+# A tag do chat do jogador com mais vitórias de X1s. Plugins de chat suportados: LegendChat, nChat e HeroChat
+top-1-tag: '&6&l[Killer]&r '
 
-gui-buttons:
-  # Next page button
-  next-page:
-    byte: 5
-    damage: 5
-    material: WOOL
-    ammount: 1
-    name: '&aNext Page'
-    lore:
-      - '&7Go to page &a{page-number}'
+# Configs for the NPC feature. You need to have Citizens and HolographicDisplays intalled for this feature to work.
+# Configurações da função de NPC. Você precisa ter o Citizens e HolographicDisplays instalados para essa função funcionar.
+top-1-npc:
+  # Disables or enables the NPC feature. To use it type '/duel npc location' then '/duel npc update'
+  # Desativa ou ativa a função NPC. Para usar digite '/x1 npc local' depois '/x1 npc atualizar'
+  enabled: true
 
-  # Previous page button
-  previous-page:
-    byte: 14
-    damage: 14
-    material: WOOL
-    ammount: 1
-    name: '&cPrevious Page'
-    lore:
-      - '&7Go back to page &c{page-number}'
+  # The text that shows up on top of the NPC
+  # O text que aparece em cima do NPC
+  hologram:
+    # Set this to 'false' to disable the sword animation bellow the text
+    # Coloque 'false' para desativar a animação da espada abaixo do texto
+    sword-animation: true
 
-  # The button for using your own items in the duel.
-  no-kit-button:
-    byte: 0
-    damage: 0
-    material: ITEM_FRAME
-    ammount: 1
-    name: '&6Use player items'
-    lore:
-      - '&eOwn items'
+    # Tags {wins} {defeats} {disconnects} {duels} {player} {kdr}
+    # Placeholder support soon
+    # Suporte a placeholders em breve
+    lines:
+      - '&7&l---=[&4&lTop Fighter&7&l]=---'
+      - ''
+      - '&7&l---=[&4&l{player}&7&l]=---'
+      - '&7&l| Wins: &4&l{wins} &7&l|'
+      - '&7&l| KDR: &4&l{kdr} &7&l|'
+  npc:
+    look-at-players:
+      # Set to 'false' to disable the NPC looking at players
+      # Coloque 'false' para desativar o NPC olhar para os jogadores
+      enabled: true
 
-  # The button for using your own items in the duel.
-  random-kit-button:
-    byte: 0
-    damage: 0
-    material: ENDER_PEARL
-    ammount: 1
-    name: '&eRandom Kit'
-    lore:
-      - '&eSelect a random kit'
+      # The distance in blocks for the NPC to start looking at players
+      # A distancia em blocos pro NPC começar a olhar pro jogador
+      distance-to-look: 5
+    random-look-around:
+      # When there is no one near the NPC it will randomly look around. Set to 'false' to disable
+      # Quando não tem jogadores perto do NPC ele fica olhando pros lados aleatoriamente. Coloque 'false' para desativar
+      enabled: true
+      radom-look-range:
+        # How far to the LEFT the NPC will be able to turn
+        # A discancia que o NPC vai poder virar para a ESQUERDA
+        left-range: 70
 
-  # The button for using your own items in the duel.
-  random-arena-button:
-    byte: 0
-    damage: 0
-    material: ENDER_PEARL
-    ammount: 1
-    name: '&eRandom Arena'
-    lore:
-      - '&eSelect a random arena'
+        # How far to the RIGHT the NPC will be able to turn
+        # A discancia que o NPC vai poder virar para a DIREITA
+        right-range: 70
+
+        # How far UP the NPC will be able to look
+        # A distancia que o NPC vai poder olhar para CIMA
+        up-range: 10
+
+        # How far DOWN the NPC will be able to look
+        # A distancia que o NPC vai poder olhar para BAIXO
+        down-range: 10
+    # The location of the NPC. Use the command '/duel npc location' to set it.
+    # O local do NPC. Use o comando 'x1 npc local' pra setar.
+    location:
+      world: 'world'
+      x: '0'
+      y: '0'
+      z: '0'
+      pitch: '0'
+      yaw: '0'
+
+# (In a future version, not implemented yet) Options for the player bets.
+# (Em uma versão futura, ainda não implementado) Opções para as apostas de jogadores.
+player-bets:
+  enabled: false
+  money-bet:
+    min: 1000
+    max: 5000
+  item-bet:
+    enabled: false

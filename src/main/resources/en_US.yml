@@ -1,12 +1,78 @@
+#
+#     ▄▄▄▄    ██ ▄█▀▓█████▄  █    ██ ▓█████  ██▓
+#    ▓█████▄  ██▄█▒ ▒██▀ ██▌ ██  ▓██▒▓█   ▀ ▓██▒
+#    ▒██▒ ▄██▓███▄░ ░██   █▌▓██  ▒██░▒███   ▒██░
+#    ▒██░█▀  ▓██ █▄ ░▓█▄   ▌▓▓█  ░██░▒▓█  ▄ ▒██░
+#    ░▓█  ▀█▓▒██▒ █▄░▒████▓ ▒▒█████▓ ░▒████▒░██████▄
+#    ░▒▓███▀▒▒ ▒░ ▒▓▒ ▒ ▒ ░░ ▒░ ░░ ▒░▓  ░ ░░ ░ ▒ ▒▒
+#    ▒ ▓▒ ▒▒▓  ▒▒ ▒░ ░ ▒  ▒ ░░▒░ ░ ░  ░ ░  ░   ░ ░
+#    ▒░▒   ░ ░ ░  ░ ░  ░ ░  ░  ░░░ ░ ░     ░    ░
+#     ░    ░ ░ ░    ░       ░   ░    ░       ▒
+#     ░      ░  ░        ░
+#          ░
+#
+#         ® BkPlugins | discord.gg/2MHgyjCuPc
+#                    Made by: Bkr__
+
+# This is where you can customize the commands of the plugin, their descriptions and usages in the help command
+# *-------------------*=/[Commands]\=*------------------*
 commands:
+  # Here you can change how the help message of the plugin will look like
+  help-format:
+    header: '&7*----------------*=/[&6&lBkDuel&7]\=*----------------*'
+    help-section: '&7- &a{command} &f- &7{description}'
+    footer: '&7*-----------------*=[&aMade by: Bkr__&7]=*---------------*'
 
-  usage-format: '&cUsage: {usage}'
+  # Message when a player sends an incorrect usage of the command
+  usage-format: '&cUse: {usage}'
 
-  x1:
-    command: 'x1'
+  # BkDuel Command
+  bkduel:
+    command: 'bkduel'
+    description: 'Shows the help of the plugin.'
+    usage: '/bkduel'
+
+  # Duel Command
+  duel:
+    command: 'duel'
     description: 'Plugin main command.'
-    usage: '/x1 <fight | config>'
+    usage: '/duel <{subcommands}>'
+    subcommands:
+      challenge:
+        command: 'challenge'
+        usage: '/duel challenge <player>'
+      top:
+        command: 'top'
+        usage: '/duel top [page]'
+      stats:
+        command: 'stats'
+        usage: '/duel stats <player>'
+      spectate:
+        command: 'spectate'
+        usage: '/duel spectate'
+      accept:
+        command: 'accept'
+        usage: '/duel accept'
+      decline:
+        command: 'decline'
+        usage: '/duel decline'
+      edit:
+        command: 'edit'
+        usage: '/duel edit'
+      npc:
+        command: 'npc'
+        usage: '/duel npc <update | location>'
+        subcommands:
+          location:
+            command: 'location'
+            usage: '/duel npc location'
+          update:
+            command: 'update'
+            usage: '/duel npc update'
+# *-----------------------*=[|]=*-----------------------*
 
+# Here you can change the names and descriptions of all the buttons in the plugin
+# *-----------------*=/[GUI Buttons]\=*-----------------*
 gui-buttons:
   player-profile:
     head:
@@ -28,9 +94,45 @@ gui-buttons:
       name: '&aKill/Death ratio'
       description: '&7KDR: {kdr}'
 
+  next-page:
+    name: '&aNext Page'
+    description: '&7Go to page &a{page-number}'
+
+  previous-page:
+    name: '&cPrevious Page'
+    description: '&7Go back to page &c{page-number}'
+
+  no-kit-button:
+    name: '&6Use player items'
+    description: '&eOwn items'
+
+  random-kit-button:
+    name: '&eRandom Kit'
+    description: '&eSelect a random kit'
+
+  random-arena-button:
+    name: '&eRandom Arena'
+    description: '&eSelect a random arena'
+
   back-button:
-    name: '&7Previous menu'
-    description: '&7Go back to the previous menu'
+    name: '&cPrevious menu'
+    description: '&7Click to go back to the previous menu'
+
+  delete-confirm:
+    name: '&cConfirm to delete the arena'
+    description: '&7Are you sure you want to delete this arena?'
+
+  select-bound-kit:
+    name: '&6Select a kit (Optional)'
+    description: '&7Only the selected kit will be allowed in this arena.'
+
+  no-kit:
+    name: '&6No kit'
+    description: '&7Lets players use any kits they want in the arena.'
+
+  delete-button:
+    name: '&cDelete Arena'
+    description: '&7Click here to delete the arena.'
 
   close-button:
     name: '&cClose Menu'
@@ -39,7 +141,7 @@ gui-buttons:
   next-button:
     enabled:
       name: '&a&lNext'
-      description: '&7Click here to continue.'
+      description: '&aClick here to continue.'
     disabled:
       name: '&c&lNext'
       description:
@@ -54,10 +156,17 @@ gui-buttons:
     name: '&cGo back to kits'
     description: '&7Click to go back to the kits menu.'
 
+  back-to-arenas:
+    name: '&cGo back to arenas'
+    description: '&7Click to go back to the arenas menu.'
+
   arena-edit:
     edit-name:
       name: '&aEdit Arena Name'
       description: '&7Click here to edit the arena name'
+    edit-description:
+      name: '&aEdit Arena Description'
+      description: '&7Click here to add a description to the arena'
     set-position1:
       name: '&aSet Position 1'
       description: '&7Click here to set the position of fighter 1'
@@ -67,19 +176,26 @@ gui-buttons:
     set-spectator:
       name: '&aSet Spectator Position'
       description: '&7Click here to set the position of spectators'
+    set-price:
+      name: '&aSet Arena Price'
+      description: '&7Click here to set the price to buy this arena'
     edit-display-item:
       name: '&aEdit Arena Item'
       description: '&7Click here to edit the arena display item'
     enter-item:
       name: '&6Enter Item'
       description: '&7Put the new item on an empty slot'
+# *-----------------------*=[|]=*-----------------------*
 
+# Here you can change all the messages in the plugin
+# To remove the blank spaces simply change the message from ' ' to ''
+# *-----------------*=/[Info Messages]\=*---------------*
 info:
   request-message:
     accept-button: '&2&l[HERE]'
     deny-button: '&c&l[HERE]'
     accept-hover: '&2Click to accept.'
-    deny-hover: '&cClick to deny.'
+    deny-hover: '&cClick to decline.'
     message:
       - ' '
       - '&7*--------------------*=/[|]\=*--------------------*'
@@ -109,6 +225,17 @@ info:
     - '&7Item drop: {item-drop} &7'
     - '&7*-----------------------------------------------*'
 
+  broadcast-to-all-start:
+    - '&7*--------------------*=/[|]\=*--------------------*'
+    - '&7The duel between &a&l{fighter1} &7and &a&l{fighter2} &7has started!'
+    - ' '
+    - '&7Type &a/duel spectate &7or click {spectate-button} &7to watch!'
+    - '&7*-----------------------------------------------*'
+
+  spectate-button:
+    button: '&a&l[HERE]'
+    hover: '&aClick here to go to the arena'
+
   rank-list:
     header: '&7*------------*=[&a&lPlayer Duel Rank&7]=*------------*'
     footer: '&7*---------------*=[{previous-page}&7] [{page-numbers}&7] [{next-page}&7]=*---------------*'
@@ -133,25 +260,68 @@ info:
 
   duel-declined:
     self: '&cThe player &4{player} &chas declined your duel challenge'
-    others: '&7You have declined the duel challenge from &4{player} &c.'
+    others: '&7You have declined the duel challenge from &4{player}&c.'
 
   input:
     arena-name: '&7Enter the name of the arena'
+    arena-description: '&eEnter the new description'
+    arena-description-subtitle: '&7You can start a new line with a ''&e#&7'' &7character'
+    price: '&7Enter the new price'
     type-to-cancel: '&7Type &c{cancel-input}&7 to cancel'
     countdown: '&7Cancelling in &c{seconds}'
-    cancelled: '&cInput cancelled'
 
   warped:
     title: '&aYou teleported to'
     subtitle: '&2{location-name}'
 
+  request-expired:
+    self: '&cDuel request to {player} has expired.'
+    others: '&cDuel request from {player} has expired.'
+
+  waiting-other: '&eAwaiting other player...'
+  go: '&aGo!'
+  seconds-remaining: '&a{seconds}'
+  option-locked: '&cOption Locked'
+  select-own-items: '&cYou need to select ''Own Items'''
+  drop-exp-title: '&aDrop Experience'
+  drop-item-title: '&aDrop Items'
+  click-to-enable: '&7Click to enable.'
+  click-to-disable: '&7Click to disable.'
+  enabled-exp-drop: '&7EXP drop is: &aEnabled'
+  disabled-exp-drop: '&7EXP drop is: &cDisabled'
+  enabled-item-drop: '&7Item drop is: &aEnabled'
+  disabled-item-drop: '&7Item drop is: &cDisabled'
+  item-drop: '&7Item drop is: {item-drop}'
+  exp-drop: '&7EXP drop is: {exp-drop}'
+  already-in-use: '&cAlready in use!'
+  currently-fighting: '&cCurrently fighting: '
+  fighter-vs-fighter: '&4{fighter1} &cvs &4{fighter2}'
+  selected-kit-lore: '&7Kit Selected: &a{kit}'
+  bound-kit-lore: '&aAllowed kit: {kit}'
+  bound-kit-set: '&aKit set. Now players can only use the selected kit in this arena.'
+  click-to-select-kit: '&aClick to select this kit.'
+  select-kit-title: '&7Select the kit that will be used.'
+  player-profile-title: '&7Player Profile'
+  confirm: '&aConfirm'
+  cancel: '&cCancel'
+  location-set: '&aLocation set!'
+  npc-updated: '&aNpc updated!'
+  arena-deleted: '&aArena deleted sucessfully.'
+  arena-in-use: '&cCan''t edit now, arena in use.'
+  click-to-edit-arena: '&aClick to edit this arena.'
+  price-set: '&aNew price set!'
+  cost-paid: '&aYou paid &2{amount} &ato start the duel. New balance: &2{balance}&a.'
+  duel-end: '&6{player} won!'
+  action-bar-leaving: '&eLeaving arena in &6{seconds} &eseconds...'
   request-sent: '&7Duel challenge sent, awaiting answer...'
   free-arena: '&aFree arena'
   free-kit: '&aFree kit'
   arena-bought: '&aYou bought this arena'
-  kit-bought: '&aYou bought this kit'
+  kit-bought-lore: '&aYou bought this kit'
+  kit-bought-message: '&aYou bought the kit {kit}&a. New balance: {balance}'
   price: '&aPrice: &2{price}'
   click-to-buy: '&aClick to buy'
+  click-to-teleport: '&aClick teleport to this arena'
   not-enough-money: '&cNot enough money to buy'
   fighter1: '&7Fighter 1: &a{fighter}'
   fighter2: '&7Fighter 2: &a{fighter}'
@@ -163,25 +333,60 @@ info:
   enabled: '&aEnabled'
   disabled: '&cDisabled'
   next: '&a&lNext'
-  you-selected: '&7You selected: {name}'
+  you-selected: '&7You selected: &a{name}'
   starting-duel: '&aStarting duel...'
-  time-to-pickup: '&7You have &a{seconds} &7to pick up your opponent''s items'
+  time-to-pickup: '&7You have &a{seconds} &7seconds to pick up your opponent''s items'
   item-set: '&aDisplay item set!'
   kit-selected: '&aKit selected! Click the ''Next'' button to continue.'
   arena-selected: '&aArena selected! Click the ''Next'' button to continue.'
   time-remaining: '&7Teleporting in &a{seconds}'
+# *-----------------------*=[|]=*-----------------------*
 
+
+# *----------------*=/[Error Messages]\=*---------------*
 error:
+  invalid-arena: '&cOne or more of the locations in this arena are not properly set up. Contact a staff member.'
+  no-npc: '&cOne or more of the dependencies were not found.'
+  no-letters: '&cThe arena name needs to have at least one letter.'
+  duel-already-started: '&cThis duel has already started.'
+  already-in-duel:
+    self: '&cYou are already in a duel.'
+    others: '&cThis player is already fighting a duel.'
+  waiting-reply:
+    self: '&cYou are already waiting a reply from a request.'
+    others: '&cThis player is already waiting to reply to a duel request.'
+  arena-error:
+    not-same-world: '&cBoth of the fighter positions need to be in the same world.'
+    invalid-world: '&cThe world for this arena does not exist.'
+    not-valid-arena: '&cYou can''t select this arena, it has not been properly set up.'
+    invalid-name: '&cThis arena doesn''t have a valid name.'
+    no-location-1: '&cThis arena doesn''t have a position for the fighter 1.'
+    no-location-2: '&cThis arena doesn''t have a position for the fighter 2.'
+    no-location-spectators: '&cThis arena doesn''t have a position for the spectators.'
+  cant-spectate: '&cYou can''t spectate while in a duel.'
+  no-valid-arenas: '&cThere are no valid arenas that can be selected.'
+  not-a-number: '&cYou didn''t type a number.'
+  no-money: '&cYou don''t have enough money to do this.'
+  cant-duel-self: '&cYou can''t fight yourself.'
+  no-ranks: '&cNo one has fought in any duels yet.'
+  invalid-page: '&cThe page &4{page} &cdoesn''t exist.'
+  not-in-duel: '&cThe player &4{player} &cis not in a duel.'
+  invalid-player: '&cThe player &4{player} &cis not online.'
+  dead-player: '&cThe player &4{player} &cis dead.'
+  no-duels: '&cThere is no one in a duel right now.'
+  no-challenge: '&cNo one challenged you to a duel.'
   corrupt-kit: ''
+  corrupt-arena: ''
   input:
     awaiting-input: '&cYou can''t use commands now. Type ''{cancel-input}'' to cancel.'
     canceled: '&cYou canceled the input.'
     timedout: '&cYou didn''t type anything.'
   duel-cancelled: '&cThe duel has been cancelled...'
   already-waiting: '&cYou are already waiting a teleport.'
-  no-permission: 'You don''t have permission to do this.'
+  no-permission: '&cYou don''t have permission to do this.'
   warp-canceled-title: '&cTeleport canceled.'
   warp-canceled-cause:
     dealt-damage: '&cYou attacked.'
     took-damage: '&cYou took damage.'
     moved: '&cYou moved.'
+# *-----------------------*=[|]=*-----------------------*
