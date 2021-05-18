@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static me.bkrmt.bkduel.BkDuel.PLUGIN;
 
@@ -77,7 +78,7 @@ public class ChooseArenaMenu {
         int rowSize = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? 5 : 7;
         int pagesSize = (int) Math.ceil((double) tempSize / (double) rowSize);
         for (int c = 0; c < pagesSize; c++) {
-            Page page = new Page(PLUGIN, new GUI(PLUGIN.getLangFile().get("info.choose-arena-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR), c + 1);
+            Page page = new Page(PLUGIN, BkDuel.getAnimatorManager(), new GUI(PLUGIN.getLangFile().get("info.choose-arena-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR), c + 1);
             pages.add(page);
             if (previousPage != null) {
                 page.setPreviousPage(previousPage);
@@ -111,10 +112,10 @@ public class ChooseArenaMenu {
                                     randomArena.setUnchangedName("&4" + ChatColor.stripColor(randomArena.getItem().getItemMeta().getDisplayName()));
                                     randomArena.setLore(PLUGIN.getLangFile().get("error.no-valid-arenas"));
                                 }
-                                int inte = (int) (Math.random() * arenas.size());
+                                AtomicInteger inte = new AtomicInteger((int) (Math.random() * arenas.size()));
 
                                 boolean finalHasValidArena = hasValidArena;
-                                page.pageSetItem(10, randomArena, event -> {
+                                page.pageSetItem(10, randomArena, "choose-arena-random-arena", event -> {
                                     List<String> randomLore = new ArrayList<>();
                                     randomLore.add(" ");
                                     randomLore.add(PLUGIN.getLangFile().get("info.arena-selected"));
@@ -122,7 +123,12 @@ public class ChooseArenaMenu {
                                         Page.clearUnclickable(duel.getKitPages());
 
                                         page.setUnclickable(10, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(10).getPageItem().getItem().getItemMeta().getDisplayName()), randomLore);
-                                        Arena arena = arenas.get(inte);
+                                        Arena arena = arenas.get(inte.get());
+                                        while (!arena.isValidArena()) {
+                                            inte.set((int) (Math.random() * arenas.size()));
+                                            arena = arenas.get(inte.get());
+                                        }
+
                                         if (arena.getBoundKit() != null) {
                                             duel.getOptions().add(DuelOptions.BOUND_KIT);
                                             duel.setKit(arena.getBoundKit());
@@ -226,7 +232,7 @@ public class ChooseArenaMenu {
 
                                 if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                                     if (arena.isInUse()) {
-                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), event -> {
+                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), "choose-arena-spectator-display-" + finalIndex, event -> {
                                             duel.getFighter1().closeInventory();
                                             new Teleport(PLUGIN, duel.getFighter1(), false)
                                                     .setLocation(arena.getName(), arena.getSpectators())
@@ -237,11 +243,10 @@ public class ChooseArenaMenu {
                                         index++;
                                     }
                                 } else {
-                                    page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()),
+                                    page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), "choose-arena-display-" + finalIndex,
                                             event -> {
                                                 if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                     if (!arena.isInUse()) {
-                                                        page.setSwitchingPages(true);
                                                         arena.showEditMenu(duel);
                                                     }
                                                 } else {
@@ -301,7 +306,7 @@ public class ChooseArenaMenu {
 
                         if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                             String tempName = PLUGIN.getLangFile().get("gui-buttons.create-arena.name");
-                            page.pageSetItem(31, new ItemBuilder(Utils.createItem(PLUGIN.getHandler().getItemManager().getWritableBook(), true, tempName, Collections.singletonList(PLUGIN.getLangFile().get("gui-buttons.create-arena.description")))).setUnchangedName(tempName), event -> {
+                            page.pageSetItem(31, new ItemBuilder(Utils.createItem(PLUGIN.getHandler().getItemManager().getWritableBook(), true, tempName, Collections.singletonList(PLUGIN.getLangFile().get("gui-buttons.create-arena.description")))).setUnchangedName(tempName), "choose-arena-create-arena", event -> {
                                 new PlayerInput(PLUGIN, duel.getFighter1(), input -> {
                                     String arenaName = Utils.cleanString(input.toLowerCase()
                                             .replace(" ", "-")
@@ -369,7 +374,7 @@ public class ChooseArenaMenu {
             } else {
                 String arena = duel.getOptions().contains(DuelOptions.RANDOM_ARENA) ?
                         Utils.translateColor(PLUGIN.getConfig().getString("random-selection")) :
-                        Utils.translateColor(duel.getArena().getName());
+                        Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getArena().getName()));
                 tempLore.add(PLUGIN.getLangFile().get("info.you-selected").replace("{name}", Utils.translateColor(arena)));
 
                 if (duel.getOptions().contains(DuelOptions.BOUND_KIT) && duel.getArena().getBoundKit() != null) {
@@ -384,13 +389,12 @@ public class ChooseArenaMenu {
             }
             nextButton = Page.buildButton(Material.SLIME_BALL, displayName, tempLore);
 
-            page.pageSetItem(31, nextButton, event -> {
+            page.pageSetItem(31, nextButton, "choose-arena-next-button", event -> {
                 if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                     if (duel.getArena() != null) {
                         if (duel.getOptions().contains(DuelOptions.BOUND_KIT) && duel.getArena().getBoundKit() != null) {
                             duel.startRequest();
                         } else {
-                            page.setSwitchingPages(true);
                             ChooseKitsMenu.showGUI(duel);
                         }
                     }

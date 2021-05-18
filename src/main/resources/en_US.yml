@@ -38,6 +38,12 @@ commands:
     description: 'Plugin main command.'
     usage: '/duel <{subcommands}>'
     subcommands:
+      enable:
+        command: 'enable'
+        usage: '/duel enable'
+      disable:
+        command: 'disable'
+        usage: '/duel disable'
       challenge:
         command: 'challenge'
         usage: '/duel challenge <player>'
@@ -58,7 +64,15 @@ commands:
         usage: '/duel decline'
       edit:
         command: 'edit'
-        usage: '/duel edit'
+        usage: '/duel edit <kits | arenas>'
+        subcommands:
+          kits:
+            command: 'kits'
+            usage: '/duel edit kits'
+          arenas:
+            command: 'arenas'
+            usage: '/duel edit arenas'
+
       npc:
         command: 'npc'
         usage: '/duel npc <update | location>'
@@ -76,42 +90,42 @@ commands:
 gui-buttons:
   player-profile:
     head:
-      name: '&a{player}'
+      name: '{shine lightgreen bold size[2] speed[3]} {player}'
       description: '&7Stats menu of {player}'
     wins:
-      name: '&aDuels won'
+      name: '{shine lightgreen} Duels won'
       description: '&7Wins: &a{wins}'
     defeats:
-      name: '&cDuels lost'
+      name: '{shine lightred} Duels lost'
       description: '&7Defeats: &c{defeats}'
     duels:
-      name: '&aDuels fought'
+      name: '{shine lightgreen} Duels fought'
       description: '&7Duels: &a{duels}'
     disconnects:
-      name: '&cTimes disconnected'
+      name: '{shine lightred} Times disconnected'
       description: '&7Disconnected: &c{disconnects}'
     kdr:
-      name: '&aKill/Death ratio'
+      name: '{shine lightgreen} Kill/Death ratio'
       description: '&7KDR: {kdr}'
 
   next-page:
-    name: '&aNext Page'
+    name: '{shine lightgreen bold speed[3]} Next Page'
     description: '&7Go to page &a{page-number}'
 
   previous-page:
-    name: '&cPrevious Page'
+    name: '{shine lightred bold speed[3]} Previous Page'
     description: '&7Go back to page &c{page-number}'
 
   no-kit-button:
-    name: '&6Use player items'
+    name: '{shine gold} Use player items'
     description: '&eOwn items'
 
   random-kit-button:
-    name: '&eRandom Kit'
+    name: '{shine yellow} Random Kit'
     description: '&eSelect a random kit'
 
   random-arena-button:
-    name: '&eRandom Arena'
+    name: '{shine gold} Random Arena'
     description: '&eSelect a random arena'
 
   back-button:
@@ -140,16 +154,16 @@ gui-buttons:
 
   next-button:
     enabled:
-      name: '&a&lNext'
+      name: '{shine lightgreen bold size[2] speed[3]} Next'
       description: '&aClick here to continue.'
     disabled:
-      name: '&c&lNext'
+      name: '{shine lightred bold size[2] speed[3]} Next'
       description:
         - '§cYou need to select an arena'
         - '§cbefore continuing.'
 
   create-arena:
-    name: '&aCreate Arena'
+    name: '{shine lightgreen bold} Create Arena'
     description: '&7Click here to input the name of the new arena.'
 
   back-to-kits:
@@ -183,7 +197,7 @@ gui-buttons:
       name: '&aEdit Arena Item'
       description: '&7Click here to edit the arena display item'
     enter-item:
-      name: '&6Enter Item'
+      name: '{shine gold} Enter Item'
       description: '&7Put the new item on an empty slot'
 # *-----------------------*=[|]=*-----------------------*
 
@@ -278,6 +292,8 @@ info:
     self: '&cDuel request to {player} has expired.'
     others: '&cDuel request from {player} has expired.'
 
+  duel-enabled: '&aYou have enabled duel challenges again.'
+  duel-disabled: '&aYou have disabled duel challenges to you.'
   waiting-other: '&eAwaiting other player...'
   go: '&aGo!'
   seconds-remaining: '&a{seconds}'
@@ -345,6 +361,7 @@ info:
 
 # *----------------*=/[Error Messages]\=*---------------*
 error:
+  duel-disabled: '&cThe player {player} has disabled duels and cannot be challenged.'
   invalid-arena: '&cOne or more of the locations in this arena are not properly set up. Contact a staff member.'
   no-npc: '&cOne or more of the dependencies were not found.'
   no-letters: '&cThe arena name needs to have at least one letter.'

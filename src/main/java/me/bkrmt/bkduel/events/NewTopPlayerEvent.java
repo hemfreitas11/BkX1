@@ -1,6 +1,5 @@
 package me.bkrmt.bkduel.events;
 
-import lombok.Getter;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -8,9 +7,7 @@ import org.bukkit.event.HandlerList;
 public class NewTopPlayerEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
-    @Getter
     private final PlayerStats oldPlayer;
-    @Getter
     private final PlayerStats newPlayer;
 
     public NewTopPlayerEvent(PlayerStats oldPlayer, PlayerStats newPlayer) {
@@ -27,4 +24,11 @@ public class NewTopPlayerEvent extends Event {
         return handlers;
     }
 
+    public PlayerStats getOldPlayer() {
+        return oldPlayer;
+    }
+
+    public PlayerStats getNewPlayer() {
+        return newPlayer;
+    }
 }

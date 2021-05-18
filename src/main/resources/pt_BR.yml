@@ -38,6 +38,12 @@ commands:
     description: 'Comando principal do plugin.'
     usage: '/x1 <{subcommands}>'
     subcommands:
+      enable:
+        command: 'ativar'
+        usage: '/x1 ativar'
+      disable:
+        command: 'desativar'
+        usage: '/x1 desativar'
       challenge:
         command: 'desafiar'
         usage: '/x1 desafiar <player>'
@@ -77,42 +83,42 @@ commands:
 gui-buttons:
   player-profile:
     head:
-      name: '{shine-lightgreen-bold-size[2]-update[3]} {player}'
+      name: '{shine lightgreen bold size[2] speed[3]} {player}'
       description: '&7Menu de status do jogador {player}'
     wins:
-      name: '{shine-lightgreen} X1s ganhos'
+      name: '{shine lightgreen} X1s ganhos'
       description: '&7Vitórias: &a{wins}'
     defeats:
-      name: '{shine-lightred} X1s perdidos'
+      name: '{shine lightred} X1s perdidos'
       description: '&7Derrotas: &c{defeats}'
     duels:
-      name: '{shine-lightgreen} X1s lutados'
+      name: '{shine lightgreen} X1s lutados'
       description: '&7X1s: &a{duels}'
     disconnects:
-      name: '{shine-lightred} Vezes desconectado'
+      name: '{shine lightred} Vezes desconectado'
       description: '&7Desconectou: &c{disconnects}'
     kdr:
-      name: '{shine-lightgreen} Kill/Death ratio'
+      name: '{shine lightgreen} Kill/Death ratio'
       description: '&7KDR: {kdr}'
 
   next-page:
-    name: '&aPróxima Página'
+    name: '{shine lightgreen bold speed[3]} Próxima Página'
     description: '&7Ir para página &a{page-number}'
 
   previous-page:
-    name: '&cPágina Anterior'
+    name: '{shine lightred bold speed[3]} Página Anterior'
     description: '&7Ir para página &c{page-number}'
 
   no-kit-button:
-    name: '{shine-gold} Próprios Itens'
+    name: '{shine gold} Próprios Itens'
     description: '&eUsar seus próprios itens'
 
   random-kit-button:
-    name: '{shine-yellow}Kit Aleatório'
+    name: '{shine yellow} Kit Aleatório'
     description: '&eSelecionar um kit aleatório'
 
   random-arena-button:
-    name: '{shine-gold}Arena Aleatória'
+    name: '{shine gold} Arena Aleatória'
     description: '&eSelecionar uma arena aleatória'
 
   back-button:
@@ -141,16 +147,16 @@ gui-buttons:
 
   next-button:
     enabled:
-      name: '{shine-lightgreen-bold} Próximo'
+      name: '{shine lightgreen bold} Próximo'
       description: '&aClique aqui para continuar.'
     disabled:
-      name: '{shine-lightred-bold} Próximo'
+      name: '{shine lightred bold} Próximo'
       description:
         - '§cVocê precisa selecionar uma'
         - '§carena antes de continuar.'
 
   create-arena:
-    name: '{shine-lightgreen-bold} Criar Arena'
+    name: '{shine lightgreen bold} Criar Arena'
     description: '&7Clique aqui para digitar o nome da nova arena.'
 
   back-to-kits:
@@ -184,7 +190,7 @@ gui-buttons:
       name: '&aEditar o Item da Arena'
       description: '&7Clique aqui para editar o item do botão da arena.'
     enter-item:
-      name: '{shine-gold} Coloque o Item'
+      name: '{shine gold} Coloque o Item'
       description: '&7Coloque o novo item em um espaço vazio'
 # *-----------------------*=[|]=*-----------------------*
 
@@ -280,6 +286,8 @@ info:
     self: '&cO pedido de X1 para o jogador {player} expirou.'
     others: '&cO pedido de X1 do jogador {player} expirou.'
 
+  duel-enabled: '&aVocê ativou os desafios de X1 novamente.'
+  duel-disabled: '&aVocê desativou os desafios de X1 para você.'
   waiting-other: '&eEsperando o outro jogador...'
   go: '&aVai!'
   seconds-remaining: '&a{seconds}'
@@ -347,6 +355,7 @@ info:
 
 # *---------------*=/[Mensagens de Erro]\=*-------------*
 error:
+  duel-disabled: '&cO jogador {player} desativou o X1 e nao pode ser desafiado.'
   invalid-arena: '&cUm ou mais dos locais dessa arena são inválidos. Contate um membro da Staff.'
   no-npc: '&cUma ou mais das dependencias não foram encontradas.'
   no-letters: '&cO nome da arena tem que ter pelo menos uma letra.'

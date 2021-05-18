@@ -42,9 +42,7 @@ public class Arena extends Purchasable {
             location2 = getConfig().getLocation("locations.fighter2");
             spectators = getConfig().getLocation("locations.spectators");
         }
-
         setBoundKit();
-
     }
 
     public void setLocation1(Location location1) {
@@ -68,7 +66,7 @@ public class Arena extends Purchasable {
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
+        Page menu = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
 
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-name.name"),
@@ -101,16 +99,16 @@ public class Arena extends Purchasable {
                 getPlugin().getLangFile().get("gui-buttons.select-bound-kit.name"),
                 Collections.singletonList(getPlugin().getLangFile().get("gui-buttons.select-bound-kit.description"))));
 
-        menu.setItemOnXY(5, 6, backButton, event -> {
+        menu.setItemOnXY(5, 6, backButton, "arena-edit-back-button", event -> {
             ChooseArenaMenu.showGUI(duel);
         });
 
-        menu.setItemOnXY(5, 4, selectKit, event -> {
+        menu.setItemOnXY(5, 4, selectKit,"arena-edit-select-kit-button", event -> {
             duel.getOptions().add(DuelOptions.BOUND_KIT_SELECTION);
             ChooseKitsMenu.showGUI(duel, this, 0);
         });
 
-        menu.setItemOnXY(2, 2, name, event -> {
+        menu.setItemOnXY(2, 2, name,"arena-edit-name-button", event -> {
             new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
                 if (!setName(input)) {
                     event.getWhoClicked().sendMessage(getPlugin().getLangFile().get("error.no-letters"));
@@ -126,7 +124,7 @@ public class Arena extends Purchasable {
                     .sendInput();
         });
 
-        menu.setItemOnXY(2, 3, desc, event -> {
+        menu.setItemOnXY(2, 3, desc,"arena-edit-description-button", event -> {
             new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
                 List<String> lore = new ArrayList<>();
 
@@ -134,9 +132,7 @@ public class Arena extends Purchasable {
                     String[] parts = input.split("#");
                     for (String part : parts) {
                         if (part != null) {
-                            if (!part.isEmpty() && !part.equalsIgnoreCase(" ") && !part.equalsIgnoreCase("  ") && !part.equalsIgnoreCase("  ")) {
-                                lore.add(Utils.translateColor(part));
-                            }
+                            lore.add(Utils.translateColor(part));
                         }
                     }
                 } else {
@@ -153,9 +149,9 @@ public class Arena extends Purchasable {
                     .sendInput();
         });
 
-        menu.setItemOnXY(4, 2, item, event -> {
+        menu.setItemOnXY(4, 2, item,"arena-edit-item-button", event -> {
 
-            Page page = new Page(getPlugin(), new GUI(ChatColor.stripColor(getName()), Rows.THREE), 1);
+            Page page = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.THREE), 1);
             page.getGuiSettings().setCanDrag(false);
             page.getGuiSettings().setCanEnterItems(true);
             page.getGuiSettings().setEnteredItemResponse(event1 -> {
@@ -169,18 +165,18 @@ public class Arena extends Purchasable {
 
             page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
                     getPlugin().getLangFile().get("gui-buttons.arena-edit.enter-item.name"),
-                    Arrays.asList(getPlugin().getLangFile().get("gui-buttons.arena-edit.enter-item.description"), " ", getPlugin().getLangFile().get("gui-buttons.back-button.description")))),
+                    Arrays.asList(getPlugin().getLangFile().get("gui-buttons.arena-edit.enter-item.description"), " ", getPlugin().getLangFile().get("gui-buttons.back-button.description")))),"arena-edit-item-input-button",
                     event1 -> {
                         showEditMenu(duel);
                     });
 
             page.openGui(player);
         });
-        menu.setItemOnXY(8, 3, spec, event -> {
+        menu.setItemOnXY(8, 3, spec,"arena-edit-spectate-button", event -> {
             setLocation(player, "spectators");
             showEditMenu(duel);
         });
-        menu.setItemOnXY(6, 2, price, event -> {
+        menu.setItemOnXY(6, 2, price,"arena-edit-price-button", event -> {
             event.getWhoClicked().closeInventory();
             new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
                 double newPrice = 0;
@@ -201,16 +197,16 @@ public class Arena extends Purchasable {
                     .setSubTitle(getPlugin().getLangFile().get("info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
                     .sendInput();
         });
-        menu.setItemOnXY(4, 3, pos1, event -> {
+        menu.setItemOnXY(4, 3, pos1,"arena-edit-position1-button", event -> {
             setLocation(player, "fighter1");
             showEditMenu(duel);
         });
-        menu.setItemOnXY(8, 2, deleteButton, event -> {
+        menu.setItemOnXY(8, 2, deleteButton,"arena-edit-delete-button", event -> {
             ItemBuilder greenPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getGreenPane()).setName(getPlugin().getLangFile().get("info.confirm"));
             ItemBuilder redPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getRedPane()).setName(getPlugin().getLangFile().get("info.cancel"));
 
             String arenaDeletedMessage = getPlugin().getLangFile().get("info.arena-deleted");
-            Page page = new Page(getPlugin(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
+            Page page = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
             page.getGuiSettings().setCanDrag(false);
             page.getGuiSettings().setCanEnterItems(true);
             page.getGuiSettings().setEnteredItemResponse(event1 -> {
@@ -220,7 +216,7 @@ public class Arena extends Purchasable {
             });
             for (int i = 2; i < 5; i++) {
                 for (int c = 2; c < 5; c++) {
-                    page.setItemOnXY(c, i, greenPane, event1 -> {
+                    page.setItemOnXY(c, i, greenPane,"arena-edit-green-confirmation-button-" + c + "-" + i, event1 -> {
                         if (getConfig().getFile().delete()) {
                             event.getWhoClicked().closeInventory();
                             event.getWhoClicked().sendMessage(arenaDeletedMessage);
@@ -230,7 +226,7 @@ public class Arena extends Purchasable {
             }
             for (int i = 2; i < 5; i++) {
                 for (int c = 6; c < 9; c++) {
-                    page.setItemOnXY(c, i, redPane, event1 -> {
+                    page.setItemOnXY(c, i, redPane,"arena-edit-red-confirmation-button-" + c + "-" + i, event1 -> {
                         showEditMenu(duel);
                     });
                 }
@@ -241,13 +237,13 @@ public class Arena extends Purchasable {
                     .setLore(getPlugin().getLangFile().get("gui-buttons.delete-confirm.description"))
                     .hideTags();
 
-            page.setItemOnXY(5, 6, confirmBuilder,
+            page.setItemOnXY(5, 6, confirmBuilder, "arena-edit-comfirm-info-button",
                     event1 -> {
                     });
 
             page.openGui(player);
         });
-        menu.setItemOnXY(6, 3, pos2, event -> {
+        menu.setItemOnXY(6, 3, pos2, "arena-edit-position2-button", event -> {
             setLocation(player, "fighter2");
             showEditMenu(duel);
         });

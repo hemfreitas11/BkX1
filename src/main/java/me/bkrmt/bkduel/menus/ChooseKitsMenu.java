@@ -55,12 +55,11 @@ public class ChooseKitsMenu {
 
         boolean isExpanded = false/*PLUGIN.getConfig().getBoolean("expanded-kit-list")*/;
 
-
         Page previousPage = null;
         int pagesSize = (int) Math.ceil((double) kits.size() / (double) (isExpanded ? EXPANDED_MENU : SMALL_MENU));
         if (duel.getKitPages().isEmpty()) {
             for (int c = 0; c < pagesSize; c++) {
-                Page page = new Page(PLUGIN, new GUI(PLUGIN.getLangFile().get("info.choose-kit-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), (isExpanded ? Rows.FIVE : Rows.FOUR)), c + 1);
+                Page page = new Page(PLUGIN, BkDuel.getAnimatorManager(), new GUI(PLUGIN.getLangFile().get("info.choose-kit-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), (isExpanded ? Rows.FIVE : Rows.FOUR)), c + 1);
                 duel.getKitPages().add(page);
                 if (previousPage != null) {
                     previousPage.setNextPage(page);
@@ -109,7 +108,7 @@ public class ChooseKitsMenu {
                         if (first) {
                             if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
                                 int finalX1 = x;
-                                page.pageSetItem(OWN_ITEMS_SLOT, removeKit, event -> {
+                                page.pageSetItem(OWN_ITEMS_SLOT, removeKit, "choose-kits-bound-own-items", event -> {
                                     bindingArena.saveBoundKit(-1);
                                     event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.bound-kit-set"));
                                     duel.getOptions().remove(DuelOptions.BOUND_KIT_SELECTION);
@@ -118,7 +117,7 @@ public class ChooseKitsMenu {
                                     bindingArena.showEditMenu(duel);
                                 });
                             } else {
-                                page.pageSetItem(OWN_ITEMS_SLOT, ownItems, event -> {
+                                page.pageSetItem(OWN_ITEMS_SLOT, ownItems, "choose-kits-own-items", event -> {
                                     Page.clearUnclickable(duel.getKitPages());
                                     List<String> lore = new ArrayList<>();
                                     lore.add(" ");
@@ -134,7 +133,7 @@ public class ChooseKitsMenu {
                             first = false;
                             second = true;
                         } else if (second && !duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
-                            page.pageSetItem(RANDOM_KIT_SLOT, randomItems, event -> {
+                            page.pageSetItem(RANDOM_KIT_SLOT, randomItems, "choose-kits-random-kit", event -> {
                                 Page.clearUnclickable(duel.getKitPages());
                                 List<String> lore = new ArrayList<>();
                                 lore.add(" ");
@@ -176,7 +175,7 @@ public class ChooseKitsMenu {
                             display.setItemMeta(meta);
 
                             int finalX = x;
-                            page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()),
+                            page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), "choose-kits-display-" + finalIndex,
                                     event -> {
                                         if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
                                             bindingArena.saveBoundKit(kit.getId());
@@ -271,7 +270,7 @@ public class ChooseKitsMenu {
                     } else if (duel.getOptions().contains(DuelOptions.RANDOM_KIT)) {
                         kit = Utils.translateColor(PLUGIN.getConfig().getString("random-selection"));
                     } else {
-                        kit = Utils.translateColor(duel.getKit().getName());
+                        kit = Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getKit().getName()));
                     }
                     tempLore.add(PLUGIN.getLangFile().get("info.you-selected").replace("{name}", Utils.translateColor(kit)));
                     if (duel.getOptions().contains(DuelOptions.OWN_ITEMS)) {
@@ -291,7 +290,7 @@ public class ChooseKitsMenu {
 
                 nextButton = Page.buildButton(Material.SLIME_BALL, displayName, tempLore);
 
-                page.pageSetItem(NEXT_SLOT, nextButton, event -> {
+                page.pageSetItem(NEXT_SLOT, nextButton, "choose-kits-next-button", event -> {
                     if (!(duel.getKit() == null && !duel.getOptions().contains(DuelOptions.OWN_ITEMS))) {
                         duel.startRequest();
                     }
@@ -300,8 +299,8 @@ public class ChooseKitsMenu {
                 String tempName = PLUGIN.getLangFile().get("gui-buttons.back-to-arenas.name");
                 page.pageSetItem(NEXT_SLOT, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
                         tempName,
-                        Collections.singletonList(PLUGIN.getLangFile().get("gui-buttons.back-to-arenas.description")))).setUnchangedName(tempName), event -> {
-                    page.setSwitchingPages(true);
+                        Collections.singletonList(PLUGIN.getLangFile().get("gui-buttons.back-to-arenas.description")))).setUnchangedName(tempName), "choose-kits-next-button", event -> {
+                    page.setSwitchingPages(false);
                     duel.getKitPages().set(finalX, page);
                     ChooseArenaMenu.showGUI(duel);
                 });
@@ -328,7 +327,7 @@ public class ChooseKitsMenu {
             expButton = Page.buildButton(PLUGIN.getHandler().getItemManager().getExpBottle(), PLUGIN.getLangFile().get("info.drop-exp-title"), tempLore);
 
 
-            page.pageSetItem(DROP_ITEM_SLOT, expButton, event -> {
+            page.pageSetItem(DROP_ITEM_SLOT, expButton, "choose-kits-drop-exp-button", event -> {
                 if (duel.getOptions().contains(DuelOptions.DROP_EXP)) {
                     duel.getOptions().remove(DuelOptions.DROP_EXP);
                 } else {
@@ -355,8 +354,8 @@ public class ChooseKitsMenu {
             }
             dropItems = Page.buildButton(Material.HOPPER, PLUGIN.getLangFile().get("info.drop-item-title"), tempLore);
 
-            page.pageSetItem(DROP_EXP_SLOT, dropItems, event -> {
-                if (!(duel.getKit() == null && !duel.getOptions().contains(DuelOptions.OWN_ITEMS))) {
+            page.pageSetItem(DROP_EXP_SLOT, dropItems, "choose-kits-drop-items-button", event -> {
+                if (duel.getKit() == null && duel.getOptions().contains(DuelOptions.OWN_ITEMS)) {
                     if (duel.getOptions().contains(DuelOptions.DROP_ITEMS)) {
                         duel.getOptions().remove(DuelOptions.DROP_ITEMS);
                     } else {

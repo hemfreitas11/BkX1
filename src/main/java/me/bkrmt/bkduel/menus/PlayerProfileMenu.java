@@ -22,7 +22,7 @@ public class PlayerProfileMenu {
         int duelsInt = stat.getDuels();
         int disconnectsInt = stat.getDisconnects();
 
-        Page page = new Page(BkDuel.PLUGIN, new GUI(plugin.getLangFile().get("info.player-profile-title"), Rows.FIVE), 1);
+        Page page = new Page(BkDuel.PLUGIN, BkDuel.getAnimatorManager(), new GUI(plugin.getLangFile().get("info.player-profile-title"), Rows.FIVE), 1);
 
         ItemBuilder head = new ItemBuilder(BkDuel.PLUGIN.getHandler().getItemManager().getHead());
         SkullMeta headMeta = (SkullMeta) head.getItem().getItemMeta();
@@ -78,13 +78,13 @@ public class PlayerProfileMenu {
                 .hideTags()
                 .update();
 
-        page.setItemOnXY(5, 2, head, null);
-        page.setItemOnXY(3, 3, duels, null);
-        page.setItemOnXY(4, 3, wins, null);
-        page.setItemOnXY(5, 3, defeats, null);
-        page.setItemOnXY(6, 3, kdr, null);
-        page.setItemOnXY(7, 3, disconnects, null);
-        page.setItemOnXY(5, 5, close, event -> {
+        page.setItemOnXY(5, 2, head, "player-profile-head-button", null);
+        page.setItemOnXY(3, 3, duels, "player-profile-duels-button", null);
+        page.setItemOnXY(4, 3, wins, "player-profile-wins-button", null);
+        page.setItemOnXY(5, 3, defeats, "player-profile-defeats-button", null);
+        page.setItemOnXY(6, 3, kdr, "player-profile-kdr-button", null);
+        page.setItemOnXY(7, 3, disconnects, "player-profile-disconnects-button", null);
+        page.setItemOnXY(5, 5, close, "player-profile-close-button", event -> {
             player.closeInventory();
         });
         page.getGui().openInventory(player);

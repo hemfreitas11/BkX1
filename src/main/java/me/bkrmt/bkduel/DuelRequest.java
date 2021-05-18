@@ -38,8 +38,8 @@ public class DuelRequest {
         this.duel = duel;
         this.plugin = duel.getPlugin();
         tpaMessage = new TextComponent("");
-        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(duel.getKit().getName())) : plugin.getLangFile().get("info.own-items");
-        arena = Utils.translateColor(duel.getArena().getName());
+        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getKit().getName()))) : plugin.getLangFile().get("info.own-items");
+        arena = Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getArena().getName()));
         String yes = plugin.getLangFile().get("info.true");
         String no = plugin.getLangFile().get("info.false");
         itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? yes : no;

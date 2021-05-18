@@ -1,8 +1,6 @@
 package me.bkrmt.bkduel;
 
 import br.com.devpaulo.legendchat.api.events.ChatMessageEvent;
-import lombok.Getter;
-import lombok.NonNull;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.command.CommandModule;
@@ -34,19 +32,12 @@ import java.util.*;
 
 public final class BkDuel extends BkPlugin {
     public static String PREFIX;
-    @NonNull
     public static BkDuel PLUGIN;
-    @Getter
     private static String chatHook;
-    @Getter
     private static String hologramHook;
-    @Getter
     private static Hashtable<UUID, Duel> ongoingDuels;
-    @Getter
     private static Economy economy;
-    @Getter
     private static StatsManager statsManager;
-    @Getter
     private static AnimatorManager animatorManager;
 
     @Override
@@ -134,6 +125,7 @@ public final class BkDuel extends BkPlugin {
                 duel.getArena();
                 duel.checkAuthorization(() -> {
                     // Configure NPC hook
+                    animatorManager = new AnimatorManager(this);
                     Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
                     if (citizens != null && citizens.isEnabled()) {
                         sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CITIZENS_FOUND.getMessage(this)));
@@ -191,11 +183,15 @@ public final class BkDuel extends BkPlugin {
                                 String accept = PLUGIN.getLangFile().get("commands.duel.subcommands.accept.command");
                                 String decline = PLUGIN.getLangFile().get("commands.duel.subcommands.decline.command");
                                 String edit = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.command");
+                                String edit_arenas = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.arenas.command");
+                                String edit_kits = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.kits.command");
                                 String npc = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.command");
+                                String enable = PLUGIN.getLangFile().get("commands.duel.subcommands.enable.command");
+                                String disable = PLUGIN.getLangFile().get("commands.duel.subcommands.disable.command");
                                 String npc_update = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.update.command");
                                 String npc_location = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.location.command");
 
-                                List<String> subCommands = new ArrayList<>(Arrays.asList(challenge, top, stats, spectate, accept, decline, edit, npc));
+                                List<String> subCommands = new ArrayList<>(Arrays.asList(challenge, top, stats, spectate, accept, decline, edit, enable, disable, npc));
 
                                 if (args.length == 1) {
                                     String partialCommand = args[0];
@@ -210,12 +206,14 @@ public final class BkDuel extends BkPlugin {
                                             players.add(player.getName());
                                         }
                                     }
-
                                     String partialName = args[1];
                                     StringUtil.copyPartialMatches(partialName, players, completions);
                                 } else if (args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
                                     String partialSubCommand = args[1];
                                     StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(npc_location, npc_update), completions);
+                                } else if (args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
+                                    String partialSubCommand = args[1];
+                                    StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(edit_arenas, edit_kits), completions);
                                 }
 
                                 Collections.sort(completions);
@@ -231,7 +229,6 @@ public final class BkDuel extends BkPlugin {
                     if (isEnabled()) {
                         statsManager = new StatsManager(this);
                         ongoingDuels = new Hashtable<>();
-                        animatorManager = new AnimatorManager(this);
                         try {
                             TeleportCore.playersInCooldown.get("Core-Started");
                         } catch (NullPointerException ignored) {
@@ -250,6 +247,30 @@ public final class BkDuel extends BkPlugin {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    public static String getChatHook() {
+        return chatHook;
+    }
+
+    public static String getHologramHook() {
+        return hologramHook;
+    }
+
+    public static Hashtable<UUID, Duel> getOngoingDuels() {
+        return ongoingDuels;
+    }
+
+    public static Economy getEconomy() {
+        return economy;
+    }
+
+    public static StatsManager getStatsManager() {
+        return statsManager;
+    }
+
+    public static AnimatorManager getAnimatorManager() {
+        return animatorManager;
     }
 
     private String configureHologramHook() {

@@ -62,6 +62,12 @@ public class Duel implements Listener {
     private Location fighter1Return;
     private Location fighter2Return;
 
+    private GameMode fighter1Gamemode;
+    private GameMode fighter2Gamemode;
+
+    private boolean fighter1IsFlying;
+    private boolean fighter2IsFlying;
+
     private DuelRequest request;
 
     private BigDecimal fighter1Bet;
@@ -112,7 +118,11 @@ public class Duel implements Listener {
                 endWithoutPlayers();
             }
 
+            fighter1IsFlying = fighter1.isFlying();
+            fighter1Gamemode = fighter1.getGameMode();
             fighter1.setGameMode(GameMode.SURVIVAL);
+            fighter2IsFlying = fighter2.isFlying();
+            fighter2Gamemode = fighter2.getGameMode();
             fighter2.setGameMode(GameMode.SURVIVAL);
 
             fighter1.closeInventory();
@@ -389,6 +399,14 @@ public class Duel implements Listener {
             returnItems(plugin, winner, false);
         }
 
+        if (fighter1.isOnline()) {
+            fighter1.setFlying(fighter1IsFlying);
+            fighter1.setGameMode(fighter1Gamemode);
+        }
+        if (fighter2.isOnline()) {
+            fighter2.setFlying(fighter2IsFlying);
+            fighter2.setGameMode(fighter2Gamemode);
+        }
         arena.setInUse(false);
 
         updateStatistics();

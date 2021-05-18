@@ -3,11 +3,12 @@ version: ${project.version}
 main: me.bkrmt.bkduel.BkDuel
 depend:
   - 'Vault'
-soft-depend:
+softdepend:
   - 'Citizens'
   - 'HeroChat'
   - 'HeroChatPro'
   - 'Legendchat'
+  - 'HolographicDisplays'
   - 'nChat'
 api-version: 1.13
 authors: [ Bkr__ ]
