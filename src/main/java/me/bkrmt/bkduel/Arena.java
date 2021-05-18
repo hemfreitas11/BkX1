@@ -144,8 +144,8 @@ public class Arena extends Purchasable {
                     input -> {
                     })
                     .setCancellable(true)
-                    .setTitle(getPlugin().getLangFile().get("info.input.arena-description"))
-                    .setSubTitle(getPlugin().getLangFile().get("info.input.arena-description-subtitle"))
+                    .setTitle(getPlugin().getLangFile().get("info.input.new-description"))
+                    .setSubTitle(getPlugin().getLangFile().get("info.input.new-description-subtitle"))
                     .sendInput();
         });
 
@@ -256,11 +256,6 @@ public class Arena extends Purchasable {
         getConfig().setLocation("locations." + key, player.getLocation());
         getConfig().save(false);
         player.sendMessage(getPlugin().getLangFile().get("info.location-set"));
-    }
-
-    public void setPrice(double price) {
-        getConfig().set("price", price);
-        getConfig().save(false);
     }
 
     public boolean isValidArena() {

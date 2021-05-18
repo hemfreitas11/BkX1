@@ -2,6 +2,7 @@ package me.bkrmt.bkduel.menus;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.Arena;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
@@ -96,6 +97,7 @@ public class ChooseArenaMenu {
         for (Page page : pages) {
             if (!page.isBuilt() || duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                 int index = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) || duel.getOptions().contains(DuelOptions.EDIT_MODE) ? 10 : 11;
+
                 for (int i = 0; i < rowSize; i++) {
                     if (arenaIndex < tempSize) {
                         if (getArenas().size() > 0) {
@@ -232,13 +234,17 @@ public class ChooseArenaMenu {
 
                                 if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                                     if (arena.isInUse()) {
-                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), "choose-arena-spectator-display-" + finalIndex, event -> {
+                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(arena.getConfig().getString("name")), "choose-arena-spectator-display-" + finalIndex, event -> {
                                             duel.getFighter1().closeInventory();
-                                            new Teleport(PLUGIN, duel.getFighter1(), false)
-                                                    .setLocation(arena.getName(), arena.getSpectators())
-                                                    .setDuration(3)
-                                                    .setIsCancellable(true)
-                                                    .startTeleport();
+                                            if (!BkDuel.getOngoingDuels().containsKey(duel.getFighter1().getUniqueId())) {
+                                                new Teleport(PLUGIN, duel.getFighter1(), false)
+                                                        .setLocation(arena.getName(), arena.getSpectators())
+                                                        .setDuration(3)
+                                                        .setIsCancellable(true)
+                                                        .startTeleport();
+                                            } else {
+                                                duel.getFighter1().sendMessage(PLUGIN.getLangFile().get("error.cant-spectate"));
+                                            }
                                         });
                                         index++;
                                     }
@@ -276,7 +282,7 @@ public class ChooseArenaMenu {
                                                                             arena.addOwner((Player) event.getWhoClicked());
                                                                             event.getWhoClicked().sendMessage(PLUGIN.getLangFile()
                                                                                     .get("info.player-bought-message.arena")
-                                                                                    .replace("{arena}", arena.getName())
+                                                                                    .replace("{arena}", AnimatorManager.cleanText(Utils.translateColor(arena.getName())))
                                                                                     .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
                                                                             event.getWhoClicked().closeInventory();
                                                                             page.setBuilt(false);

@@ -112,6 +112,11 @@ public abstract class Purchasable {
         return returnId;
     }
 
+    public void setPrice(double price) {
+        getConfig().set("price", price);
+        getConfig().save(false);
+    }
+
     public boolean isOwner(Player player) {
         Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());

@@ -4,6 +4,7 @@ import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.command.Executor;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
 import me.bkrmt.bkduel.enums.DuelOptions;
@@ -204,52 +205,60 @@ public class CmdDuel extends Executor {
                                 .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.edit.usage")));
                     }
                 } else if (args[0].equalsIgnoreCase(subcommands.get("challenge"))) {
-                    if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
-                        double playerMoney = BkDuel.getEconomy().getBalance(player);
-                        double duelCost = getPlugin().getConfig().getDouble("duel-cost");
+                    if (getPlugin().getFile("kits", "").listFiles().length > 0) {
+                        if (getPlugin().getFile("arenas", "").listFiles().length > 0) {
+                            if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
+                                double playerMoney = BkDuel.getEconomy().getBalance(player);
+                                double duelCost = getPlugin().getConfig().getDouble("duel-cost");
 
-                        if (playerMoney >= duelCost) {
-                            Player targetPlayer = Utils.getPlayer(args[1]);
-                            if (targetPlayer != null) {
-                                Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
-                                if (!config.getBoolean(targetPlayer.getUniqueId().toString() + ".duel-disabled")) {
-                                    if (!targetPlayer.isDead()) {
-                                        if (targetPlayer.getUniqueId().equals(player.getUniqueId())) {
-                                            if (!BkDuel.getOngoingDuels().containsKey(targetPlayer.getUniqueId())) {
-                                                Duel duel = new Duel(getPlugin());
-                                                duel.setFighter1(player);
-                                                duel.setFighter2(targetPlayer);
-                                                ChooseArenaMenu.showGUI(duel);
-                                            } else {
-                                                Duel duel = BkDuel.getOngoingDuels().get(targetPlayer.getUniqueId());
-                                                if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                                                    player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.others"));
+                                if (playerMoney >= duelCost) {
+                                    Player targetPlayer = Utils.getPlayer(args[1]);
+                                    if (targetPlayer != null) {
+                                        Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
+                                        if (!config.getBoolean(targetPlayer.getUniqueId().toString() + ".duel-disabled")) {
+                                            if (!targetPlayer.isDead()) {
+                                                if (!targetPlayer.getUniqueId().equals(player.getUniqueId())) {
+                                                    if (!BkDuel.getOngoingDuels().containsKey(targetPlayer.getUniqueId())) {
+                                                        Duel duel = new Duel(getPlugin());
+                                                        duel.setFighter1(player);
+                                                        duel.setFighter2(targetPlayer);
+                                                        ChooseArenaMenu.showGUI(duel);
+                                                    } else {
+                                                        Duel duel = BkDuel.getOngoingDuels().get(targetPlayer.getUniqueId());
+                                                        if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                                                            player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.others"));
+                                                        } else {
+                                                            player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.others"));
+                                                        }
+                                                    }
                                                 } else {
-                                                    player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.others"));
+                                                    player.sendMessage(getPlugin().getLangFile().get("error.cant-duel-self"));
                                                 }
+                                            } else {
+                                                player.sendMessage(getPlugin().getLangFile().get("error.dead-player").replace("{player}", args[1]));
                                             }
                                         } else {
-                                            player.sendMessage(getPlugin().getLangFile().get("error.cant-duel-self"));
+                                            player.sendMessage(getPlugin().getLangFile().get("error.duel-disabled").replace("{player}", args[1]));
                                         }
                                     } else {
-                                        player.sendMessage(getPlugin().getLangFile().get("error.dead-player").replace("{player}", args[1]));
+                                        player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
                                     }
                                 } else {
-                                    player.sendMessage(getPlugin().getLangFile().get("error.duel-disabled").replace("{player}", args[1]));
+                                    player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
                                 }
                             } else {
-                                player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
+                                Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
+                                if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                                    player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.self"));
+                                } else {
+                                    player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.self"));
+                                }
                             }
                         } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
+                            player.sendMessage(getPlugin().getLangFile().get("error.no-arenas"));
                         }
                     } else {
-                        Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
-                        if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                            player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.self"));
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.self"));
-                        }
+                        player.sendMessage(getPlugin().getLangFile().get("error.no-kits"));
                     }
                 } else if (args[0].equalsIgnoreCase(subcommands.get("top"))) {
                     try {
@@ -273,7 +282,7 @@ public class CmdDuel extends Executor {
                             Duel spectate = Duel.findDuel(args[1]);
                             if (spectate != null) {
                                 new Teleport(getPlugin(), player, false)
-                                        .setLocation(spectate.getArena().getName(), spectate.getArena().getSpectators())
+                                        .setLocation(AnimatorManager.cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
                                         .setDuration(3)
                                         .setIsCancellable(true)
                                         .startTeleport();

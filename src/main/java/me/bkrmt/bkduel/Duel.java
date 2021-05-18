@@ -4,6 +4,7 @@ import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.message.InternalMessages;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
 import me.bkrmt.bkduel.enums.EndCause;
@@ -144,7 +145,7 @@ public class Duel implements Listener {
                             setKit(fighter1, fighter1Return);
                         }
                     })
-                    .setLocation(getArena().getConfig().getString("name"), getArena().getLocation1())
+                    .setLocation(AnimatorManager.cleanText(getArena().getName()), getArena().getLocation1())
                     .setDuration(0)
                     .setIsCancellable(false)
                     .startTeleport();
@@ -158,7 +159,7 @@ public class Duel implements Listener {
                             setKit(fighter2, fighter2Return);
                         }
                     })
-                    .setLocation(getArena().getConfig().getString("name"), getArena().getLocation2())
+                    .setLocation(AnimatorManager.cleanText(getArena().getName()), getArena().getLocation2())
                     .setDuration(0)
                     .setIsCancellable(false)
                     .startTeleport();
