@@ -3,6 +3,7 @@ package me.bkrmt.bkduel;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import me.bkrmt.opengui.GUI;
 import me.bkrmt.opengui.ItemBuilder;
@@ -137,7 +138,7 @@ public class Kit extends Purchasable {
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.FIVE), 1);
+        Page menu = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(AnimatorManager.cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
 
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get("gui-buttons.kit-edit.edit-name.name"),
@@ -190,6 +191,7 @@ public class Kit extends Purchasable {
                 ChooseKitsMenu.showGUI(duel);
             },
                     input -> {
+                        if (input.equalsIgnoreCase(getPlugin().getConfig().getString("cancel-input"))) showEditMenu(duel);
                     })
                     .setCancellable(true)
                     .setTitle(getPlugin().getLangFile().get("info.input.kit-name"))

@@ -58,7 +58,9 @@ public class ChooseKitsMenu {
         boolean isExpanded = false/*PLUGIN.getConfig().getBoolean("expanded-kit-list")*/;
 
         Page previousPage = null;
-        int pagesSize = (int) Math.ceil((double) kits.size() / (double) (isExpanded ? EXPANDED_MENU : SMALL_MENU));
+        int tempSize = kits.size() > 0 ? kits.size() : 1;
+        int rowSize = duel.getOptions().contains(DuelOptions.EDIT_MODE) ? duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) ? 7 : 8 : 7;
+        int pagesSize = (int) Math.ceil((double) tempSize / (double) rowSize);
         if (duel.getKitPages().isEmpty()) {
             for (int c = 0; c < pagesSize; c++) {
                 Page page = new Page(PLUGIN, BkDuel.getAnimatorManager(), new GUI(PLUGIN.getLangFile().get("info.choose-kit-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), (isExpanded ? Rows.FIVE : Rows.FOUR)), c + 1);
@@ -93,22 +95,20 @@ public class ChooseKitsMenu {
                 .setUnchangedName(tempName2)
                 .hideTags();
 
-        int kitIndex = 0;
+        int kitIndex = pageNumber * rowSize;
         boolean second = false;
 
         for (int x = 0; x < duel.getKitPages().size(); x++) {
             Page page = duel.getKitPages().get(x);
             boolean first = x == 0;
 
-            int index = OWN_ITEMS_SLOT;
-            for (int i = 0; i < SMALL_MENU; i++) {
-                if (kitIndex < kits.size()) {
-                    int finalKitIndex = kitIndex++;
-                    int finalIndex = index;
+            int index = duel.getOptions().contains(DuelOptions.EDIT_MODE) ? duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) ? x > 0 ? OWN_ITEMS_SLOT : RANDOM_KIT_SLOT : OWN_ITEMS_SLOT : x > 0 ? OWN_ITEMS_SLOT : 12;
+            for (int i = 0; i < rowSize; i++) {
+                if (kitIndex < tempSize) {
                     int inte = (int) (Math.random() * kits.size());
-                    if (!page.isBuilt() || duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                        if (first && !duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                            if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
+                    if (/*!page.isBuilt() || duel.getOptions().contains(DuelOptions.EDIT_MODE)*/true) {
+                        if (first) {
+                            if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) && duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                 page.pageSetItem(OWN_ITEMS_SLOT, removeKit, "choose-kits-bound-own-items", event -> {
                                     bindingArena.saveBoundKit(-1);
                                     event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.bound-kit-set"));
@@ -117,18 +117,20 @@ public class ChooseKitsMenu {
                                     bindingArena.showEditMenu(duel);
                                 });
                             } else {
-                                page.pageSetItem(OWN_ITEMS_SLOT, ownItems, "choose-kits-own-items", event -> {
-                                    Page.clearUnclickable(duel.getKitPages());
-                                    List<String> lore = new ArrayList<>();
-                                    lore.add(" ");
-                                    lore.add(PLUGIN.getLangFile().get("info.kit-selected"));
-                                    page.setUnclickable(OWN_ITEMS_SLOT, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(OWN_ITEMS_SLOT).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
-                                    duel.setKit(null);
-                                    duel.getOptions().add(DuelOptions.OWN_ITEMS);
-                                    duel.getOptions().remove(DuelOptions.DROP_ITEMS);
-                                    duel.getOptions().remove(DuelOptions.RANDOM_KIT);
-                                    refreshButtons(duel);
-                                });
+                                if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                    page.pageSetItem(OWN_ITEMS_SLOT, ownItems, "choose-kits-own-items", event -> {
+                                        Page.clearUnclickable(duel.getKitPages());
+                                        List<String> lore = new ArrayList<>();
+                                        lore.add(" ");
+                                        lore.add(PLUGIN.getLangFile().get("info.kit-selected"));
+                                        page.setUnclickable(OWN_ITEMS_SLOT, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(OWN_ITEMS_SLOT).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                        duel.setKit(null);
+                                        duel.getOptions().add(DuelOptions.OWN_ITEMS);
+                                        duel.getOptions().remove(DuelOptions.DROP_ITEMS);
+                                        duel.getOptions().remove(DuelOptions.RANDOM_KIT);
+                                        refreshButtons(duel);
+                                    });
+                                }
                             }
                             first = false;
                             second = true;
@@ -148,6 +150,8 @@ public class ChooseKitsMenu {
                             });
                             second = false;
                         } else {
+                            int finalKitIndex = kitIndex++;
+                            int finalIndex = index;
                             if (kits.size() > 0) {
                                 Kit kit = kits.get(finalKitIndex);
                                 ItemStack display = kit.getDisplayItem();
@@ -180,57 +184,93 @@ public class ChooseKitsMenu {
                                     if (!extraLore.isEmpty()) extraLore.add(" ");
                                     extraLore.add(PLUGIN.getLangFile().get("info.click-to-select-kit"));
                                 }
+
+
+                                if (!duel.getFighter1().hasPermission("bkduel.kits") && !duel.getFighter1().hasPermission("bkduel.kit." + kit.getId())) {
+                                    if (extraLore.size() > 0 && !extraLore.get(extraLore.size() - 1).equalsIgnoreCase(" "))
+                                        extraLore.add(" ");
+                                    extraLore.add(PLUGIN.getLangFile().get("error.no-kit-perm"));
+                                }
+
+                                if (duel.getFighter1().hasPermission("bkduel.admin") || duel.getFighter1().hasPermission("bkduel.edit")) {
+                                    if (extraLore.size() > 0 && !extraLore.get(extraLore.size() - 1).equalsIgnoreCase(" "))
+                                        extraLore.add(" ");
+                                    extraLore.add(PLUGIN.getLangFile().get("info.kit-id").replace("{id}", String.valueOf(kit.getId())));
+                                }
+
                                 ItemMeta meta = display.getItemMeta();
                                 meta.setLore(extraLore);
                                 display.setItemMeta(meta);
 
-                                page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(kit.getConfig().getString("name")), "choose-kits-display-" + finalIndex,
-                                        event -> {
-                                            if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
-                                                bindingArena.saveBoundKit(kit.getId());
-                                                event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.bound-kit-set"));
-                                                duel.getOptions().remove(DuelOptions.BOUND_KIT_SELECTION);
-                                                page.setSwitchingPages(true);
-                                                bindingArena.showEditMenu(duel);
-                                            } else {
-                                                if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                                    kit.showEditMenu(duel);
+
+                                if (!duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) && !duel.getOptions().contains(DuelOptions.EDIT_MODE) && !duel.getFighter1().hasPermission("bkduel.kits") && !duel.getFighter1().hasPermission("bkduel.kit." + kit.getId())) {
+                                    String kitName = kit.getConfig().getString("name");
+                                    for (String line : extraLore) {
+                                        if (extraLore.indexOf(line) < (extraLore.size() - (duel.getFighter1().hasPermission("bkduel.edit") || duel.getFighter1().hasPermission("bkduel.admin") ? 3 : 2))) {
+                                            extraLore.set(extraLore.indexOf(line), ChatColor.DARK_GRAY + ChatColor.stripColor(Utils.translateColor(line)));
+                                        }
+                                    }
+
+                                    ItemBuilder newDisplay = new ItemBuilder(Material.BARRIER)
+                                            .setName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + AnimatorManager.cleanText(kitName))
+                                            .setUnchangedName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + AnimatorManager.cleanText(kitName))
+                                            .setLore(extraLore);
+                                    page.pageSetItem(
+                                            finalIndex, newDisplay, "choose-kits-display-" + finalIndex, event -> {
+                                            }
+                                    );
+                                } else {
+                                    page.pageSetItem(
+                                            finalIndex, new ItemBuilder(display).setUnchangedName(kit.getConfig().getString("name")), "choose-kits-display-" + finalIndex,
+                                            event -> {
+                                                if (duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION)) {
+                                                    bindingArena.saveBoundKit(kit.getId());
+                                                    event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.bound-kit-set"));
+                                                    duel.getOptions().remove(DuelOptions.BOUND_KIT_SELECTION);
+                                                    page.setSwitchingPages(true);
+                                                    bindingArena.showEditMenu(duel);
                                                 } else {
-                                                    if (kit.getPrice() == 0 || kit.isOwner(duel.getFighter1())) {
-                                                        duel.setKit(kits.get(finalKitIndex));
-                                                        if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                                            duel.getOptions().remove(DuelOptions.OWN_ITEMS);
-                                                            duel.getOptions().remove(DuelOptions.DROP_ITEMS);
-                                                            duel.getOptions().remove(DuelOptions.RANDOM_KIT);
-                                                            Page.clearUnclickable(duel.getKitPages());
-                                                            List<String> lore = new ArrayList<>();
-                                                            lore.add(" ");
-                                                            lore.add(PLUGIN.getLangFile().get("info.kit-selected"));
-                                                            page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
-                                                            duel.setKit(kits.get(finalKitIndex));
-                                                            refreshButtons(duel);
-                                                        }
+                                                    if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                        kit.showEditMenu(duel);
                                                     } else {
-                                                        if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                                            if (playerMoney >= kit.getPrice()) {
-                                                                EconomyResponse r = BkDuel.getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), kit.getPrice());
-                                                                if (r.transactionSuccess()) {
-                                                                    kit.addOwner((Player) event.getWhoClicked());
-                                                                    event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.kit-bought-message")
-                                                                            .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(kit.getName())))
-                                                                            .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
-                                                                    event.getWhoClicked().closeInventory();
-                                                                    page.setBuilt(false);
-                                                                    ChooseKitsMenu.showGUI(duel, null, duel.getKitPages().indexOf(page));
-                                                                } else {
-                                                                    event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(PLUGIN).replace("{0}", r.errorMessage));
+                                                        if (kit.getPrice() == 0 || kit.isOwner(duel.getFighter1())) {
+                                                            duel.setKit(kits.get(finalKitIndex));
+                                                            if (!page.getItems().get(event.getSlot()).isUnclickable()) {
+                                                                duel.getOptions().remove(DuelOptions.OWN_ITEMS);
+                                                                duel.getOptions().remove(DuelOptions.DROP_ITEMS);
+                                                                duel.getOptions().remove(DuelOptions.RANDOM_KIT);
+                                                                Page.clearUnclickable(duel.getKitPages());
+                                                                List<String> lore = new ArrayList<>();
+                                                                lore.add(" ");
+                                                                lore.add(PLUGIN.getLangFile().get("info.kit-selected"));
+                                                                page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), lore);
+                                                                duel.setKit(kits.get(finalKitIndex));
+                                                                refreshButtons(duel);
+                                                            }
+                                                        } else {
+                                                            if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                                if (playerMoney >= kit.getPrice()) {
+                                                                    EconomyResponse r = BkDuel.getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), kit.getPrice());
+                                                                    if (r.transactionSuccess()) {
+                                                                        kit.addOwner((Player) event.getWhoClicked());
+                                                                        event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("info.kit-bought-message")
+                                                                                .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(kit.getName())))
+                                                                                .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
+                                                                        event.getWhoClicked().closeInventory();
+                                                                        page.setBuilt(false);
+                                                                        ChooseKitsMenu.showGUI(duel/*, null, finalX*/);
+                                                                    } else {
+                                                                        event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(PLUGIN).replace("{0}", r.errorMessage));
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
-                                        });
+                                    );
+                                }
+                                index++;
                             }
                         }
                     }
@@ -261,7 +301,6 @@ public class ChooseKitsMenu {
                                     .sendInput();
                         });
                     }
-                    index++;
                 } else break;
             }
             page.setBuilt(true);

@@ -3,6 +3,7 @@ package me.bkrmt.bkduel;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.menus.ChooseArenaMenu;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
@@ -66,7 +67,7 @@ public class Arena extends Purchasable {
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
+        Page menu = new Page(getPlugin(), BkDuel.getAnimatorManager(), new GUI(ChatColor.stripColor(AnimatorManager.cleanText(getName())), Rows.SIX), 1);
 
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get("gui-buttons.arena-edit.edit-name.name"),
@@ -117,6 +118,7 @@ public class Arena extends Purchasable {
                 ChooseArenaMenu.showGUI(duel);
             },
                     input -> {
+                        if (input.equalsIgnoreCase(getPlugin().getConfig().getString("cancel-input"))) showEditMenu(duel);
                     })
                     .setCancellable(true)
                     .setTitle(getPlugin().getLangFile().get("info.input.arena-name"))
@@ -258,7 +260,7 @@ public class Arena extends Purchasable {
         player.sendMessage(getPlugin().getLangFile().get("info.location-set"));
     }
 
-    public boolean isValidArena() {
+    public boolean isValidArena(Player player) {
         boolean isValidArena = true;
 
         if (getName() == null) {
@@ -274,6 +276,10 @@ public class Arena extends Purchasable {
         }
 
         if (getSpectators() == null) {
+            isValidArena = false;
+        }
+
+        if (!player.hasPermission("bkduel.arenas") && !player.hasPermission("bkduel.arena." + getId())) {
             isValidArena = false;
         }
 

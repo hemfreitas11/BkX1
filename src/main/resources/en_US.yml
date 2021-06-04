@@ -219,7 +219,7 @@ gui-buttons:
       description: '&7Click here to edit the kit display item'
     set-from-inventory:
       name: '&aSet Kit Items'
-      description: '&7Set the kit items to be the same as your inventory.'
+      description: '&7Set the kit items with your current inventory.'
     enter-item:
       name: '{shine gold} Enter Item'
       description: '&7Put the new item on an empty slot'
@@ -317,6 +317,8 @@ info:
     self: '&cDuel request to {player} has expired.'
     others: '&cDuel request from {player} has expired.'
 
+  arena-id: '&8arena id: {id}'
+  kit-id: '&8kit id: {id}'
   kit-items-set: '&aKit items set succesfully.'
   duel-enabled: '&aYou have enabled duel challenges again.'
   duel-disabled: '&aYou have disabled duel challenges to you.'
@@ -389,6 +391,8 @@ info:
 
 # *----------------*=/[Error Messages]\=*---------------*
 error:
+  no-kit-perm: '&cNo permission for this kit.'
+  no-arena-perm: '&cNo permission for this arena.'
   duel-disabled: '&cThe player {player} has disabled duels and cannot be challenged.'
   invalid-arena: '&cOne or more of the locations in this arena are not properly set up. Contact a staff member.'
   no-npc: '&cOne or more of the dependencies were not found.'

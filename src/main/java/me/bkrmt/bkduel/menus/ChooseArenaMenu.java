@@ -44,7 +44,7 @@ public class ChooseArenaMenu {
                 boolean contains = false;
                 for (Arena arena : arenas) {
                     try {
-                        if (arena.isValidArena()) hasValidArena = true;
+                        if (arena.isValidArena(duel.getFighter1())) hasValidArena = true;
                         if (arena.getId() == ongoingDuel.getArena().getId()) {
                             contains = true;
                             break;
@@ -63,7 +63,7 @@ public class ChooseArenaMenu {
                 for (File arena : listFiles) {
                     try {
                         Arena tempArena = new Arena(PLUGIN, arena.getName().replace(".yml", ""));
-                        if (tempArena.isValidArena()) hasValidArena = true;
+                        if (tempArena.isValidArena(duel.getFighter1())) hasValidArena = true;
                         arenas.add(tempArena);
                     } catch (Exception ignored) {
                         PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(PLUGIN).replace("{0}", arena.getName())));
@@ -95,8 +95,8 @@ public class ChooseArenaMenu {
         int arenaIndex = 0;
         boolean first = true;
         for (Page page : pages) {
-            if (!page.isBuilt() || duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
-                int index = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) || duel.getOptions().contains(DuelOptions.EDIT_MODE) ? 10 : 11;
+            if (true/*!page.isBuilt() || duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)*/) {
+                int index = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) || duel.getOptions().contains(DuelOptions.EDIT_MODE) ? 10 : pages.indexOf(page) > 0 ? 10 : 11;
 
                 for (int i = 0; i < rowSize; i++) {
                     if (arenaIndex < tempSize) {
@@ -126,7 +126,7 @@ public class ChooseArenaMenu {
 
                                         page.setUnclickable(10, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(10).getPageItem().getItem().getItemMeta().getDisplayName()), randomLore);
                                         Arena arena = arenas.get(inte.get());
-                                        while (!arena.isValidArena()) {
+                                        while (!arena.isValidArena(duel.getFighter1())) {
                                             inte.set((int) (Math.random() * arenas.size()));
                                             arena = arenas.get(inte.get());
                                         }
@@ -148,8 +148,8 @@ public class ChooseArenaMenu {
                                 ItemStack display = arena.getDisplayItem();
                                 double playerMoney = BkDuel.getEconomy().getBalance(duel.getFighter1());
 
+                                List<String> extraLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                                 if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
-                                    List<String> extraLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
 
                                     if (arena.isInUse()) {
                                         Duel inUse = Duel.findDuel(arena);
@@ -160,13 +160,13 @@ public class ChooseArenaMenu {
                                                 .replace("{fighter1}", inUse.getFighter1().getName())
                                                 .replace("{fighter2}", inUse.getFighter2().getName()));
                                     } else {
-                                        boolean isValidArena = arena.isValidArena();
+                                        boolean isValidArena = arena.isValidArena(duel.getFighter1());
 
                                         if (arena.getBoundKit() != null || !isValidArena) extraLore.add(" ");
 
                                         if (arena.getBoundKit() != null)
                                             extraLore.add(PLUGIN.getLangFile().get("info.bound-kit-lore")
-                                                    .replace("{kit}", arena.getBoundKit().getName()));
+                                                    .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(arena.getBoundKit().getName()))));
 
                                         if (arena.getName() == null)
                                             extraLore.add(PLUGIN.getLangFile().get("error.arena-error.invalid-name"));
@@ -211,6 +211,16 @@ public class ChooseArenaMenu {
                                                 extraLore.add(PLUGIN.getLangFile().get("info.click-to-edit-arena"));
                                             }
                                         }
+
+                                        if (!duel.getFighter1().hasPermission("bkduel.arenas") && !duel.getFighter1().hasPermission("bkduel.arena." + arena.getId())) {
+                                            if (extraLore.size() > 0 && !extraLore.get(extraLore.size()-1).equalsIgnoreCase(" ")) extraLore.add(" ");
+                                            extraLore.add(PLUGIN.getLangFile().get("error.no-arena-perm"));
+                                        }
+
+                                        if (duel.getFighter1().hasPermission("bkduel.admin") || duel.getFighter1().hasPermission("bkduel.edit")) {
+                                            if (extraLore.size() > 0 && !extraLore.get(extraLore.size()-1).equalsIgnoreCase(" ")) extraLore.add(" ");
+                                            extraLore.add(PLUGIN.getLangFile().get("info.arena-id").replace("{id}", String.valueOf(arena.getId())));
+                                        }
                                     }
 
                                     ItemMeta meta = display.getItemMeta();
@@ -249,62 +259,82 @@ public class ChooseArenaMenu {
                                         index++;
                                     }
                                 } else {
-                                    page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(display.getItemMeta().getDisplayName()), "choose-arena-display-" + finalIndex,
-                                            event -> {
-                                                if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                                    if (!arena.isInUse()) {
-                                                        arena.showEditMenu(duel);
-                                                    }
-                                                } else {
-                                                    if (arena.isValidArena()) {
-                                                        if (!arena.isInUse()) {
-                                                            if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
-                                                                if (!page.getItems().get(event.getSlot()).isUnclickable()) {
-                                                                    Page.clearUnclickable(pages);
-                                                                    page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
-                                                                    duel.setArena(arena);
-                                                                    duel.getOptions().remove(DuelOptions.RANDOM_ARENA);
 
-                                                                    if (arena.getBoundKit() != null) {
-                                                                        duel.setKit(arena.getBoundKit());
-                                                                        duel.getOptions().add(DuelOptions.BOUND_KIT);
-                                                                    } else {
-                                                                        duel.setKit(null);
-                                                                        duel.getOptions().remove(DuelOptions.BOUND_KIT);
-                                                                    }
-                                                                    refreshButtons(duel);
-                                                                }
-                                                            } else {
-                                                                if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                                                    if (playerMoney >= arena.getPrice()) {
-                                                                        EconomyResponse r = BkDuel.getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
-                                                                        if (r.transactionSuccess()) {
-                                                                            arena.addOwner((Player) event.getWhoClicked());
-                                                                            event.getWhoClicked().sendMessage(PLUGIN.getLangFile()
-                                                                                    .get("info.player-bought-message.arena")
-                                                                                    .replace("{arena}", AnimatorManager.cleanText(Utils.translateColor(arena.getName())))
-                                                                                    .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
-                                                                            event.getWhoClicked().closeInventory();
-                                                                            page.setBuilt(false);
-                                                                            page.setSwitchingPages(true);
-                                                                            ChooseArenaMenu.showGUI(duel);
+                                    if (!duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) && !duel.getOptions().contains(DuelOptions.EDIT_MODE) && !duel.getFighter1().hasPermission("bkduel.arenas") && !duel.getFighter1().hasPermission("bkduel.arena." + arena.getId())) {
+                                        String arenaName = arena.getConfig().getString("name");
+                                        for (String line : extraLore) {
+                                            if (extraLore.indexOf(line) < (extraLore.size() - (duel.getFighter1().hasPermission("bkduel.edit") || duel.getFighter1().hasPermission("bkduel.admin") ? 3 : 2))) {
+                                                extraLore.set(extraLore.indexOf(line), ChatColor.DARK_GRAY + ChatColor.stripColor(Utils.translateColor(line)));
+                                            }
+                                        }
+
+                                        ItemBuilder newDisplay = new ItemBuilder(Material.BARRIER)
+                                            .setName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + AnimatorManager.cleanText(arenaName))
+                                            .setUnchangedName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + AnimatorManager.cleanText(arenaName))
+                                            .setLore(extraLore);
+                                        page.pageSetItem(
+                                            finalIndex, newDisplay, "choose-arena-display-" + finalIndex, event -> {}
+                                        );
+                                    } else {
+                                        page.pageSetItem(
+                                                finalIndex, new ItemBuilder(display).setUnchangedName(arena.getConfig().getString("name")), "choose-arena-display-" + finalIndex,
+                                                event -> {
+                                                    if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                        if (!arena.isInUse()) {
+                                                            arena.showEditMenu(duel);
+                                                        }
+                                                    } else {
+                                                        if (arena.isValidArena(duel.getFighter1())) {
+                                                            if (!arena.isInUse()) {
+                                                                if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1())) {
+                                                                    if (!page.getItems().get(event.getSlot()).isUnclickable()) {
+                                                                        Page.clearUnclickable(pages);
+                                                                        page.setUnclickable(finalIndex, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(event.getSlot()).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
+                                                                        duel.setArena(arena);
+                                                                        duel.getOptions().remove(DuelOptions.RANDOM_ARENA);
+
+                                                                        if (arena.getBoundKit() != null) {
+                                                                            duel.setKit(arena.getBoundKit());
+                                                                            duel.getOptions().add(DuelOptions.BOUND_KIT);
                                                                         } else {
-                                                                            event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(PLUGIN).replace("{0}", r.errorMessage));
+                                                                            duel.setKit(null);
+                                                                            duel.getOptions().remove(DuelOptions.BOUND_KIT);
+                                                                        }
+                                                                        refreshButtons(duel);
+                                                                    }
+                                                                } else {
+                                                                    if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
+                                                                        if (playerMoney >= arena.getPrice()) {
+                                                                            EconomyResponse r = BkDuel.getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
+                                                                            if (r.transactionSuccess()) {
+                                                                                arena.addOwner((Player) event.getWhoClicked());
+                                                                                event.getWhoClicked().sendMessage(PLUGIN.getLangFile()
+                                                                                        .get("info.player-bought-message.arena")
+                                                                                        .replace("{arena}", AnimatorManager.cleanText(Utils.translateColor(arena.getName())))
+                                                                                        .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
+                                                                                event.getWhoClicked().closeInventory();
+                                                                                page.setBuilt(false);
+                                                                                page.setSwitchingPages(true);
+                                                                                ChooseArenaMenu.showGUI(duel);
+                                                                            } else {
+                                                                                event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(PLUGIN).replace("{0}", r.errorMessage));
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
                                                             }
+                                                        } else {
+                                                            event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("error.arena-error.not-valid-arena"));
                                                         }
-                                                    } else {
-                                                        event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("error.arena-error.not-valid-arena"));
-                                                    }
 
+                                                    }
                                                 }
-                                            }
-                                    );
+                                        );
+                                    }
                                     if (duel.getArena() != null && duel.getArena().getName().equals(arena.getName())) {
                                         page.setUnclickable(finalIndex, false, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(finalIndex).getPageItem().getItem().getItemMeta().getDisplayName()), newLore);
                                     }
+
                                     index++;
                                 }
                             }

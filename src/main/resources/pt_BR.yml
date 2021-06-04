@@ -64,7 +64,15 @@ commands:
         usage: '/x1 negar'
       edit:
         command: 'editar'
-        usage: '/x1 editar'
+        usage: '/x1 editar <kits | arenas>'
+        subcommands:
+          kits:
+            command: 'kits'
+            usage: '/x1 editar kits'
+          arenas:
+            command: 'arenas'
+            usage: '/x1 editar arenas'
+
       npc:
         command: 'npc'
         usage: '/x1 npc <atualizar | local>'
@@ -126,8 +134,8 @@ gui-buttons:
     description: '&7Click to go back to the previous menu'
 
   delete-confirm:
-    name: '&cConfirme para deletar a arena'
-    description: '&7Você tem certeza que quer deletar essa arena?'
+    name: '&cConfirme Para Deletar'
+    description: '&7Você tem certeza que quer deletar isso?'
 
   select-bound-kit:
     name: '&6Selecione um kit (Opcional)'
@@ -138,8 +146,8 @@ gui-buttons:
     description: '&7Deixa jogadores usarem qualquer kit nessa arena.'
 
   delete-button:
-    name: '&cDeletar Arena'
-    description: '&7Clique aqui para deletar a arena.'
+    name: '&cDeletar'
+    description: '&7Clique aqui para deletar.'
 
   close-button:
     name: '&cFechar Menu'
@@ -158,6 +166,10 @@ gui-buttons:
   create-arena:
     name: '{shine lightgreen bold} Criar Arena'
     description: '&7Clique aqui para digitar o nome da nova arena.'
+
+  create-kit:
+    name: '{shine lightgreen bold} Criar Kit'
+    description: '&7Clique aqui para digitar o nome do novo kit.'
 
   back-to-kits:
     name: '&cVoltar Para Kits'
@@ -189,6 +201,26 @@ gui-buttons:
     edit-display-item:
       name: '&aEditar o Item da Arena'
       description: '&7Clique aqui para editar o item do botão da arena.'
+    enter-item:
+      name: '{shine gold} Coloque o Item'
+      description: '&7Coloque o novo item em um espaço vazio'
+  
+  kit-edit:
+    edit-name:
+      name: '&aEditar Nome do Kit'
+      description: '&7Clique aqui para editar o nome do kit.'
+    edit-description:
+      name: '&aEditar a Descrição da Kit'
+      description: '&7Clique aqui para adicionar uma descrição ao kit.'
+    set-price:
+      name: '&aSetar o Preço da Kit'
+      description: '&7Clique aqui para setar o preço para comprar essa kit.'
+    edit-display-item:
+      name: '&aEditar o Item da Kit'
+      description: '&7Clique aqui para editar o item do botão da kit.'
+    set-from-inventory:
+      name: '&aSetar Items do Kit'
+      description: '&7Seta os itens do kit com o seu inventário atual.'
     enter-item:
       name: '{shine gold} Coloque o Item'
       description: '&7Coloque o novo item em um espaço vazio'
@@ -272,8 +304,9 @@ info:
 
   input:
     arena-name: '&7Digite o nome da arena'
-    arena-description: '&eDigite a nova descrição'
-    arena-description-subtitle: '&7Você pode começar uma nova linha digitando ''&e#&7'''
+    kit-name: '&7Digite o nome do kit'
+    new-description: '&eDigite a nova descrição'
+    new-description-subtitle: '&7Você pode começar uma nova linha digitando ''&e#&7'''
     price: '&7Digite o novo preço'
     type-to-cancel: '&7Digite &c{cancel-input}&7 para cancelar'
     countdown: '&7Cancelando em &c{seconds}'
@@ -286,6 +319,9 @@ info:
     self: '&cO pedido de X1 para o jogador {player} expirou.'
     others: '&cO pedido de X1 do jogador {player} expirou.'
 
+  arena-id: '&8arena id: {id}'
+  kit-id: '&8kit id: {id}'
+  kit-items-set: '&aItens do kit setados com sucesso.'
   duel-enabled: '&aVocê ativou os desafios de X1 novamente.'
   duel-disabled: '&aVocê desativou os desafios de X1 para você.'
   waiting-other: '&eEsperando o outro jogador...'
@@ -317,8 +353,10 @@ info:
   location-set: '&aLocal definido!'
   npc-updated: '&aNpc atualizado!'
   arena-deleted: '&aArena deletada com sucesso.'
+  kit-deleted: '&aKit deletado com sucesso.'
   arena-in-use: '&cNão pode editar agora. Arena em uso.'
   click-to-edit-arena: '&aClique para editar essa arena.'
+  click-to-edit-kit: '&aClique para editar esse kit.'
   price-set: '&aNovo preço definido!'
   cost-paid: '&aVocê pagou &2{amount} &apara iniciar o X1. Novo saldo: &2{balance}&a.'
   duel-end: '&6{player} ganhou!'
@@ -355,9 +393,13 @@ info:
 
 # *---------------*=/[Mensagens de Erro]\=*-------------*
 error:
+  no-kit-perm: '&cSem permissao para esse kit.'
+  no-arena-perm: '&cSem permissao para essa arena.'
   duel-disabled: '&cO jogador {player} desativou o X1 e nao pode ser desafiado.'
   invalid-arena: '&cUm ou mais dos locais dessa arena são inválidos. Contate um membro da Staff.'
   no-npc: '&cUma ou mais das dependencias não foram encontradas.'
+  no-arenas: '&cSem arenas criadas ainda. Use ''/x1 editar arenas'' para criar uma.'
+  no-kits: '&cNenhum kit criado ainda. Use ''/x1 editar kits'' para criar um.'
   no-letters: '&cO nome da arena tem que ter pelo menos uma letra.'
   duel-already-started: '&cEsse X1 já começou.'
   already-in-duel:

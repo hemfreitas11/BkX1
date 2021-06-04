@@ -59,104 +59,35 @@ public class CmdDuel extends Executor {
                 if (args[0].equalsIgnoreCase("test")) {
 //                    NPCManager.setTopNpc(new PlayerStats(commandSender.getName(), ((Player) commandSender).getUniqueId(), 4, 4, 4, 4));
                 } else if (args[0].equalsIgnoreCase(subcommands.get("enable"))) {
-                    Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
-                    config.set(player.getUniqueId().toString() + ".duel-disabled", false);
-                    config.save(false);
-                    player.sendMessage(getPlugin().getLangFile().get("info.duel-enabled"));
+                    if (notHasPermission(player, "bkduel.player", "bkduel.toggle")) return true;
+                    toggleCommand(player, false, "info.duel-enabled");
                 } else if (args[0].equalsIgnoreCase(subcommands.get("disable"))) {
-                    Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
-                    config.set(player.getUniqueId().toString() + ".duel-disabled", true);
-                    config.save(false);
-                    player.sendMessage(getPlugin().getLangFile().get("info.duel-disabled"));
+                    if (notHasPermission(player, "bkduel.player", "bkduel.toggle")) return true;
+                    toggleCommand(player, true, "info.duel-disabled");
                 } else if (args[0].equalsIgnoreCase(subcommands.get("edit"))) {
-                    player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                            .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.edit.usage")));
+                    if (notHasPermission(player, "bkduel.admin", "bkduel.edit")) return true;
+                    wrongCommandUsage(player, "commands.duel.subcommands.edit.usage");
                 } else if (args[0].equalsIgnoreCase(subcommands.get("top"))) {
-                    int pageSize = BkDuel.getStatsManager().getRankPages().size();
-                    if (pageSize > 0) {
-                        BkDuel.getStatsManager().sendRankPage(player, 0);
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.top")) return true;
+                    topCommand(player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("spectate"))) {
-                    if (BkDuel.getOngoingDuels().keySet().size() > 0) {
-                        Duel spectate = new Duel(getPlugin()).setFighter1((Player) commandSender);
-                        spectate.getOptions().add(DuelOptions.SPECTATOR_MODE);
-                        ChooseArenaMenu.showGUI(spectate);
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.no-duels"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.spectate")) return true;
+                    spectateCommand((Player) commandSender, player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("stats"))) {
-                    player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                            .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.stats.usage")));
+                    if (notHasPermission(player, "bkduel.player", "bkduel.stats")) return true;
+                    wrongCommandUsage(player, "commands.duel.subcommands.stats.usage");
                 } else if (args[0].equalsIgnoreCase(subcommands.get("accept"))) {
-                    if (BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
-                        Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
-                        if (player.getUniqueId().equals(duel.getFighter2().getUniqueId())) {
-                            if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                                double playerMoney = BkDuel.getEconomy().getBalance(duel.getFighter1());
-                                double duelCost = getPlugin().getConfig().getDouble("duel-cost");
-
-                                Player otherPlayer = duel.getFighter1();
-
-                                if (playerMoney >= duelCost) {
-                                    EconomyResponse r = BkDuel.getEconomy().withdrawPlayer(player, duelCost);
-                                    EconomyResponse r2 = BkDuel.getEconomy().withdrawPlayer(otherPlayer, duelCost);
-                                    if (r.transactionSuccess() && r2.transactionSuccess()) {
-                                        String paid = getPlugin().getLangFile().get("info.cost-paid").replace("{amount}", String.valueOf(duelCost)).replace("{balance}", String.valueOf(r2.balance));
-                                        player.sendMessage(paid);
-                                        otherPlayer.sendMessage(paid);
-                                        duel.getRequest().getExpireRunnable().cancel();
-                                        duel.startDuel();
-                                    } else {
-                                        String errorMessage = r.transactionSuccess() ? r2.errorMessage : r.errorMessage;
-                                        player.sendMessage(String.format("An error occured: %s", errorMessage));
-                                    }
-                                } else {
-                                    player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
-                                }
-                            } else {
-                                player.sendMessage(getPlugin().getLangFile().get("error.duel-already-started"));
-                            }
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
-                        }
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.reply")) return true;
+                    acceptCommand(player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("decline"))) {
-                    if (BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
-                        Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
-                        if (player.getUniqueId().equals(duel.getFighter2().getUniqueId())) {
-                            if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                                duel.getRequest().getExpireRunnable().cancel();
-
-                                Player fighter1 = duel.getFighter1();
-                                Player fighter2 = duel.getFighter2();
-                                fighter1.sendMessage(getPlugin().getLangFile().get("info.duel-declined.self").replace("{player}", fighter2.getName()));
-                                fighter2.sendMessage(getPlugin().getLangFile().get("info.duel-declined.others").replace("{player}", fighter1.getName()));
-
-                                //Broadcast to all
-                                broadcastToAll();
-
-                                BkDuel.getOngoingDuels().remove(fighter1.getUniqueId());
-                                BkDuel.getOngoingDuels().remove(fighter2.getUniqueId());
-                                duel = null;
-                            } else {
-                                player.sendMessage(getPlugin().getLangFile().get("error.duel-already-started"));
-                            }
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
-                        }
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.reply")) return true;
+                    declineCommand(player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("challenge"))) {
-                    player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                            .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.challenge.usage")));
+                    if (notHasPermission(player, "bkduel.player", "bkduel.challenge")) return true;
+                    wrongCommandUsage(player, "commands.duel.subcommands.challenge.usage");
                 } else if (args[0].equalsIgnoreCase(subcommands.get("npc"))) {
-                    player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                            .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.npc.usage")));
+                    if (notHasPermission(player, "bkduel.admin", "bkduel.npc")) return true;
+                    wrongCommandUsage(player, "commands.duel.subcommands.npc.usage");
                 } else {
                     sendUsage(commandSender);
                     return true;
@@ -164,141 +95,275 @@ public class CmdDuel extends Executor {
             } else if (args.length == 2) {
                 Player target = Utils.getPlayer(args[1]);
                 if (args[0].equalsIgnoreCase(subcommands.get("stats"))) {
-                    PlayerStats stat = StatsManager.getPlayerStat(args[1]);
-                    if (stat == null) {
-                        if (target != null) {
-                            stat = StatsManager.createStats(target);
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
-                            return true;
-                        }
-                    }
-                    PlayerProfileMenu.showGui(getPlugin(), player, stat);
+                    if (notHasPermission(player, "bkduel.player", "bkduel.stats")) return true;
+                    if (statsCommand(args, player, target)) return true;
                 } else if (args[0].equalsIgnoreCase(subcommands.get("npc"))) {
-                    if (args[1].equalsIgnoreCase(subcommands.get("npc.location"))) {
-                        Configuration config = getPlugin().getConfig();
-                        config.setLocation("top-1-npc.npc.location", ((Player) commandSender).getLocation());
-                        config.save(false);
-                        commandSender.sendMessage(getPlugin().getLangFile().get("info.location-set"));
-                    } else if (args[1].equalsIgnoreCase(subcommands.get("npc.update"))) {
-                        if (BkDuel.getHologramHook() != null) {
-                            if (BkDuel.getStatsManager().getStats().size() > 0) {
-                                NPCManager.setTopNpc(BkDuel.getStatsManager().getStats().get(0), NPCUpdateReason.UPDATE_NPC);
-                                commandSender.sendMessage(getPlugin().getLangFile().get("info.npc-updated"));
-                            } else {
-                                commandSender.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
-                            }
-                        } else {
-                            commandSender.sendMessage(getPlugin().getLangFile().get("error.no-npc"));
-                        }
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                                .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.npc.usage")));
-                    }
+                    if (notHasPermission(player, "bkduel.admin", "bkduel.npc")) return true;
+                    npcCommand(commandSender, args, player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("edit"))) {
-                    if (args[1].equalsIgnoreCase(subcommands.get("edit.arenas"))) {
-                        ChooseArenaMenu.showGUI(new Duel(getPlugin(), true).setFighter1((Player) commandSender));
-                    } else if (args[1].equalsIgnoreCase(subcommands.get("edit.kits"))) {
-                        ChooseKitsMenu.showGUI(new Duel(getPlugin(), true).setFighter1((Player) commandSender));
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
-                                .replace("{usage}", getPlugin().getLangFile().get("commands.duel.subcommands.edit.usage")));
-                    }
+                    if (notHasPermission(player, "bkduel.admin", "bkduel.edit")) return true;
+                    editCommand((Player) commandSender, args, player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("challenge"))) {
-                    if (getPlugin().getFile("kits", "").listFiles().length > 0) {
-                        if (getPlugin().getFile("arenas", "").listFiles().length > 0) {
-                            if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
-                                double playerMoney = BkDuel.getEconomy().getBalance(player);
-                                double duelCost = getPlugin().getConfig().getDouble("duel-cost");
-
-                                if (playerMoney >= duelCost) {
-                                    Player targetPlayer = Utils.getPlayer(args[1]);
-                                    if (targetPlayer != null) {
-                                        Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
-                                        if (!config.getBoolean(targetPlayer.getUniqueId().toString() + ".duel-disabled")) {
-                                            if (!targetPlayer.isDead()) {
-                                                if (!targetPlayer.getUniqueId().equals(player.getUniqueId())) {
-                                                    if (!BkDuel.getOngoingDuels().containsKey(targetPlayer.getUniqueId())) {
-                                                        Duel duel = new Duel(getPlugin());
-                                                        duel.setFighter1(player);
-                                                        duel.setFighter2(targetPlayer);
-                                                        ChooseArenaMenu.showGUI(duel);
-                                                    } else {
-                                                        Duel duel = BkDuel.getOngoingDuels().get(targetPlayer.getUniqueId());
-                                                        if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                                                            player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.others"));
-                                                        } else {
-                                                            player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.others"));
-                                                        }
-                                                    }
-                                                } else {
-                                                    player.sendMessage(getPlugin().getLangFile().get("error.cant-duel-self"));
-                                                }
-                                            } else {
-                                                player.sendMessage(getPlugin().getLangFile().get("error.dead-player").replace("{player}", args[1]));
-                                            }
-                                        } else {
-                                            player.sendMessage(getPlugin().getLangFile().get("error.duel-disabled").replace("{player}", args[1]));
-                                        }
-                                    } else {
-                                        player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
-                                    }
-                                } else {
-                                    player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
-                                }
-                            } else {
-                                Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
-                                if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
-                                    player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.self"));
-                                } else {
-                                    player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.self"));
-                                }
-                            }
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-arenas"));
-                        }
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.no-kits"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.challenge")) return true;
+                    challengeCommand(args, player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("top"))) {
-                    try {
-                        int pageSize = BkDuel.getStatsManager().getRankPages().size();
-                        if (pageSize > 0) {
-                            int page = Integer.parseInt(args[1]) - 1;
-                            if (page < pageSize) {
-                                BkDuel.getStatsManager().sendRankPage(player, page);
-                            } else {
-                                player.sendMessage(getPlugin().getLangFile().get("error.invalid-page").replace("{page}", args[1]));
-                            }
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
-                        }
-                    } catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {
-                        player.sendMessage(getPlugin().getLangFile().get("error.invalid-page").replace("{page}", args[1]));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.top")) return true;
+                    topCommandPage(args, player);
                 } else if (args[0].equalsIgnoreCase(subcommands.get("spectate"))) {
-                    if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
-                        if (BkDuel.getOngoingDuels().keySet().size() > 0) {
-                            Duel spectate = Duel.findDuel(args[1]);
-                            if (spectate != null) {
-                                new Teleport(getPlugin(), player, false)
-                                        .setLocation(AnimatorManager.cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
-                                        .setDuration(3)
-                                        .setIsCancellable(true)
-                                        .startTeleport();
-                            } else {
-                                player.sendMessage(getPlugin().getLangFile().get("error.not-in-duel").replace("{player}", args[1]));
-                            }
-                        } else {
-                            player.sendMessage(getPlugin().getLangFile().get("error.no-duels"));
-                        }
-                    } else {
-                        player.sendMessage(getPlugin().getLangFile().get("error.cant-spectate"));
-                    }
+                    if (notHasPermission(player, "bkduel.player", "bkduel.spectate")) return true;
+                    spectatePlayerCommand(args, player);
                 }
             }
         }
         return true;
+    }
+
+    private boolean notHasPermission(Player player, String s, String s2) {
+        if (!player.hasPermission(s) && !player.hasPermission(s2)) {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-permission"));
+            return true;
+        }
+        return false;
+    }
+
+    private void spectatePlayerCommand(String[] args, Player player) {
+        if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
+            if (BkDuel.getOngoingDuels().keySet().size() > 0) {
+                Duel spectate = Duel.findDuel(args[1]);
+                if (spectate != null) {
+                    new Teleport(getPlugin(), player, false)
+                            .setLocation(AnimatorManager.cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
+                            .setDuration(3)
+                            .setIsCancellable(true)
+                            .startTeleport();
+                } else {
+                    player.sendMessage(getPlugin().getLangFile().get("error.not-in-duel").replace("{player}", args[1]));
+                }
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.no-duels"));
+            }
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.cant-spectate"));
+        }
+    }
+
+    private void topCommandPage(String[] args, Player player) {
+        try {
+            int pageSize = BkDuel.getStatsManager().getRankPages().size();
+            if (pageSize > 0) {
+                int page = Integer.parseInt(args[1]) - 1;
+                if (page < pageSize) {
+                    BkDuel.getStatsManager().sendRankPage(player, page);
+                } else {
+                    player.sendMessage(getPlugin().getLangFile().get("error.invalid-page").replace("{page}", args[1]));
+                }
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
+            }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {
+            player.sendMessage(getPlugin().getLangFile().get("error.invalid-page").replace("{page}", args[1]));
+        }
+    }
+
+    private void challengeCommand(String[] args, Player player) {
+        if (getPlugin().getFile("kits", "").listFiles().length > 0) {
+            if (getPlugin().getFile("arenas", "").listFiles().length > 0) {
+                if (!BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
+                    double playerMoney = BkDuel.getEconomy().getBalance(player);
+                    double duelCost = getPlugin().getConfig().getDouble("duel-cost");
+
+                    if (playerMoney >= duelCost) {
+                        Player targetPlayer = Utils.getPlayer(args[1]);
+                        if (targetPlayer != null) {
+                            Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
+                            if (!config.getBoolean(targetPlayer.getUniqueId().toString() + ".duel-disabled")) {
+                                if (!targetPlayer.isDead()) {
+                                    if (!targetPlayer.getUniqueId().equals(player.getUniqueId())) {
+                                        if (!BkDuel.getOngoingDuels().containsKey(targetPlayer.getUniqueId())) {
+                                            Duel duel = new Duel(getPlugin());
+                                            duel.setFighter1(player);
+                                            duel.setFighter2(targetPlayer);
+                                            ChooseArenaMenu.showGUI(duel);
+                                        } else {
+                                            Duel duel = BkDuel.getOngoingDuels().get(targetPlayer.getUniqueId());
+                                            if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                                                player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.others"));
+                                            } else {
+                                                player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.others"));
+                                            }
+                                        }
+                                    } else {
+                                        player.sendMessage(getPlugin().getLangFile().get("error.cant-duel-self"));
+                                    }
+                                } else {
+                                    player.sendMessage(getPlugin().getLangFile().get("error.dead-player").replace("{player}", args[1]));
+                                }
+                            } else {
+                                player.sendMessage(getPlugin().getLangFile().get("error.duel-disabled").replace("{player}", args[1]));
+                            }
+                        } else {
+                            player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
+                        }
+                    } else {
+                        player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
+                    }
+                } else {
+                    Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
+                    if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                        player.sendMessage(getPlugin().getLangFile().get("error.waiting-reply.self"));
+                    } else {
+                        player.sendMessage(getPlugin().getLangFile().get("error.already-in-duel.self"));
+                    }
+                }
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.no-arenas"));
+            }
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-kits"));
+        }
+    }
+
+    private void editCommand(Player commandSender, String[] args, Player player) {
+        if (args[1].equalsIgnoreCase(subcommands.get("edit.arenas"))) {
+            ChooseArenaMenu.showGUI(new Duel(getPlugin(), true).setFighter1(commandSender));
+        } else if (args[1].equalsIgnoreCase(subcommands.get("edit.kits"))) {
+            ChooseKitsMenu.showGUI(new Duel(getPlugin(), true).setFighter1(commandSender));
+        } else {
+            wrongCommandUsage(player, "commands.duel.subcommands.edit.usage");
+        }
+    }
+
+    private void npcCommand(CommandSender commandSender, String[] args, Player player) {
+        if (args[1].equalsIgnoreCase(subcommands.get("npc.location"))) {
+            Configuration config = getPlugin().getConfig();
+            config.setLocation("top-1-npc.npc.location", ((Player) commandSender).getLocation());
+            config.save(false);
+            commandSender.sendMessage(getPlugin().getLangFile().get("info.location-set"));
+        } else if (args[1].equalsIgnoreCase(subcommands.get("npc.update"))) {
+            if (BkDuel.getHologramHook() != null) {
+                if (BkDuel.getStatsManager().getStats().size() > 0) {
+                    NPCManager.setTopNpc(BkDuel.getStatsManager().getStats().get(0), NPCUpdateReason.UPDATE_NPC);
+                    commandSender.sendMessage(getPlugin().getLangFile().get("info.npc-updated"));
+                } else {
+                    commandSender.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
+                }
+            } else {
+                commandSender.sendMessage(getPlugin().getLangFile().get("error.no-npc"));
+            }
+        } else {
+            wrongCommandUsage(player, "commands.duel.subcommands.npc.usage");
+        }
+    }
+
+    private boolean statsCommand(String[] args, Player player, Player target) {
+        PlayerStats stat = StatsManager.getPlayerStat(args[1]);
+        if (stat == null) {
+            if (target != null) {
+                stat = StatsManager.createStats(target);
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.invalid-player").replace("{player}", args[1]));
+                return true;
+            }
+        }
+        PlayerProfileMenu.showGui(getPlugin(), player, stat);
+        return false;
+    }
+
+    private void declineCommand(Player player) {
+        if (BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
+            Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
+            if (player.getUniqueId().equals(duel.getFighter2().getUniqueId())) {
+                if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                    duel.getRequest().getExpireRunnable().cancel();
+
+                    Player fighter1 = duel.getFighter1();
+                    Player fighter2 = duel.getFighter2();
+                    fighter1.sendMessage(getPlugin().getLangFile().get("info.duel-declined.self").replace("{player}", fighter2.getName()));
+                    fighter2.sendMessage(getPlugin().getLangFile().get("info.duel-declined.others").replace("{player}", fighter1.getName()));
+
+                    //Broadcast to all
+                    broadcastToAll();
+
+                    BkDuel.getOngoingDuels().remove(fighter1.getUniqueId());
+                    BkDuel.getOngoingDuels().remove(fighter2.getUniqueId());
+                    duel = null;
+                } else {
+                    player.sendMessage(getPlugin().getLangFile().get("error.duel-already-started"));
+                }
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
+            }
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
+        }
+    }
+
+    private void acceptCommand(Player player) {
+        if (BkDuel.getOngoingDuels().containsKey(player.getUniqueId())) {
+            Duel duel = BkDuel.getOngoingDuels().get(player.getUniqueId());
+            if (player.getUniqueId().equals(duel.getFighter2().getUniqueId())) {
+                if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
+                    double playerMoney = BkDuel.getEconomy().getBalance(duel.getFighter1());
+                    double duelCost = getPlugin().getConfig().getDouble("duel-cost");
+
+                    Player otherPlayer = duel.getFighter1();
+
+                    if (playerMoney >= duelCost) {
+                        EconomyResponse r = BkDuel.getEconomy().withdrawPlayer(player, duelCost);
+                        EconomyResponse r2 = BkDuel.getEconomy().withdrawPlayer(otherPlayer, duelCost);
+                        if (r.transactionSuccess() && r2.transactionSuccess()) {
+                            String paid = getPlugin().getLangFile().get("info.cost-paid").replace("{amount}", String.valueOf(duelCost)).replace("{balance}", String.valueOf(r2.balance));
+                            player.sendMessage(paid);
+                            otherPlayer.sendMessage(paid);
+                            duel.getRequest().getExpireRunnable().cancel();
+                            duel.startDuel();
+                        } else {
+                            String errorMessage = r.transactionSuccess() ? r2.errorMessage : r.errorMessage;
+                            player.sendMessage(String.format("An error occured: %s", errorMessage));
+                        }
+                    } else {
+                        player.sendMessage(getPlugin().getLangFile().get("error.no-money"));
+                    }
+                } else {
+                    player.sendMessage(getPlugin().getLangFile().get("error.duel-already-started"));
+                }
+            } else {
+                player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
+            }
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-challenge"));
+        }
+    }
+
+    private void spectateCommand(Player commandSender, Player player) {
+        if (BkDuel.getOngoingDuels().keySet().size() > 0) {
+            Duel spectate = new Duel(getPlugin()).setFighter1(commandSender);
+            spectate.getOptions().add(DuelOptions.SPECTATOR_MODE);
+            ChooseArenaMenu.showGUI(spectate);
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-duels"));
+        }
+    }
+
+    private void topCommand(Player player) {
+        int pageSize = BkDuel.getStatsManager().getRankPages().size();
+        if (pageSize > 0) {
+            BkDuel.getStatsManager().sendRankPage(player, 0);
+        } else {
+            player.sendMessage(getPlugin().getLangFile().get("error.no-ranks"));
+        }
+    }
+
+    private void wrongCommandUsage(Player player, String s) {
+        player.sendMessage(getPlugin().getLangFile().get("commands.usage-format")
+                .replace("{usage}", getPlugin().getLangFile().get(s)));
+    }
+
+    private void toggleCommand(Player player, boolean b, String s) {
+        Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
+        config.set(player.getUniqueId().toString() + ".duel-disabled", b);
+        config.save(false);
+        player.sendMessage(getPlugin().getLangFile().get(s));
     }
 
     public static Hashtable<String, String> getSubCommands() {

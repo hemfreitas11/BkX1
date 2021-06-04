@@ -45,6 +45,6 @@ public class PlayerStats {
     }
 
     public float getKDR() {
-        return (float) getWins() / (float) getDefeats();
+        return (getWins() > 0 && getDefeats() <= 0) ? getWins() : (getWins() > 0 && getDefeats() > 0) ? (float) getWins() / (float) getDefeats() : 0;
     }
 }

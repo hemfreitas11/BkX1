@@ -3,7 +3,6 @@ package me.bkrmt.bkduel;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
-import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
@@ -33,12 +32,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -525,7 +520,7 @@ public class Duel implements Listener {
         }
     }
 
-    public void checkAuthorization(AuthorizationRunnable runnable) {
+    /*public void checkAuthorization(AuthorizationRunnable runnable) {
         String start = Utils.translateColor(InternalMessages.VALIDATOR_START.getMessage(plugin).replace("{0}", BkDuel.PREFIX));
         String noResponse = Utils.translateColor(InternalMessages.VALIDATOR_NO_RESPONSE.getMessage(plugin).replace("{0}", "&7[&4&lBkDuel&7]&c").replace("{1}", "&b&l"));
         String success = Utils.translateColor(InternalMessages.VALIDATOR_SUCCESS.getMessage(plugin).replace("{0}", BkDuel.PREFIX));
@@ -592,7 +587,7 @@ public class Duel implements Listener {
     @FunctionalInterface
     public interface AuthorizationRunnable {
         void run();
-    }
+    }*/
 
     public ArrayList<Page> getKitPages() {
         return kitPages;

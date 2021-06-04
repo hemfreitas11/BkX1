@@ -13,6 +13,46 @@
 #
 #         ® BkPlugins | discord.gg/2MHgyjCuPc
 #                    Made by: Bkr__
+#
+# *----------------------*=/[HOW TO USE THE TEXT ANIMATOR]\=*---------------------*
+#
+# Currently you can only add animation to item names (the GUI buttons), and the NPC hologram. Only one animation per line is allowed.
+# Item lore animations coming in the future.
+#
+# To animate a text, you need to provide the animation you want, and the color of the text.
+# Example: "{shine red} Hello, World!"
+# This will animate the entire line.
+#
+# You may also provide some options.
+# You can make the text bold, change the speed of the animation, the amount of time
+# to pause between every cycle of the animation, and the size of the animation.
+# Example: "{shine red bold speed[5]} Hello, World!"
+# This will make the shine animation that is bold red and updates every 5 ticks.
+#
+# If you don't want to animate the entire line, you need to use the text[] option
+# and put only the text you want to animate inside of it.
+# Example: "This is an {shine red text[animated text]}, this is not."
+# The result will be "This is an animated text, this is not." but only the words "animated text" will be animated.
+# ------
+# The available options are:
+#
+# speed[<number>] | How fast does the animation update (in ticks), lowest is 1. Default is 3 if none is provided.
+# pause[<number>] | The amount of time the animation will be paused after it finishes. The lower the speed, the higher this needs to be. Default is 3.
+# size[<number>]  | The size of the animation, has different effects for different animations. Default is 3 if none is provided.
+# text[<text>]    | The text that you want to animate. (If you don't want to animate the entire line)
+# bold            | Makes the text and the animation bold.
+# ------
+# Available animations: (more in the future)
+#
+# shine | Gives a "reflective shine" effect to texts.
+# ------
+#
+# Colors (use the color names, not the symbols):
+# yellow is &e   | blue is &9      | green is &2      | red is &4      | purple is &5   |
+# white is &f    | black is &0     | gray is &7       | darkblue is &1 | darkgray is &8 |
+# lightred is &c | lightblue is &b | lightgreen is &a | pink is &d
+# *----------------------------------*=[|]=*-------------------------------------*
+
 
 # You can add any language by creating a file in the "langs" folder then setting it's name in the "language" option bellow
 # Languages that come with the plugin are: en_US and pt_BR.
@@ -45,15 +85,15 @@ broadcast-to-all: true
 challenge-expire: 30
 
 # When this option is enabled the plugin will close the inventory of all the players when it is reloading. This is used to prevent players from taking items from menus when the plugin is disabled.
-# Quando essa opção está habilitada o plugin irá fechar o inventário de todos os jogadores quando ele está dando reload. Essa opção previne jogadores de tirarem itens do menu quando o plugin está desativado.
+# Quando essa opção está habilitada o plugin irá fechar o inventário de todos os jogadores quando ele está dando reload. Essa opção preveni jogadores de tirarem itens do menu quando o plugin está desativado.
 close-inventory-on-reload: true
 
-# How many seconds for the duel to start
-# Quantos segundos para iniciar o X1
+# How many seconds for the duel to start after both players are ready
+# Quantos segundos para iniciar o X1 depois que ambos os jogadores estiverem prontos
 start-countdown: 5
 
-# Time for the plugin to teleport the player out of the arena when they are using their own items.
-# Tempo para o plugin teleportar o jogador para fora da arena quando ele está usando seus próprios itens.
+# Time to wait for the winner to pick up the losers items when they die.
+# Tempo para esperar o vencedor pegar os itens do perdedor quando ele morre.
 time-to-pick-items: 10
 
 # This is what shows up when a player selects a random arena or kit.
@@ -82,7 +122,7 @@ top-1-npc:
     # Placeholder support soon
     # Suporte a placeholders em breve
     lines:
-      - '&7&l---=[&4&lTop Fighter&7&l]=---'
+      - '&7&l---=[{shine red bold text[Top Fighter]}&7&l]=---'
       - ''
       - '&7&l---=[&4&l{player}&7&l]=---'
       - '&7&l| Wins: &4&l{wins} &7&l|'
@@ -117,7 +157,7 @@ top-1-npc:
         # A distancia que o NPC vai poder olhar para BAIXO
         down-range: 10
     # The location of the NPC. Use the command '/duel npc location' to set it.
-    # O local do NPC. Use o comando 'x1 npc local' pra setar.
+    # O local do NPC. Use o comando '/x1 npc local' pra setar.
     location:
       world: 'world'
       x: '0'

@@ -52,6 +52,7 @@ public class NPCManager {
                 PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.HOLOGRAM_LINES_ERROR.getMessage()));
                 return;
             }
+
             boolean lookAtPlayers = !reason.equals(NPCUpdateReason.UPDATE_NPC) ? false : PLUGIN.getConfig().getBoolean("top-1-npc.npc.look-at-players.enabled");
             int lookDistance = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAtPlayers ? 0 : PLUGIN.getConfig().getInt("top-1-npc.npc.look-at-players.distance-to-look");
             boolean lookAround = !reason.equals(NPCUpdateReason.UPDATE_NPC) ? false : PLUGIN.getConfig().getBoolean(("top-1-npc.npc.random-look-around.enabled"));

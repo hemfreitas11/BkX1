@@ -62,7 +62,7 @@ public class PlayerProfileMenu {
                         .replace("{disconnects}", String.valueOf(disconnectsInt)))
                 .hideTags()
                 .update();
-        float kdrFloat = (winsInt > 0 && defeatsInt > 0) ? (float) winsInt / (float) defeatsInt : 0;
+        float kdrFloat = stat.getKDR();
 
         String formatKdr = kdrFloat < 1 ? ChatColor.RED + String.format("%.1f", kdrFloat) : ChatColor.GREEN + String.format("%.1f", kdrFloat);
         ItemBuilder kdr = new ItemBuilder(Material.NETHER_STAR)

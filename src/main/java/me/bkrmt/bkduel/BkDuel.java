@@ -29,22 +29,23 @@ import org.bukkit.util.StringUtil;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class BkDuel extends BkPlugin {
     public static String PREFIX;
     public static BkDuel PLUGIN;
-    private static String chatHook;
-    private static String hologramHook;
-    private static Hashtable<UUID, Duel> ongoingDuels;
-    private static Economy economy;
-    private static StatsManager statsManager;
-    private static AnimatorManager animatorManager;
+    private ConcurrentHashMap<UUID, Duel> ongoingDuels;
+    private Economy economy;
+    private ArrayList<String> pluginHooks;
+    private StatsManager statsManager;
+    private AnimatorManager animatorManager;
 
     @Override
     public void onEnable() {
         PREFIX = "&7[&6&lBkDuel&7]&e";
         try {
             PLUGIN = this;
+            pluginHooks = new ArrayList<>();
             OpenGUI.INSTANCE.register(PLUGIN);
             start(true);
             File playerData = getFile("player-data", "");
@@ -70,6 +71,7 @@ public final class BkDuel extends BkPlugin {
                 PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.NO_ECONOMY.getMessage(PLUGIN).replace("{0}", PREFIX)));
                 getServer().getPluginManager().disablePlugin(this);
             } else {
+                setRunning(true);
                 Listener constantListener = new Listener() {
                     @EventHandler
                     public void onStatUpdate(StatsUpdateEvent event) {
@@ -77,7 +79,8 @@ public final class BkDuel extends BkPlugin {
                             if (event.getOldStatsList().size() > 0 && event.getNewStatsList().size() > 0) {
                                 PlayerStats oldTopStats = event.getOldStatsList().get(0);
                                 PlayerStats newTopStats = event.getNewStatsList().get(0);
-                                if (oldTopStats.getDuels() != newTopStats.getDuels()) NPCManager.setTopNpc(newTopStats, NPCUpdateReason.UPDATE_STATS);
+                                if (oldTopStats.getDuels() != newTopStats.getDuels())
+                                    NPCManager.setTopNpc(newTopStats, NPCUpdateReason.UPDATE_STATS);
                             }
                         }
                     }
@@ -121,7 +124,143 @@ public final class BkDuel extends BkPlugin {
                     }
                 };
 
-                Duel duel = new Duel(PLUGIN);
+                // Configure NPC hook
+                animatorManager = new AnimatorManager(this);
+                Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
+                if (citizens != null && citizens.isEnabled()) {
+                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CITIZENS_FOUND.getMessage(this)));
+                    hologramHook = configureHologramHook();
+                    if (hologramHook != null) {
+                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.HOLOGRAM_FOUND.getMessage(this)));
+                    } else {
+                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_HOLOGRAM.getMessage(this)));
+                    }
+                } else {
+                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CITIZENS.getMessage(this)));
+                }
+
+                // Configure chat hook
+                Listener chatListener = null;
+                chatHook = configureChatHook();
+                if (chatHook == null) {
+                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CHAT.getMessage(this)));
+                } else {
+                    switch (chatHook) {
+                        case "LegendChat":
+                        case "nChat":
+                            chatListener = new Listener() {
+                                @EventHandler
+                                public void onChat(ChatMessageEvent event) {
+                                    PlayerStats playerStat = BkDuel.getStatsManager().getStats().get(0);
+                                    if (playerStat != null) {
+                                        UUID topUUID = playerStat.getUUID();
+                                        if (event.getTags().contains("bkduel_top") && event.getSender().getUniqueId().toString().equalsIgnoreCase(topUUID.toString()))
+                                            event.setTagValue("bkduel_top", Utils.translateColor(getConfig().getString("top-1-tag")));
+                                    }
+                                }
+                            };
+                            break;
+                        case "HeroChat":
+                        case "HeroChatPro":
+                            break;
+                    }
+                }
+                if (chatListener != null) {
+                    getServer().getPluginManager().registerEvents(chatListener, PLUGIN);
+                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CHAT_FOUND.getMessage(this)));
+                }
+
+                // Create commands
+                getCommandMapper().addCommand(new CommandModule(new HelpCmd(PLUGIN, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
+                        .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), (sender, command, alias, args) -> {
+                            List<String> completions = new ArrayList<>();
+
+                            String challenge = PLUGIN.getLangFile().get("commands.duel.subcommands.challenge.command");
+                            String top = PLUGIN.getLangFile().get("commands.duel.subcommands.top.command");
+                            String stats = PLUGIN.getLangFile().get("commands.duel.subcommands.stats.command");
+                            String spectate = PLUGIN.getLangFile().get("commands.duel.subcommands.spectate.command");
+                            String accept = PLUGIN.getLangFile().get("commands.duel.subcommands.accept.command");
+                            String decline = PLUGIN.getLangFile().get("commands.duel.subcommands.decline.command");
+                            String edit = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.command");
+                            String edit_arenas = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.arenas.command");
+                            String edit_kits = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.kits.command");
+                            String npc = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.command");
+                            String enable = PLUGIN.getLangFile().get("commands.duel.subcommands.enable.command");
+                            String disable = PLUGIN.getLangFile().get("commands.duel.subcommands.disable.command");
+                            String npc_update = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.update.command");
+                            String npc_location = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.location.command");
+
+                            List<String> subCommands = new ArrayList<>();
+
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.challenge"))
+                                subCommands.add(challenge);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.top"))
+                                subCommands.add(top);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.stats"))
+                                subCommands.add(stats);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.spectate"))
+                                subCommands.add(spectate);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply"))
+                                subCommands.add(accept);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply"))
+                                subCommands.add(decline);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle"))
+                                subCommands.add(enable);
+                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle"))
+                                subCommands.add(disable);
+                            if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit"))
+                                subCommands.add(edit);
+                            if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit"))
+                                subCommands.add(npc);
+
+                            if (args.length == 1) {
+                                String partialCommand = args[0];
+                                StringUtil.copyPartialMatches(partialCommand, subCommands, completions);
+                            } else if (subCommands.contains(challenge) && args.length == 2 && (args[0].equalsIgnoreCase(challenge) || args[0].equalsIgnoreCase(stats))) {
+                                List<String> players = new ArrayList<>();
+                                for (Player player : PLUGIN.getHandler().getMethodManager().getOnlinePlayers()) {
+                                    if (args[0].equalsIgnoreCase(challenge)) {
+                                        if (!player.getName().equalsIgnoreCase(sender.getName()))
+                                            players.add(player.getName());
+                                    } else {
+                                        players.add(player.getName());
+                                    }
+                                }
+                                String partialName = args[1];
+                                StringUtil.copyPartialMatches(partialName, players, completions);
+                            } else if (subCommands.contains(npc) && args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
+                                String partialSubCommand = args[1];
+                                StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(npc_location, npc_update), completions);
+                            } else if (subCommands.contains(edit) && args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
+                                String partialSubCommand = args[1];
+                                StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(edit_arenas, edit_kits), completions);
+                            }
+
+                            Collections.sort(completions);
+                            return completions;
+
+                        })).registerAll();
+
+//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.LOADING_CONFIGS.getMessage(this)));
+//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESETING_ARENAS.getMessage(this)));
+                clearUsedArenas();
+//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESTORING_INVENTORIES.getMessage(this)));
+                restoreInventories();
+                if (isEnabled()) {
+                    statsManager = new StatsManager(this);
+                    ongoingDuels = new ConcurrentHashMap<>();
+                    try {
+                        TeleportCore.playersInCooldown.get("Core-Started");
+                    } catch (NullPointerException ignored) {
+                        new TeleportCore(this);
+                        TeleportCore.playersInCooldown.put("Core-Started", true);
+                    }
+                    getServer().getPluginManager().registerEvents(constantListener, PLUGIN);
+                    if (getHologramHook() != null && getStatsManager().getStats().size() > 0)
+                        NPCManager.setTopNpc(getStatsManager().getStats().get(0), NPCUpdateReason.UPDATE_NPC);
+                }
+                sendStartMessage(PREFIX);
+                /*Duel duel = new Duel(PLUGIN);
                 duel.getArena();
                 duel.checkAuthorization(() -> {
                     // Configure NPC hook
@@ -174,8 +313,7 @@ public final class BkDuel extends BkPlugin {
                     getCommandMapper().addCommand(new CommandModule(new HelpCmd(PLUGIN, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
                             .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), (sender, command, alias, args) -> {
                                 List<String> completions = new ArrayList<>();
-                                if (sender.hasPermission("bkshop.setshop")) {
-                                }
+
                                 String challenge = PLUGIN.getLangFile().get("commands.duel.subcommands.challenge.command");
                                 String top = PLUGIN.getLangFile().get("commands.duel.subcommands.top.command");
                                 String stats = PLUGIN.getLangFile().get("commands.duel.subcommands.stats.command");
@@ -191,12 +329,22 @@ public final class BkDuel extends BkPlugin {
                                 String npc_update = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.update.command");
                                 String npc_location = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.location.command");
 
-                                List<String> subCommands = new ArrayList<>(Arrays.asList(challenge, top, stats, spectate, accept, decline, edit, enable, disable, npc));
+                                List<String> subCommands = new ArrayList<>();
+
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.challenge")) subCommands.add(challenge);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.top")) subCommands.add(top);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.stats")) subCommands.add(stats);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.spectate")) subCommands.add(spectate);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply")) subCommands.add(accept);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply")) subCommands.add(decline);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle")) subCommands.add(enable);
+                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle")) subCommands.add(disable);
+                                if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit")) subCommands.add(edit);
 
                                 if (args.length == 1) {
                                     String partialCommand = args[0];
                                     StringUtil.copyPartialMatches(partialCommand, subCommands, completions);
-                                }else  if (args.length == 2 && (args[0].equalsIgnoreCase(challenge) || args[0].equalsIgnoreCase(stats))) {
+                                }else  if (subCommands.contains(challenge) && args.length == 2 && (args[0].equalsIgnoreCase(challenge) || args[0].equalsIgnoreCase(stats))) {
                                     List<String> players = new ArrayList<>();
                                     for (Player player : PLUGIN.getHandler().getMethodManager().getOnlinePlayers()) {
                                         if (args[0].equalsIgnoreCase(challenge)) {
@@ -208,10 +356,10 @@ public final class BkDuel extends BkPlugin {
                                     }
                                     String partialName = args[1];
                                     StringUtil.copyPartialMatches(partialName, players, completions);
-                                } else if (args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
+                                } else if (subCommands.contains(npc) && args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
                                     String partialSubCommand = args[1];
                                     StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(npc_location, npc_update), completions);
-                                } else if (args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
+                                } else if (subCommands.contains(edit) && args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
                                     String partialSubCommand = args[1];
                                     StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(edit_arenas, edit_kits), completions);
                                 }
@@ -228,7 +376,7 @@ public final class BkDuel extends BkPlugin {
                     restoreInventories();
                     if (isEnabled()) {
                         statsManager = new StatsManager(this);
-                        ongoingDuels = new Hashtable<>();
+                        ongoingDuels = new ConcurrentHashMap<>();
                         try {
                             TeleportCore.playersInCooldown.get("Core-Started");
                         } catch (NullPointerException ignored) {
@@ -242,7 +390,7 @@ public final class BkDuel extends BkPlugin {
                     sendStartMessage(PREFIX);
                 });
                 duel.getKitPages();
-                duel.getOptions();
+                duel.getOptions();*/
 
             }
         } catch (Exception ignored) {
@@ -257,7 +405,7 @@ public final class BkDuel extends BkPlugin {
         return hologramHook;
     }
 
-    public static Hashtable<UUID, Duel> getOngoingDuels() {
+    public static ConcurrentHashMap<UUID, Duel> getOngoingDuels() {
         return ongoingDuels;
     }
 
