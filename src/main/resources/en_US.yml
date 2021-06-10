@@ -317,6 +317,7 @@ info:
     self: '&cDuel request to {player} has expired.'
     others: '&cDuel request from {player} has expired.'
 
+  power-loss-negated: '&aPower loss is disabled and you did''nt lose any power.'
   arena-id: '&8arena id: {id}'
   kit-id: '&8kit id: {id}'
   kit-items-set: '&aKit items set succesfully.'
@@ -391,6 +392,16 @@ info:
 
 # *----------------*=/[Error Messages]\=*---------------*
 error:
+  waiting-tp:
+    self: '&cYou have a teleport request pending.'
+    others: '&cThe player {player} has a teleport request pending.'
+  waiting-teleport:
+    self: '&cYou are waiting a teleport.'
+    others: '&cThe player {player} is awaiting a teleport.'
+  no-ability-in-duel: '&cYou can''t use abilities while in a duel.'
+  in-combat:
+    self: '&cYou can''t do this while in combat.'
+    others: '&cYou can''t do this now, the player &4{player} &cis in combat.'
   no-kit-perm: '&cNo permission for this kit.'
   no-arena-perm: '&cNo permission for this arena.'
   duel-disabled: '&cThe player {player} has disabled duels and cannot be challenged.'
@@ -417,7 +428,9 @@ error:
   cant-spectate: '&cYou can''t spectate while in a duel.'
   no-valid-arenas: '&cThere are no valid arenas that can be selected.'
   not-a-number: '&cYou didn''t type a number.'
-  no-money: '&cYou don''t have enough money to do this.'
+  no-money:
+    self: '&cYou don''t have enough money to do this.'
+    others: '&cThe player {player} doesn''t have enough money.'
   cant-duel-self: '&cYou can''t fight yourself.'
   no-ranks: '&cNo one has fought in any duels yet.'
   invalid-page: '&cThe page &4{page} &cdoesn''t exist.'
@@ -426,8 +439,6 @@ error:
   dead-player: '&cThe player &4{player} &cis dead.'
   no-duels: '&cThere is no one in a duel right now.'
   no-challenge: '&cNo one challenged you to a duel.'
-  corrupt-kit: ''
-  corrupt-arena: ''
   input:
     awaiting-input: '&cYou can''t use commands now. Type ''{cancel-input}'' to cancel.'
     canceled: '&cYou canceled the input.'

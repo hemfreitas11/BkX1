@@ -1,6 +1,5 @@
 package me.bkrmt.bkduel;
 
-import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
 import org.bukkit.Material;
@@ -23,9 +22,9 @@ public abstract class Purchasable {
     private Configuration config;
     private ItemStack displayItem;
     private final String keyName;
-    private final BkPlugin plugin;
+    private final BkDuel plugin;
 
-    public Purchasable(BkPlugin plugin, String name, String keyName) {
+    public Purchasable(BkDuel plugin, String name, String keyName) {
         this.plugin = plugin;
         this.keyName = keyName;
         this.config = plugin.getConfig(keyName, name + ".yml");
@@ -76,7 +75,7 @@ public abstract class Purchasable {
         return keyName;
     }
 
-    public BkPlugin getPlugin() {
+    public BkDuel getPlugin() {
         return plugin;
     }
 

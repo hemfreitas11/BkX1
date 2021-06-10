@@ -1,482 +1,261 @@
 package me.bkrmt.bkduel;
 
-import br.com.devpaulo.legendchat.api.events.ChatMessageEvent;
+import com.SirBlobman.combatlogx.api.ICombatLogX;
+import me.NoChance.PvPManager.PvPManager;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.command.CommandModule;
 import me.bkrmt.bkcore.command.HelpCmd;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.message.InternalMessages;
+import me.bkrmt.bkcore.message.LangFile;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.commands.CmdDuel;
-import me.bkrmt.bkduel.events.NewTopPlayerEvent;
-import me.bkrmt.bkduel.events.StatsUpdateEvent;
+import me.bkrmt.bkduel.commands.CmdDuelCompleter;
 import me.bkrmt.bkduel.npc.NPCManager;
-import me.bkrmt.bkduel.npc.NPCUpdateReason;
+import me.bkrmt.bkduel.npc.UpdateReason;
+import me.bkrmt.bkduel.placeholder.PlaceholderLangFile;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import me.bkrmt.bkduel.stats.StatsManager;
+import me.bkrmt.bkteleport.TpaUtils;
 import me.bkrmt.opengui.OpenGUI;
 import me.bkrmt.teleport.TeleportCore;
 import net.milkbowl.vault.economy.Economy;
+import net.minelink.ctplus.CombatTagPlus;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.util.StringUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BkDuel extends BkPlugin {
-    public static String PREFIX;
-    public static BkDuel PLUGIN;
+    private static BkDuel instance;
+    public String PREFIX;
     private ConcurrentHashMap<UUID, Duel> ongoingDuels;
     private Economy economy;
-    private ArrayList<String> pluginHooks;
+    private PlaceholderLangFile placeholderLangFile;
+    private NPCManager npcManager;
     private StatsManager statsManager;
+    private HookManager hookManager;
     private AnimatorManager animatorManager;
 
     @Override
     public void onEnable() {
         PREFIX = "&7[&6&lBkDuel&7]&e";
         try {
-            PLUGIN = this;
-            pluginHooks = new ArrayList<>();
-            OpenGUI.INSTANCE.register(PLUGIN);
+            instance = this;
+            npcManager = null;
+            OpenGUI.INSTANCE.register(instance);
             start(true);
+            hookManager = new HookManager(this);
+            ArrayList<String> langs = new ArrayList<>();
+            langs.add("en_US");
+            langs.add("pt_BR");
+            placeholderLangFile = new PlaceholderLangFile(this, langs);
             File playerData = getFile("player-data", "");
             File arenas = getFile("arenas", "");
             File kits = getFile("kits", "");
             if (!playerData.exists()) playerData.mkdir();
             if (!arenas.exists()) arenas.mkdir();
             if (!kits.exists()) kits.mkdir();
-            sendConsoleMessage(Utils.translateColor("&e__________ __    &6_______               .__"));
-            sendConsoleMessage(Utils.translateColor("&e\\______   \\  | __&6\\_____ \\  __ __  ____ |  |"));
-            sendConsoleMessage(Utils.translateColor("&e |    |  _/  |/ / &6|   |  \\|  |  \\/ __ \\|  |"));
-            sendConsoleMessage(Utils.translateColor("&e |    |   \\    <  &6|   '   \\  |  |  ___/|  |__"));
-            sendConsoleMessage(Utils.translateColor("&e |______  /__|_ \\&6/______  /____/ \\___  >____/"));
-            sendConsoleMessage(Utils.translateColor("&e        \\/     \\/       &6\\/           \\/"));
-            sendConsoleMessage(Utils.translateColor(""));
-            sendConsoleMessage(Utils.translateColor("     &e© BkPlugins | discord.gg/2MHgyjCuPc"));
+            sendConsoleMessage("§e__________ __    §6_______               .__");
+            sendConsoleMessage("§e\\______   \\  | __§6\\_____ \\  __ __  ____ |  |");
+            sendConsoleMessage("§e |    |  _/  |/ / §6|   |  \\|  |  \\/ __ \\|  |");
+            sendConsoleMessage("§e |    |   \\    <  §6|   '   \\  |  |  ___/|  |__");
+            sendConsoleMessage("§e |______  /__|_ \\§6/______  /____/ \\___  >____/");
+            sendConsoleMessage("§e        \\/     \\/       §6\\/           \\/");
+            sendConsoleMessage("");
+            sendConsoleMessage("     §e© BkPlugins | discord.gg/2MHgyjCuPc");
             sendConsoleMessage("");
 
             getConfig("player-data", "player-purchases.yml");
             getConfig("player-data", "player-stats.yml");
 
             if (!setupEconomy()) {
-                PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.NO_ECONOMY.getMessage(PLUGIN).replace("{0}", PREFIX)));
+                sendConsoleMessage(Utils.translateColor(InternalMessages.NO_ECONOMY.getMessage(instance).replace("{0}", PREFIX)));
                 getServer().getPluginManager().disablePlugin(this);
             } else {
                 setRunning(true);
-                Listener constantListener = new Listener() {
-                    @EventHandler
-                    public void onStatUpdate(StatsUpdateEvent event) {
-                        if (BkDuel.getHologramHook() != null && getConfig().getBoolean("top-1-npc.enabled")) {
-                            if (event.getOldStatsList().size() > 0 && event.getNewStatsList().size() > 0) {
-                                PlayerStats oldTopStats = event.getOldStatsList().get(0);
-                                PlayerStats newTopStats = event.getNewStatsList().get(0);
-                                if (oldTopStats.getDuels() != newTopStats.getDuels())
-                                    NPCManager.setTopNpc(newTopStats, NPCUpdateReason.UPDATE_STATS);
-                            }
-                        }
-                    }
-
-                    @EventHandler
-                    public void onNewTop(NewTopPlayerEvent event) {
-                        if (BkDuel.getHologramHook() != null && getConfig().getBoolean("top-1-npc.enabled"))
-                            NPCManager.setTopNpc(event.getNewPlayer(), NPCUpdateReason.UPDATE_NPC);
-                    }
-
-                    @EventHandler
-                    public void onRespawn(PlayerRespawnEvent event) {
-                        Configuration config = getConfig("player-data", "player-inventories.yml");
-                        Player player = event.getPlayer();
-
-                        if (config.get(player.getUniqueId().toString()) != null) {
-                            if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
-                                Duel.returnItems(PLUGIN, player, true);
-                            } else {
-                                player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
-                                config.set(player.getUniqueId().toString(), null);
-                                config.save(false);
-                            }
-                        }
-                    }
-
-                    @EventHandler
-                    public void onJoin(PlayerJoinEvent event) {
-                        Configuration config = getConfig("player-data", "player-inventories.yml");
-                        Player player = event.getPlayer();
-
-                        if (config.get(player.getUniqueId().toString()) != null) {
-                            if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
-                                Duel.returnItems(PLUGIN, player, true);
-                            } else {
-                                player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
-                                config.set(player.getUniqueId().toString(), null);
-                                config.save(false);
-                            }
-                        }
-                    }
-                };
-
-                // Configure NPC hook
+                getHookManager().setupHooks();
                 animatorManager = new AnimatorManager(this);
-                Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
-                if (citizens != null && citizens.isEnabled()) {
-                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CITIZENS_FOUND.getMessage(this)));
-                    hologramHook = configureHologramHook();
-                    if (hologramHook != null) {
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.HOLOGRAM_FOUND.getMessage(this)));
-                    } else {
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_HOLOGRAM.getMessage(this)));
-                    }
-                } else {
-                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CITIZENS.getMessage(this)));
-                }
-
-                // Configure chat hook
-                Listener chatListener = null;
-                chatHook = configureChatHook();
-                if (chatHook == null) {
-                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CHAT.getMessage(this)));
-                } else {
-                    switch (chatHook) {
-                        case "LegendChat":
-                        case "nChat":
-                            chatListener = new Listener() {
-                                @EventHandler
-                                public void onChat(ChatMessageEvent event) {
-                                    PlayerStats playerStat = BkDuel.getStatsManager().getStats().get(0);
-                                    if (playerStat != null) {
-                                        UUID topUUID = playerStat.getUUID();
-                                        if (event.getTags().contains("bkduel_top") && event.getSender().getUniqueId().toString().equalsIgnoreCase(topUUID.toString()))
-                                            event.setTagValue("bkduel_top", Utils.translateColor(getConfig().getString("top-1-tag")));
-                                    }
-                                }
-                            };
-                            break;
-                        case "HeroChat":
-                        case "HeroChatPro":
-                            break;
-                    }
-                }
-                if (chatListener != null) {
-                    getServer().getPluginManager().registerEvents(chatListener, PLUGIN);
-                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CHAT_FOUND.getMessage(this)));
-                }
 
                 // Create commands
-                getCommandMapper().addCommand(new CommandModule(new HelpCmd(PLUGIN, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
-                        .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), (sender, command, alias, args) -> {
-                            List<String> completions = new ArrayList<>();
+                getCommandMapper()
+                        .addCommand(new CommandModule(new HelpCmd(instance, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
+                        .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), new CmdDuelCompleter()))
+                        .registerAll();
 
-                            String challenge = PLUGIN.getLangFile().get("commands.duel.subcommands.challenge.command");
-                            String top = PLUGIN.getLangFile().get("commands.duel.subcommands.top.command");
-                            String stats = PLUGIN.getLangFile().get("commands.duel.subcommands.stats.command");
-                            String spectate = PLUGIN.getLangFile().get("commands.duel.subcommands.spectate.command");
-                            String accept = PLUGIN.getLangFile().get("commands.duel.subcommands.accept.command");
-                            String decline = PLUGIN.getLangFile().get("commands.duel.subcommands.decline.command");
-                            String edit = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.command");
-                            String edit_arenas = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.arenas.command");
-                            String edit_kits = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.kits.command");
-                            String npc = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.command");
-                            String enable = PLUGIN.getLangFile().get("commands.duel.subcommands.enable.command");
-                            String disable = PLUGIN.getLangFile().get("commands.duel.subcommands.disable.command");
-                            String npc_update = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.update.command");
-                            String npc_location = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.location.command");
-
-                            List<String> subCommands = new ArrayList<>();
-
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.challenge"))
-                                subCommands.add(challenge);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.top"))
-                                subCommands.add(top);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.stats"))
-                                subCommands.add(stats);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.spectate"))
-                                subCommands.add(spectate);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply"))
-                                subCommands.add(accept);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply"))
-                                subCommands.add(decline);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle"))
-                                subCommands.add(enable);
-                            if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle"))
-                                subCommands.add(disable);
-                            if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit"))
-                                subCommands.add(edit);
-                            if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit"))
-                                subCommands.add(npc);
-
-                            if (args.length == 1) {
-                                String partialCommand = args[0];
-                                StringUtil.copyPartialMatches(partialCommand, subCommands, completions);
-                            } else if (subCommands.contains(challenge) && args.length == 2 && (args[0].equalsIgnoreCase(challenge) || args[0].equalsIgnoreCase(stats))) {
-                                List<String> players = new ArrayList<>();
-                                for (Player player : PLUGIN.getHandler().getMethodManager().getOnlinePlayers()) {
-                                    if (args[0].equalsIgnoreCase(challenge)) {
-                                        if (!player.getName().equalsIgnoreCase(sender.getName()))
-                                            players.add(player.getName());
-                                    } else {
-                                        players.add(player.getName());
-                                    }
-                                }
-                                String partialName = args[1];
-                                StringUtil.copyPartialMatches(partialName, players, completions);
-                            } else if (subCommands.contains(npc) && args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
-                                String partialSubCommand = args[1];
-                                StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(npc_location, npc_update), completions);
-                            } else if (subCommands.contains(edit) && args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
-                                String partialSubCommand = args[1];
-                                StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(edit_arenas, edit_kits), completions);
-                            }
-
-                            Collections.sort(completions);
-                            return completions;
-
-                        })).registerAll();
-
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.LOADING_CONFIGS.getMessage(this)));
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESETING_ARENAS.getMessage(this)));
+                // Other
                 clearUsedArenas();
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESTORING_INVENTORIES.getMessage(this)));
                 restoreInventories();
-                if (isEnabled()) {
-                    statsManager = new StatsManager(this);
-                    ongoingDuels = new ConcurrentHashMap<>();
-                    try {
-                        TeleportCore.playersInCooldown.get("Core-Started");
-                    } catch (NullPointerException ignored) {
-                        new TeleportCore(this);
-                        TeleportCore.playersInCooldown.put("Core-Started", true);
-                    }
-                    getServer().getPluginManager().registerEvents(constantListener, PLUGIN);
-                    if (getHologramHook() != null && getStatsManager().getStats().size() > 0)
-                        NPCManager.setTopNpc(getStatsManager().getStats().get(0), NPCUpdateReason.UPDATE_NPC);
+                statsManager = new StatsManager(this);
+                ongoingDuels = new ConcurrentHashMap<>();
+                try {
+                    TeleportCore.playersInCooldown.get("Core-Started");
+                } catch (NullPointerException ignored) {
+                    new TeleportCore(this);
+                    TeleportCore.playersInCooldown.put("Core-Started", true);
                 }
+                getServer().getPluginManager().registerEvents(new ConstantListener(), instance);
+                if (getHookManager().hasHologramHook() && getStatsManager().getStats().size() > 0 && getNpcManager() != null)
+                    getNpcManager().setTopNpc(getStatsManager().getStats().get(0), UpdateReason.NPC_AND_STATS);
                 sendStartMessage(PREFIX);
-                /*Duel duel = new Duel(PLUGIN);
-                duel.getArena();
-                duel.checkAuthorization(() -> {
-                    // Configure NPC hook
-                    animatorManager = new AnimatorManager(this);
-                    Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
-                    if (citizens != null && citizens.isEnabled()) {
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CITIZENS_FOUND.getMessage(this)));
-                        hologramHook = configureHologramHook();
-                        if (hologramHook != null) {
-                            sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.HOLOGRAM_FOUND.getMessage(this)));
-                        } else {
-                            sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_HOLOGRAM.getMessage(this)));
-                        }
-                    } else {
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CITIZENS.getMessage(this)));
-                    }
-
-                    // Configure chat hook
-                    Listener chatListener = null;
-                    chatHook = configureChatHook();
-                    if (chatHook == null) {
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CHAT.getMessage(this)));
-                    } else {
-                        switch (chatHook) {
-                            case "LegendChat":
-                            case "nChat":
-                                chatListener = new Listener() {
-                                    @EventHandler
-                                    public void onChat(ChatMessageEvent event) {
-                                        PlayerStats playerStat = BkDuel.getStatsManager().getStats().get(0);
-                                        if (playerStat != null) {
-                                            UUID topUUID = playerStat.getUUID();
-                                            if (event.getTags().contains("bkduel_top") && event.getSender().getUniqueId().toString().equalsIgnoreCase(topUUID.toString()))
-                                                event.setTagValue("bkduel_top", Utils.translateColor(getConfig().getString("top-1-tag")));
-                                        }
-                                    }
-                                };
-                                break;
-                            case "HeroChat":
-                            case "HeroChatPro":
-                                break;
-                        }
-                    }
-                    if (chatListener != null) {
-                        getServer().getPluginManager().registerEvents(chatListener, PLUGIN);
-                        sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CHAT_FOUND.getMessage(this)));
-                    }
-
-                    // Create commands
-                    getCommandMapper().addCommand(new CommandModule(new HelpCmd(PLUGIN, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
-                            .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), (sender, command, alias, args) -> {
-                                List<String> completions = new ArrayList<>();
-
-                                String challenge = PLUGIN.getLangFile().get("commands.duel.subcommands.challenge.command");
-                                String top = PLUGIN.getLangFile().get("commands.duel.subcommands.top.command");
-                                String stats = PLUGIN.getLangFile().get("commands.duel.subcommands.stats.command");
-                                String spectate = PLUGIN.getLangFile().get("commands.duel.subcommands.spectate.command");
-                                String accept = PLUGIN.getLangFile().get("commands.duel.subcommands.accept.command");
-                                String decline = PLUGIN.getLangFile().get("commands.duel.subcommands.decline.command");
-                                String edit = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.command");
-                                String edit_arenas = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.arenas.command");
-                                String edit_kits = PLUGIN.getLangFile().get("commands.duel.subcommands.edit.subcommands.kits.command");
-                                String npc = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.command");
-                                String enable = PLUGIN.getLangFile().get("commands.duel.subcommands.enable.command");
-                                String disable = PLUGIN.getLangFile().get("commands.duel.subcommands.disable.command");
-                                String npc_update = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.update.command");
-                                String npc_location = PLUGIN.getLangFile().get("commands.duel.subcommands.npc.subcommands.location.command");
-
-                                List<String> subCommands = new ArrayList<>();
-
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.challenge")) subCommands.add(challenge);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.top")) subCommands.add(top);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.stats")) subCommands.add(stats);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.spectate")) subCommands.add(spectate);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply")) subCommands.add(accept);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.reply")) subCommands.add(decline);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle")) subCommands.add(enable);
-                                if (sender.hasPermission("bkduel.player") || sender.hasPermission("bkduel.toggle")) subCommands.add(disable);
-                                if (sender.hasPermission("bkduel.admin") || sender.hasPermission("bkduel.edit")) subCommands.add(edit);
-
-                                if (args.length == 1) {
-                                    String partialCommand = args[0];
-                                    StringUtil.copyPartialMatches(partialCommand, subCommands, completions);
-                                }else  if (subCommands.contains(challenge) && args.length == 2 && (args[0].equalsIgnoreCase(challenge) || args[0].equalsIgnoreCase(stats))) {
-                                    List<String> players = new ArrayList<>();
-                                    for (Player player : PLUGIN.getHandler().getMethodManager().getOnlinePlayers()) {
-                                        if (args[0].equalsIgnoreCase(challenge)) {
-                                            if (!player.getName().equalsIgnoreCase(sender.getName()))
-                                                players.add(player.getName());
-                                        } else {
-                                            players.add(player.getName());
-                                        }
-                                    }
-                                    String partialName = args[1];
-                                    StringUtil.copyPartialMatches(partialName, players, completions);
-                                } else if (subCommands.contains(npc) && args.length == 2 && (args[0].equalsIgnoreCase(npc))) {
-                                    String partialSubCommand = args[1];
-                                    StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(npc_location, npc_update), completions);
-                                } else if (subCommands.contains(edit) && args.length == 2 && (args[0].equalsIgnoreCase(edit))) {
-                                    String partialSubCommand = args[1];
-                                    StringUtil.copyPartialMatches(partialSubCommand, Arrays.asList(edit_arenas, edit_kits), completions);
-                                }
-
-                                Collections.sort(completions);
-                                return completions;
-
-                            })).registerAll();
-
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.LOADING_CONFIGS.getMessage(this)));
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESETING_ARENAS.getMessage(this)));
-                    clearUsedArenas();
-//                    sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.RESTORING_INVENTORIES.getMessage(this)));
-                    restoreInventories();
-                    if (isEnabled()) {
-                        statsManager = new StatsManager(this);
-                        ongoingDuels = new ConcurrentHashMap<>();
-                        try {
-                            TeleportCore.playersInCooldown.get("Core-Started");
-                        } catch (NullPointerException ignored) {
-                            new TeleportCore(this);
-                            TeleportCore.playersInCooldown.put("Core-Started", true);
-                        }
-                        getServer().getPluginManager().registerEvents(constantListener, PLUGIN);
-                        if (getHologramHook() != null && getStatsManager().getStats().size() > 0)
-                            NPCManager.setTopNpc(getStatsManager().getStats().get(0), NPCUpdateReason.UPDATE_NPC);
-                    }
-                    sendStartMessage(PREFIX);
-                });
-                duel.getKitPages();
-                duel.getOptions();*/
-
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
         }
     }
 
-    public static String getChatHook() {
-        return chatHook;
+    public String getPlaceholderValue(OfflinePlayer player, String identifier) {
+        String returnValue = null;
+        PlayerStats stats = null;
+        StatsManager manager = getStatsManager();
+        if (manager != null) {
+            if (player != null)
+                stats = manager.getPlayerStat(player.getUniqueId());
+
+            if (stats != null && identifier != null) {
+                if (identifier.equalsIgnoreCase("defeats")) {
+                    returnValue = String.valueOf(stats.getDefeats());
+                } else if (identifier.equalsIgnoreCase("wins")) {
+                    returnValue = String.valueOf(stats.getWins());
+                } else if (identifier.equalsIgnoreCase("duels")) {
+                    returnValue = String.valueOf(stats.getDuels());
+                } else if (identifier.equalsIgnoreCase("disconnects")) {
+                    returnValue = String.valueOf(stats.getDisconnects());
+                } else if (identifier.equalsIgnoreCase("kdr")) {
+                    returnValue = String.valueOf(stats.getKDR());
+                }
+            }
+        }
+        return returnValue;
     }
 
-    public static String getHologramHook() {
-        return hologramHook;
+    public boolean isValidPlaceholder(String hologramLine) {
+        return hologramLine.contains("%") && getHookManager().hasPlaceHolderHook();
     }
 
-    public static ConcurrentHashMap<UUID, Duel> getOngoingDuels() {
+    public NPCManager getNpcManager() {
+        return npcManager;
+    }
+
+    public static BkDuel getInstance() {
+        return instance;
+    }
+
+    public ConcurrentHashMap<UUID, Duel> getOngoingDuels() {
         return ongoingDuels;
     }
 
-    public static Economy getEconomy() {
+    public Economy getEconomy() {
         return economy;
     }
 
-    public static StatsManager getStatsManager() {
+    public StatsManager getStatsManager() {
         return statsManager;
     }
 
-    public static AnimatorManager getAnimatorManager() {
+    public AnimatorManager getAnimatorManager() {
         return animatorManager;
     }
 
-    private String configureHologramHook() {
+    public boolean isInvalidChallenge(Player sender, Player target, double duelCost) {
+        double targetMoney = BkDuel.getInstance().getEconomy().getBalance(target);
+        if (targetMoney < duelCost) {
+            sender.sendMessage(getLangFile().get(target, "error.no-money.others").replace("{player}", target.getName()));
+            return true;
+        }
+
+        if (TeleportCore.playersInCooldown.get(sender.getName()) != null) {
+            sender.sendMessage(getLangFile().get(target, "error.waiting-teleport.self"));
+            return true;
+        }
+
+        if (TeleportCore.playersInCooldown.get(target.getName()) != null) {
+            sender.sendMessage(getLangFile().get(target, "error.waiting-teleport.others").replace("{player}", target.getName()));
+            return true;
+        }
+
+        Plugin bkteleport = getServer().getPluginManager().getPlugin("BkTeleport");
+        if (bkteleport != null && bkteleport.isEnabled()) {
+            for (String key : TpaUtils.playerExpiredChecker.keySet()) {
+                if (key.toLowerCase().contains(target.getName().toLowerCase())) {
+                    sender.sendMessage(getLangFile().get(target, "error.waiting-teleport.others").replace("{player}", target.getName()));
+                    return true;
+                }
+                if (key.toLowerCase().contains(sender.getName().toLowerCase())) {
+                    sender.sendMessage(getLangFile().get(sender, "error.waiting-teleport.self"));
+                    return true;
+                }
+            }
+        }
+        if (isInCombat(sender, target)) {
+            return true;
+        }
+        return false;
+    }
+
+    private String getHologramHook() {
         Plugin holoDisplays = getServer().getPluginManager().getPlugin("HolographicDisplays");
         Plugin holograms = getServer().getPluginManager().getPlugin("Holograms");
 
+        String returnValue = null;
         if (holoDisplays != null) {
             if (holoDisplays.isEnabled()) {
-                return "Holograms";
+                returnValue = "Holograms";
             }
-        }
-
-        if (holograms != null) {
+        } else if (holograms != null) {
             if (holograms.isEnabled()) {
-                return "HolographicDisplays";
+                returnValue = "HolographicDisplays";
             }
         }
 
-        return null;
+        return returnValue;
     }
 
-    private String configureChatHook() {
+    @Override
+    public LangFile getLangFile() {
+        return placeholderLangFile;
+    }
+
+    String getChatHook() {
         Plugin legendchat = getServer().getPluginManager().getPlugin("Legendchat");
         Plugin nchat = getServer().getPluginManager().getPlugin("nChat");
         Plugin herochat = getServer().getPluginManager().getPlugin("Herochat");
         Plugin herochatPro = getServer().getPluginManager().getPlugin("HerochatPro");
 
+        String returnPlugin = null;
         if (legendchat != null) {
             if (legendchat.isEnabled()) {
-                return "LegendChat";
+                returnPlugin = "LegendChat";
             }
-        }
-
-        if (nchat != null) {
+        } else if (nchat != null) {
             if (nchat.isEnabled()) {
-                return "nChat";
+                returnPlugin = "nChat";
             }
-        }
-
-        if (herochat != null) {
+        } else if (herochat != null) {
             if (herochat.isEnabled()) {
-                return "HeroChat";
+                returnPlugin = "HeroChat";
             }
-        }
-
-        if (herochatPro != null) {
+        } else if (herochatPro != null) {
             if (herochatPro.isEnabled()) {
-                return "HeroChatPro";
+                returnPlugin = "HeroChatPro";
             }
         }
-
-        return null;
+        return returnPlugin;
     }
 
     @Override
     public void onDisable() {
         if (isRunning()) {
-            if (getHologramHook() != null) NPCManager.removeNpc(NPCUpdateReason.UPDATE_NPC);
+            if (getHookManager().hasHologramHook()) getNpcManager().remove(UpdateReason.NPC_AND_STATS);
 
             if (ongoingDuels != null && !ongoingDuels.isEmpty()) {
                 Collection<Duel> duels = ongoingDuels.values();
@@ -495,13 +274,17 @@ public final class BkDuel extends BkPlugin {
         }
     }
 
+    public HookManager getHookManager() {
+        return hookManager;
+    }
+
     private void restoreInventories() {
         Configuration config = getConfig("player-data", "player-inventories.yml");
         for (Player player : getHandler().getMethodManager().getOnlinePlayers()) {
 
             if (config.get(player.getUniqueId().toString()) != null) {
                 if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
-                    Duel.returnItems(PLUGIN, player, true);
+                    Duel.returnItems(instance, player, true);
                 } else {
                     player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
                     config.set(player.getUniqueId().toString(), null);
@@ -511,9 +294,45 @@ public final class BkDuel extends BkPlugin {
         }
     }
 
+    public boolean isInCombat(Player sender, Player target) {
+        Plugin combatPlugin = getHookManager().getCombatHook();
+        if (combatPlugin != null) {
+            boolean self = target == null;
+            String errorMessage = getLangFile().get(self ? sender : target, "error.in-combat." + (self ? "self" : "others")).replace("{player}", self ? "" : target.getName());
+            switch (combatPlugin.getName()) {
+                case "CombatLogX":
+                    ICombatLogX combatLog = (ICombatLogX) combatPlugin;
+                    if (combatLog.getCombatManager().isInCombat(self ? sender : target)) {
+                        sender.sendMessage(errorMessage);
+                        return true;
+                    }
+                    break;
+                case "PvPManager":
+                    PvPManager pvpmanager = (PvPManager) combatPlugin;
+                    if (pvpmanager.getPlayerHandler().get(self ? sender : target).isInCombat()) {
+                        sender.sendMessage(errorMessage);
+                        return true;
+                    }
+                    break;
+                case "CombatTagPlus":
+                    CombatTagPlus combatTag = (CombatTagPlus) combatPlugin;
+                    if (combatTag.getTagManager().isTagged((self ? sender : target).getUniqueId())) {
+                        sender.sendMessage(errorMessage);
+                        return true;
+                    }
+                    break;
+            }
+        }
+        return false;
+    }
+
+    public void setNpcManager(NPCManager npcManager) {
+        this.npcManager = npcManager;
+    }
+
     private void clearUsedArenas() {
-        File[] listFiles = PLUGIN.getFile("", "arenas").listFiles();
-        if (listFiles.length > 0) {
+        File[] listFiles = getFile("", "arenas").listFiles();
+        if (listFiles != null && listFiles.length > 0) {
             for (File arena : listFiles) {
                 Configuration config = getConfig("arenas", arena.getName());
                 config.set("in-use", false);

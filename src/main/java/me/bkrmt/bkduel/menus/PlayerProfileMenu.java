@@ -1,6 +1,5 @@
 package me.bkrmt.bkduel.menus;
 
-import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import me.bkrmt.opengui.GUI;
@@ -14,51 +13,51 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public class PlayerProfileMenu {
-    public static void showGui(BkPlugin plugin, Player player, PlayerStats stat) {
-        OfflinePlayer target = BkDuel.PLUGIN.getServer().getOfflinePlayer(stat.getUUID());
+    public static void showGui(BkDuel plugin, Player player, PlayerStats stat) {
+        OfflinePlayer target = BkDuel.getInstance().getServer().getOfflinePlayer(stat.getUUID());
         String name = stat.getPlayerName();
         int winsInt = stat.getWins();
         int defeatsInt = stat.getDefeats();
         int duelsInt = stat.getDuels();
         int disconnectsInt = stat.getDisconnects();
 
-        Page page = new Page(BkDuel.PLUGIN, BkDuel.getAnimatorManager(), new GUI(plugin.getLangFile().get("info.player-profile-title"), Rows.FIVE), 1);
+        Page page = new Page(BkDuel.getInstance(), BkDuel.getInstance().getAnimatorManager(), new GUI(plugin.getLangFile().get(player, "info.player-profile-title"), Rows.FIVE), 1);
 
-        ItemBuilder head = new ItemBuilder(BkDuel.PLUGIN.getHandler().getItemManager().getHead());
+        ItemBuilder head = new ItemBuilder(BkDuel.getInstance().getHandler().getItemManager().getHead());
         SkullMeta headMeta = (SkullMeta) head.getItem().getItemMeta();
         if (target != null) headMeta.setOwningPlayer(target);
         head.setMeta(headMeta)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.head.name")
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.head.name")
                         .replace("{player}", name))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.head.description")
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.head.description")
                         .replace("{player}", name))
                 .hideTags()
                 .update();
 
         ItemBuilder wins = new ItemBuilder(Material.IRON_SWORD)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.wins.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.wins.description")
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.wins.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.wins.description")
                         .replace("{wins}", String.valueOf(winsInt)))
                 .hideTags()
                 .update();
 
         ItemBuilder defeats = new ItemBuilder(Material.BONE)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.defeats.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.defeats.description")
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.defeats.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.defeats.description")
                         .replace("{defeats}", String.valueOf(defeatsInt)))
                 .hideTags()
                 .update();
 
-        ItemBuilder duels = new ItemBuilder(BkDuel.PLUGIN.getHandler().getItemManager().getExpBottle())
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.duels.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.duels.description")
+        ItemBuilder duels = new ItemBuilder(BkDuel.getInstance().getHandler().getItemManager().getExpBottle())
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.duels.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.duels.description")
                         .replace("{duels}", String.valueOf(duelsInt)))
                 .hideTags()
                 .update();
 
         ItemBuilder disconnects = new ItemBuilder(Material.PAPER)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.disconnects.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.disconnects.description")
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.disconnects.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.disconnects.description")
                         .replace("{disconnects}", String.valueOf(disconnectsInt)))
                 .hideTags()
                 .update();
@@ -66,15 +65,15 @@ public class PlayerProfileMenu {
 
         String formatKdr = kdrFloat < 1 ? ChatColor.RED + String.format("%.1f", kdrFloat) : ChatColor.GREEN + String.format("%.1f", kdrFloat);
         ItemBuilder kdr = new ItemBuilder(Material.NETHER_STAR)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.kdr.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.player-profile.kdr.description")
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.kdr.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.player-profile.kdr.description")
                         .replace("{kdr}", formatKdr))
                 .hideTags()
                 .update();
 
         ItemBuilder close = new ItemBuilder(Material.REDSTONE_BLOCK)
-                .setName(BkDuel.PLUGIN.getLangFile().get("gui-buttons.close-button.name"))
-                .setLore(BkDuel.PLUGIN.getLangFile().get("gui-buttons.close-button.description"))
+                .setName(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.close-button.name"))
+                .setLore(BkDuel.getInstance().getLangFile().get(target, "gui-buttons.close-button.description"))
                 .hideTags()
                 .update();
 

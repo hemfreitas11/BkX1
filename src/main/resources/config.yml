@@ -100,6 +100,38 @@ time-to-pick-items: 10
 # Isso aparece quando um jogador seleciona um kit ou arena aleatória.
 random-selection: '&1&kI&2&ki&3&kI&4&ki&5&kI&6&ki&e&ki&b&kI'
 
+# Options for the factions plugins. Compatible plugins are the free legacy Factions, and the premium FactionsUUID
+# Opções para os plugins de factions. Os plugins compatíveis são: o factions antigo grátis, e o novo factions pago (FactionsUUID)
+factions:
+  # Wether players lose power from dueling
+  # Se os jogadores perdem power em X1s
+  disable-power-loss: true
+  # Wether to temporarily enable the damage to allies for duelists. ** This option only works for the old free factions **
+  # Se você quer ativar o dano a aliados enquanto eles estiverem em um X1. ** Essa opção funciona apenas no factions grátis antigo **
+  enable-ally-damage: true
+
+# Options for the myPet plugin
+# Opções para o plugin myPet
+mypet:
+  # Disable pet while players are in duels
+  # Desabilita pets enquanto jogadores estão em X1s
+  disable-in-duels: true
+
+mcmmo:
+  # Disables all abilities while in duel
+  # Desabilita todas abilidades enquanto estiver em um X1
+  disable-abilities: true
+
+# Options for the SimpleClans plugin
+# Opções para o plugin SimpleClans
+simpleclans:
+  # Wether simpleclans will count the deaths of players when they die in duels
+  # Se o simpleclans vai contar a morte de jogadores que morrem em duelos
+  disable-death-incremet: true
+  # Wether to temporarily enable the damage to allies for duelists.
+  # Se você quer ativar o dano a aliados enquanto eles estiverem em um X1.
+  enable-ally-damage: true
+
 # The chat tag for the player with the most duel wins. Supported chat plugins: LegendChat, nChat and HeroChat
 # A tag do chat do jogador com mais vitórias de X1s. Plugins de chat suportados: LegendChat, nChat e HeroChat
 top-1-tag: '&6&l[Killer]&r '
@@ -114,6 +146,10 @@ top-1-npc:
   # The text that shows up on top of the NPC
   # O text que aparece em cima do NPC
   hologram:
+    # How much time (in seconds) to wait before updating placeholder values in the hologram.
+    # Quanto tempo (em segundos) para esperar antes de atualizar valores placeholder no holograma.
+    placeholder-update: 5
+
     # Set this to 'false' to disable the sword animation bellow the text
     # Coloque 'false' para desativar a animação da espada abaixo do texto
     sword-animation: true

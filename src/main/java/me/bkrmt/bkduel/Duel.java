@@ -1,6 +1,7 @@
 package me.bkrmt.bkduel;
 
-import me.bkrmt.bkcore.BkPlugin;
+import de.Keyle.MyPet.MyPetPlugin;
+import de.Keyle.MyPet.api.entity.MyPet;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
@@ -13,6 +14,8 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.milkbowl.vault.economy.EconomyResponse;
+import net.sacredlabyrinth.phaed.simpleclans.ClanPlayer;
+import net.sacredlabyrinth.phaed.simpleclans.SimpleClans;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -29,6 +32,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -41,7 +45,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class Duel implements Listener {
-    private final BkPlugin plugin;
+    private final BkDuel plugin;
 
     private Player fighter1;
     private Player fighter2;
@@ -60,6 +64,12 @@ public class Duel implements Listener {
 
     private GameMode fighter1Gamemode;
     private GameMode fighter2Gamemode;
+
+    private boolean fighter1HasPet;
+    private boolean fighter2HasPet;
+
+    private boolean fighter1HasFF;
+    private boolean fighter2HasFF;
 
     private boolean fighter1IsFlying;
     private boolean fighter2IsFlying;
@@ -80,12 +90,12 @@ public class Duel implements Listener {
 
     private final ArrayList<DuelOptions> options;
 
-    public Duel(BkPlugin plugin) {
-        this(plugin, false);
+    public Duel() {
+        this(false);
     }
 
-    public Duel(BkPlugin plugin, boolean editMode) {
-        this.plugin = plugin;
+    public Duel(boolean editMode) {
+        this.plugin = BkDuel.getInstance();
         this.options = new ArrayList<>();
         this.kitPages = new ArrayList<>();
         if (editMode) {
@@ -109,8 +119,8 @@ public class Duel implements Listener {
         if (fighter1 != null && fighter2 != null && arena != null) {
 
             if (arena.getLocation1() == null || arena.getLocation2() == null || arena.getSpectators() == null || Bukkit.getServer().getWorld(arena.getLocation1().getWorld().getName()) == null) {
-                fighter1.sendMessage(plugin.getLangFile().get("error.invalid-arena"));
-                fighter2.sendMessage(plugin.getLangFile().get("error.invalid-arena"));
+                fighter1.sendMessage(plugin.getLangFile().get(fighter1, "error.invalid-arena"));
+                fighter2.sendMessage(plugin.getLangFile().get(fighter2, "error.invalid-arena"));
                 endWithoutPlayers();
             }
 
@@ -124,8 +134,8 @@ public class Duel implements Listener {
             fighter1.closeInventory();
             fighter2.closeInventory();
 
-            fighter1.sendMessage(getPlugin().getLangFile().get("info.starting-duel"));
-            fighter2.sendMessage(getPlugin().getLangFile().get("info.starting-duel"));
+            fighter1.sendMessage(getPlugin().getLangFile().get(fighter1, "info.starting-duel"));
+            fighter2.sendMessage(getPlugin().getLangFile().get(fighter2, "info.starting-duel"));
 
             arena.setInUse(true);
 
@@ -133,6 +143,33 @@ public class Duel implements Listener {
 
             //Teleport player 1
             this.fighter1Return = fighter1.getLocation();
+
+            boolean disablePets = plugin.getConfig().getBoolean("mypets.disable-in-duels");
+            if (disablePets) {
+                Plugin petPlugin = plugin.getHookManager().getMyPetHook();
+                if (petPlugin != null) {
+                    MyPetPlugin myPet = (MyPetPlugin) petPlugin;
+                    MyPet pet1 = myPet.getMyPetManager().getMyPet(fighter1);
+                    MyPet pet2 = myPet.getMyPetManager().getMyPet(fighter2);
+
+                    if (despawnPet(pet1)) fighter1HasPet = true;
+                    if (despawnPet(pet2)) fighter2HasPet = true;
+                }
+            }
+
+            boolean enableAllyDamage = plugin.getConfig().getBoolean("simpleclans.enable-ally-damage");
+            if (enableAllyDamage) {
+                Plugin clansPlugin = plugin.getHookManager().getSimpleClansHook();
+                if (clansPlugin != null) {
+                    SimpleClans simpleClans = (SimpleClans) clansPlugin;
+                    ClanPlayer clanPlayer1 = simpleClans.getClanManager().getClanPlayer(fighter1.getUniqueId());
+                    ClanPlayer clanPlayer2 = simpleClans.getClanManager().getClanPlayer(fighter2.getUniqueId());
+                    if (setFriendlyFire(clanPlayer1, true)) fighter1HasFF = true;
+                    if (setFriendlyFire(clanPlayer2, true)) fighter2HasFF = true;
+                }
+            }
+
+
             new Teleport(plugin, fighter1, false)
                     .setRunnable((player, location, isCanceled) -> {
                         if (!isCanceled) {
@@ -178,14 +215,12 @@ public class Duel implements Listener {
                         }
                         int remaining = timerCount - indexCount++;
                         if (remaining > 0) {
-                            String message = plugin.getLangFile().get("info.seconds-remaining").replace("{seconds}", String.valueOf(remaining));
-
-                            plugin.sendTitle(getFighter1(), 0, 21, 0, message, "");
-                            plugin.sendTitle(getFighter2(), 0, 21, 0, message, "");
+                            plugin.sendTitle(getFighter1(), 0, 21, 0, plugin.getLangFile().get(fighter1, "info.seconds-remaining").replace("{seconds}", String.valueOf(remaining)), "");
+                            plugin.sendTitle(getFighter2(), 0, 21, 0, plugin.getLangFile().get(fighter2, "info.seconds-remaining").replace("{seconds}", String.valueOf(remaining)), "");
 
                         } else {
-                            plugin.sendTitle(getFighter1(), 0, 15, 0, plugin.getLangFile().get("info.go"), "");
-                            plugin.sendTitle(getFighter2(), 0, 15, 0, plugin.getLangFile().get("info.go"), "");
+                            plugin.sendTitle(getFighter1(), 0, 15, 0, plugin.getLangFile().get(fighter1, "info.go"), "");
+                            plugin.sendTitle(getFighter2(), 0, 15, 0, plugin.getLangFile().get(fighter2, "info.go"), "");
 
                             playersReady[0] = true;
                             playersReady[1] = true;
@@ -193,10 +228,10 @@ public class Duel implements Listener {
                         }
                     } else {
                         if (!playersInArena[0]) {
-                            plugin.sendTitle(getFighter2(), 0, 21, 0, plugin.getLangFile().get("info.waiting-other"), "");
+                            plugin.sendTitle(getFighter2(), 0, 21, 0, plugin.getLangFile().get(fighter2, "info.waiting-other"), "");
                         }
                         if (!playersInArena[1]) {
-                            plugin.sendTitle(getFighter1(), 0, 21, 0, plugin.getLangFile().get("info.waiting-other"), "");
+                            plugin.sendTitle(getFighter1(), 0, 21, 0, plugin.getLangFile().get(fighter1, "info.waiting-other"), "");
                         }
                     }
                 }
@@ -207,9 +242,42 @@ public class Duel implements Listener {
         }
     }
 
+    private boolean despawnPet(MyPet pet) {
+        if (pet != null) {
+            if (pet.getStatus().equals(MyPet.PetState.Here)) {
+                pet.setStatus(MyPet.PetState.Despawned);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean spawnPet(MyPet pet) {
+        if (pet != null) {
+            if (pet.getStatus().equals(MyPet.PetState.Despawned)) {
+                pet.setStatus(MyPet.PetState.Here);
+                pet.setWantsToRespawn(true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean setFriendlyFire(ClanPlayer clanPlayer, boolean value) {
+        if (clanPlayer != null) {
+            if (clanPlayer.getClan() != null) {
+                if (!value || !clanPlayer.isFriendlyFire()) {
+                    clanPlayer.setFriendlyFire(value);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static Duel findDuel(Arena arena) {
         Duel spectatedDuel = null;
-        Collection<Duel> duels = BkDuel.getOngoingDuels().values();
+        Collection<Duel> duels = BkDuel.getInstance().getOngoingDuels().values();
         if (!duels.isEmpty()) {
             for (Duel ongoingDuel : duels) {
                 if (arena.getId() == ongoingDuel.getArena().getId()) {
@@ -223,14 +291,14 @@ public class Duel implements Listener {
 
     public static Duel findDuel(String name) {
         Duel spectatedDuel = null;
-        Collection<Duel> duels = BkDuel.getOngoingDuels().values();
+        Collection<Duel> duels = BkDuel.getInstance().getOngoingDuels().values();
         if (!duels.isEmpty()) {
             for (Duel ongoingDuel : duels) {
                 if (name.equalsIgnoreCase(ongoingDuel.getFighter1().getName()) || name.equalsIgnoreCase(ongoingDuel.getFighter2().getName())) {
                     spectatedDuel = ongoingDuel;
                     break;
                 }
-        }
+            }
         }
         return spectatedDuel;
     }
@@ -249,10 +317,10 @@ public class Duel implements Listener {
                     String[] lineParts = line.split("\\{spectate-button}");
                     ComponentBuilder lineBuilder = new ComponentBuilder("")
                             .append(lineParts[0])
-                            .append(getPlugin().getLangFile().get("info.spectate-button.button"))
+                            .append(getPlugin().getLangFile().get(player, "info.spectate-button.button"))
                             .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                    "/" + getPlugin().getLangFile().get("commands.duel.command") + " " + getPlugin().getLangFile().get("commands.duel.subcommands.spectate.command") + " " + getFighter1().getName()))
-                            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(getPlugin().getLangFile().get("info.spectate-button.hover")).create()));
+                                    "/" + getPlugin().getLangFile().get(player, "commands.duel.command") + " " + getPlugin().getLangFile().get(player, "commands.duel.subcommands.spectate.command") + " " + getFighter1().getName()))
+                            .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(getPlugin().getLangFile().get(player, "info.spectate-button.hover")).create()));
                     if (lineParts.length == 2) lineBuilder.append(lineParts[1]).reset();
                     player.spigot().sendMessage(lineBuilder.create());
                 } else {
@@ -262,7 +330,7 @@ public class Duel implements Listener {
         }
     }
 
-    public BkPlugin getPlugin() {
+    public BkDuel getPlugin() {
         return plugin;
     }
 
@@ -333,15 +401,15 @@ public class Duel implements Listener {
     }
 
     public void startRequest() {
-        double playerMoney = BkDuel.getEconomy().getBalance(getFighter1());
+        double playerMoney = BkDuel.getInstance().getEconomy().getBalance(getFighter1());
         double duelCost = plugin.getConfig().getDouble("duel-cost");
         if (playerMoney >= duelCost) {
-            EconomyResponse r = BkDuel.getEconomy().withdrawPlayer(getFighter1(), duelCost);
+            EconomyResponse r = BkDuel.getInstance().getEconomy().withdrawPlayer(getFighter1(), duelCost);
             getFighter1().closeInventory();
-            getFighter1().sendMessage(plugin.getLangFile().get("info.request-sent"));
+            getFighter1().sendMessage(plugin.getLangFile().get(fighter1, "info.request-sent"));
             setRequest(new DuelRequest(this).sendMessage());
         } else {
-            getFighter1().sendMessage(plugin.getLangFile().get("error.no-money"));
+            getFighter1().sendMessage(plugin.getLangFile().get(fighter1, "error.no-money.self"));
         }
     }
 
@@ -380,13 +448,13 @@ public class Duel implements Listener {
     private void endDuel() {
         startTimer.cancel();
 
-        //Broadcast Winner
+        // Broadcast Winner
 
         // Ending Title
 
         if (!endDuelCause.equals(EndCause.PLUGIN_RELOAD)) {
-            plugin.sendTitle(winner, 10, 50, 10, plugin.getLangFile().get("info.duel-end").replace("{player}", winner.getName()),"");
-            plugin.sendTitle(loser, 10, 50, 10, plugin.getLangFile().get("info.duel-end").replace("{player}", winner.getName()), "");
+            plugin.sendTitle(winner, 10, 50, 10, plugin.getLangFile().get(winner, "info.duel-end").replace("{player}", winner.getName()), "");
+            plugin.sendTitle(loser, 10, 50, 10, plugin.getLangFile().get(loser, "info.duel-end").replace("{player}", winner.getName()), "");
         }
 
         //Return player items
@@ -403,6 +471,25 @@ public class Duel implements Listener {
             fighter2.setFlying(fighter2IsFlying);
             fighter2.setGameMode(fighter2Gamemode);
         }
+
+        Plugin petPlugin = plugin.getHookManager().getMyPetHook();
+        if (petPlugin != null) {
+            MyPetPlugin myPet = (MyPetPlugin) petPlugin;
+            MyPet pet1 = myPet.getMyPetManager().getMyPet(fighter1);
+            MyPet pet2 = myPet.getMyPetManager().getMyPet(fighter2);
+            if (fighter1HasPet) spawnPet(pet1);
+            if (fighter2HasPet) spawnPet(pet2);
+        }
+
+        Plugin clansPlugin = plugin.getHookManager().getSimpleClansHook();
+        if (clansPlugin != null) {
+            SimpleClans simpleClans = (SimpleClans) clansPlugin;
+            ClanPlayer clanPlayer1 = simpleClans.getClanManager().getClanPlayer(fighter1.getUniqueId());
+            ClanPlayer clanPlayer2 = simpleClans.getClanManager().getClanPlayer(fighter2.getUniqueId());
+            if (fighter1HasFF) setFriendlyFire(clanPlayer1, false);
+            if (fighter2HasFF) setFriendlyFire(clanPlayer2, false);
+        }
+
         arena.setInUse(false);
 
         updateStatistics();
@@ -425,9 +512,9 @@ public class Duel implements Listener {
         setStatus(DuelStatus.AWAITING_WINNER_PICKUP);
         int time = getOptions().contains(DuelOptions.OWN_ITEMS) ? plugin.getConfig().getInt("time-to-pick-items") : 3;
         if (getOptions().contains(DuelOptions.OWN_ITEMS))
-            player.sendMessage(getPlugin().getLangFile().get("info.time-to-pickup").replace("{seconds}", String.valueOf(time)));
+            player.sendMessage(getPlugin().getLangFile().get(player, "info.time-to-pickup").replace("{seconds}", String.valueOf(time)));
         final int[] timesRun = {0};
-        String actionMessage = plugin.getLangFile().get("info.action-bar-leaving");
+        String actionMessage = plugin.getLangFile().get(player, "info.action-bar-leaving");
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -453,11 +540,11 @@ public class Duel implements Listener {
         HandlerList.unregisterAll(duelListener);
 
         //Remove from HashTable
-        BkDuel.getOngoingDuels().remove(uuid1);
-        BkDuel.getOngoingDuels().remove(uuid2);
+        BkDuel.getInstance().getOngoingDuels().remove(uuid1);
+        BkDuel.getInstance().getOngoingDuels().remove(uuid2);
     }
 
-    public static void returnItems(BkPlugin plugin, Player player, boolean returnLocation) {
+    public static void returnItems(BkDuel plugin, Player player, boolean returnLocation) {
         Configuration config = plugin.getConfig("player-data", "player-inventories.yml");
         ItemStack[] invContents = new ItemStack[]{new ItemStack(Material.DIRT)};
 
@@ -516,7 +603,7 @@ public class Duel implements Listener {
                 statsConfig.set(loser.getUniqueId().toString() + ".disconnects", statsConfig.getInt(loser.getUniqueId().toString() + ".disconnects") + 1);
 
             statsConfig.save(false);
-            BkDuel.getStatsManager().updateStats();
+            BkDuel.getInstance().getStatsManager().updateStats();
         }
     }
 

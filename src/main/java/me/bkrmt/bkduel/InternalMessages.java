@@ -1,6 +1,5 @@
 package me.bkrmt.bkduel;
 
-import me.bkrmt.bkcore.BkPlugin;
 
 public enum InternalMessages {
     LOADING_CONFIGS("&7[&6BkDuel&7] &eLoading configs...",
@@ -11,14 +10,30 @@ public enum InternalMessages {
     "&7[&6BkDuel&7] &eCitizens nao encontrado, desativando funcao NPC."),
     CITIZENS_FOUND("&7[&6BkDuel&7] &eCitizens found, searching for a hologram plugin...",
     "&7[&6BkDuel&7] &eCitizens encontrado, procurando plugin de hologramas..."),
+    PLACEHOLDER_FOUND("&7[&6BkDuel&7] &ePlaceholder plugin found, hooking into {0}...",
+    "&7[&6BkDuel&7] &ePlugin de placeholder encontrado, criando hook no {0}..."),
+    FACTIONS_FOUND("&7[&6BkDuel&7] &eFactions plugin found, hooking into {0}...",
+    "&7[&6BkDuel&7] &ePlugin de factions encontrado, criando hook no {0}..."),
+    MCMMO_FOUND("&7[&6BkDuel&7] &eMcMMO found, enabling support...",
+    "&7[&6BkDuel&7] &eMcMMO encontrado, habilitando suporte..."),
+    MYPET_FOUND("&7[&6BkDuel&7] &eMyPet found, enabling support...",
+    "&7[&6BkDuel&7] &eMyPet encontrado, habilitando suporte..."),
+    OWN_PLUGINS_FOUND("&7[&6BkDuel&7] &eOne or more of my plugins found, enabling support...",
+    "&7[&6BkDuel&7] &eUm ou mais dos meus plugins encontrados, habilitando suporte..."),
+    SIMPLECLANS_FOUND("&7[&6BkDuel&7] &eSimpleClans found, enabling support...",
+    "&7[&6BkDuel&7] &eSimpleClans encontrado, habilitando suporte..."),
+    IMCOMPATIBLE_FACTIONS("&7[&4BkDuel&7] &cYour version of the factions plugin is not compatible.",
+    "&7[&4BkDuel&7] &cSua versao do plugin factions nao e compativel."),
+    COMBATLOGGER_FOUND("&7[&6BkDuel&7] &eCombatLog plugin found, hooking into {0}...",
+    "&7[&6BkDuel&7] &ePlugin de CombatLog encontrado, criando hook no {0}..."),
     NO_HOLOGRAM("&7[&6BkDuel&7] &eHologram plugin not found. This is required for the NPC feature. Compatible plugins: Holograms and HolographicDisplays",
     "&7[&6BkDuel&7] &eCitizens nao encontrado, desativando funcao NPC."),
     HOLOGRAM_FOUND("&7[&6BkDuel&7] &eHologram plugin found, the NPC feature is now enabled!",
     "&7[&6BkDuel&7] &ePlugin de hologramas encontrado, a funcao NPC foi ativada!"),
     NEW_VERSION("&7[&6BkDuel&7] &eA new version is available, go to &bdiscord.gg/2MHgyjCuPc&e to download it! Current Version: {0} New version: {1}",
     "&7[&6BkDuel&7] &eUma nova versao esta disponivel, acesse &bdiscord.gg/2MHgyjCuPc &epara baixar! Versao atual: {0} Nova versao: {1}!"),
-    NO_CHAT("&7[&6BkDuel&7] &eChat plugin not found, disabling chat tags. Compatible plugins: LegendChat, nChat and HeroChat",
-    "&7[&6BkDuel&7] &ePlugin de chat nao encontrado, desativando tags de chat. Plugins compativeis: LegendChat, nChat e HeroChat"),
+    NO_CHAT("&7[&6BkDuel&7] &eCompatible chat plugin not found, disabling chat tags. Compatible plugins: LegendChat, nChat and HeroChat",
+    "&7[&6BkDuel&7] &ePlugin de chat compativel nao encontrado, desativando tags de chat. Plugins compativeis: LegendChat, nChat e HeroChat"),
     CHAT_FOUND("&7[&6BkDuel&7] &eChat plugin found, chat tags enabled!",
     "&7[&6BkDuel&7] &ePlugin de chat encontrado, tags de chat habilitadas."),
     CORRUPT_ARENA("&7[&4BkDuel&7] &cThe arena in the file {0} is corrupt and could not be loaded.",
@@ -51,7 +66,7 @@ public enum InternalMessages {
         return message[0];
     }
 
-    public String getMessage(BkPlugin plugin) {
+    public String getMessage(BkDuel plugin) {
         if (plugin.getLangFile().getLanguage().equalsIgnoreCase("pt_br"))  return message[1];
         else return message[0];
     }

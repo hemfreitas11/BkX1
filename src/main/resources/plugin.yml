@@ -10,6 +10,15 @@ softdepend:
   - 'Legendchat'
   - 'HolographicDisplays'
   - 'nChat'
+  - 'PlaceholderAPI'
+  - 'CombatLogX'
+  - 'Factions'
+  - 'PvPManager'
+  - 'CombatTagPlus'
+  - 'MyPet'
+  - 'BkTeleport'
+  - 'BkShop'
+  - 'SimpleClans'
 api-version: 1.13
 authors: [ Bkr__ ]
 description: Duel Plugin

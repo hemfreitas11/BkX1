@@ -4,21 +4,20 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkcore.textanimator.TextAnimator;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.InternalMessages;
 import me.bkrmt.bkduel.commands.CmdDuel;
 import me.bkrmt.bkduel.stats.PlayerStats;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
 import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.SkinTrait;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,42 +30,53 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.List;
 
-import static me.bkrmt.bkduel.BkDuel.PLUGIN;
-
 public class NPCManager {
-    static private NPC topNpc;
-    static private Hologram topHologram;
-    static private BukkitTask neabyChecker = null;
-    static private Listener interactListener = null;
-    static HashMap<Integer, TextAnimator> animators = null;
+    private NPC topNpc;
+    private Hologram topHologram;
+    private BukkitTask neabyChecker;
+    private Listener interactListener;
+    private HashMap<Integer, TextAnimator> animators;
+    private HashMap<Integer, BukkitTask> updaters;
+    private BkDuel bkDuel;
 
-    public static void setTopNpc(final PlayerStats newTop, NPCUpdateReason reason) {
-        boolean npcEnabled = PLUGIN.getConfig().getBoolean("top-1-npc.enabled");
-        if (npcEnabled && BkDuel.getHologramHook() != null) {
-            removeNpc(reason);
-            boolean swordAnim = PLUGIN.getConfig().getBoolean("top-1-npc.hologram.sword-animation");
+    public NPCManager(BkDuel bkDuel) {
+        this.bkDuel = bkDuel;
+        this.topNpc = null;
+        this.topHologram = null;
+        this.updaters = null;
+        this.neabyChecker = null;
+        this.interactListener = null;
+        this.animators = null;
+    }
+
+    public void setTopNpc(final PlayerStats newTop, UpdateReason reason) {
+        boolean npcEnabled = bkDuel.getConfig().getBoolean("top-1-npc.enabled");
+        if (npcEnabled && bkDuel.getHookManager().hasHologramHook()) {
+            remove(reason);
+            boolean swordAnim = bkDuel.getConfig().getBoolean("top-1-npc.hologram.sword-animation");
             List<String> hologramLines = null;
             try {
-                hologramLines = PLUGIN.getConfig().getStringList("top-1-npc.hologram.lines");
+                hologramLines = bkDuel.getConfig().getStringList("top-1-npc.hologram.lines");
             } catch (Exception ignored) {
-                PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.HOLOGRAM_LINES_ERROR.getMessage()));
+                bkDuel.sendConsoleMessage(Utils.translateColor(InternalMessages.HOLOGRAM_LINES_ERROR.getMessage()));
                 return;
             }
 
-            boolean lookAtPlayers = !reason.equals(NPCUpdateReason.UPDATE_NPC) ? false : PLUGIN.getConfig().getBoolean("top-1-npc.npc.look-at-players.enabled");
-            int lookDistance = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAtPlayers ? 0 : PLUGIN.getConfig().getInt("top-1-npc.npc.look-at-players.distance-to-look");
-            boolean lookAround = !reason.equals(NPCUpdateReason.UPDATE_NPC) ? false : PLUGIN.getConfig().getBoolean(("top-1-npc.npc.random-look-around.enabled"));
-            float leftRange = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAround ? 0f : (float) PLUGIN.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.left-range");
-            float rightRange = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAround ? 0f : (float) PLUGIN.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.right-range");
-            float upRange = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAround ? 0f : (float) PLUGIN.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.up-range");
-            float downRange = !reason.equals(NPCUpdateReason.UPDATE_NPC) || !lookAround ? 0f : (float) PLUGIN.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.down-range");
+            int placeholderUpdate = bkDuel.getConfig().getInt("top-1-npc.hologram.placeholder-update");
+            boolean lookAtPlayers = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfig().getBoolean("top-1-npc.npc.look-at-players.enabled");
+            int lookDistance = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAtPlayers ? 0 : bkDuel.getConfig().getInt("top-1-npc.npc.look-at-players.distance-to-look");
+            boolean lookAround = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfig().getBoolean(("top-1-npc.npc.random-look-around.enabled"));
+            float leftRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.left-range");
+            float rightRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.right-range");
+            float upRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.up-range");
+            float downRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.down-range");
 
             Location location = null;
             try {
-                location = PLUGIN.getConfig().getLocation("top-1-npc.npc.location");
+                location = bkDuel.getConfig().getLocation("top-1-npc.npc.location");
                 ;
             } catch (Exception ignored) {
-                PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.NPC_LOCATION_ERROR.getMessage()));
+                bkDuel.sendConsoleMessage(Utils.translateColor(InternalMessages.NPC_LOCATION_ERROR.getMessage()));
                 return;
             }
 
@@ -74,7 +84,7 @@ public class NPCManager {
             boolean wasLoaded = chunk.isLoaded();
             if (!wasLoaded) chunk.load();
 
-            if (reason.equals(NPCUpdateReason.UPDATE_NPC)) {
+            if (reason.equals(UpdateReason.NPC_AND_STATS)) {
                 NPCRegistry registry = CitizensAPI.getNPCRegistry();
                 topNpc = registry.createNPC(EntityType.PLAYER, "");
                 topNpc.spawn(location);
@@ -92,18 +102,17 @@ public class NPCManager {
                     @EventHandler
                     public void onInteractNpc(NPCLeftClickEvent event) {
                         if (event.getNPC().getId() == topNpc.getId()) {
-                            event.getClicker().performCommand(PLUGIN.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("stats") + " " + newTop.getPlayerName());
+                            event.getClicker().performCommand(bkDuel.getLangFile().get(Bukkit.getOfflinePlayer(newTop.getUUID()), "commands.duel.command") + " " + CmdDuel.getSubCommands().get("stats") + " " + newTop.getPlayerName());
                         }
                     }
                 };
-                PLUGIN.getConfig().set("top-1-npc.npc.id", getTopNpc().getId());
-                Bukkit.getServer().getPluginManager().registerEvents(interactListener, PLUGIN);
+                bkDuel.getConfig().set("top-1-npc.npc.id", getTopNpc().getId());
+                Bukkit.getServer().getPluginManager().registerEvents(interactListener, bkDuel);
             }
 
             location.add(0.0D, 2.12 + (hologramLines.size() > 0 ? hologramLines.size() * 0.23 : 0) + (swordAnim ? 0.60 : 0), 0.0D);
 
-//        final String prefix = PermissionsEx.getUser(p).getGroups()[0].getPrefix().replace("&", "§");
-            topHologram = HologramsAPI.createHologram(PLUGIN, location);
+            topHologram = HologramsAPI.createHologram(bkDuel, location);
             HashMap<Integer, TextLine> lines = new HashMap<>();
             animators = new HashMap<>();
             for (int c = 0; c < hologramLines.size(); c++) {
@@ -120,73 +129,133 @@ public class NPCManager {
 
                 lines.put(finalC, topHologram.appendTextLine(hologramLine));
 
-                TextAnimator animator = BkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, hologramLine);
+                TextAnimator animator = bkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, hologramLine);
                 if (animator != null) {
-                    boolean isOptionText = BkDuel.getAnimatorManager().isOptionText(hologramLine);
-                    animator.setReceiver(animationFrame -> {
-                        if (isOptionText) lines.get(finalC).setText(hologramLine.replaceAll("\\{([^}]*)}", animationFrame));
-                        else lines.get(finalC).setText(animationFrame);
-                    });
-                    animator.animate();
-                    animators.put(finalC, animator);
+                    setLineAnimator(newTop, lines, finalC, hologramLine, animator);
+                }
+
+                if (bkDuel.isValidPlaceholder(hologramLine)) {
+                    if (updaters == null) updaters = new HashMap<>();
+                    try {
+                        if (updaters.get(finalC) != null) updaters.get(finalC).cancel();
+                    } catch (Exception ignored) {}
+                    if (placeholderUpdate > 2) {
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                updateLine(newTop, hologramLine, lines, finalC);
+                            }
+                        }.runTaskLater(BkDuel.getInstance(), 20 * 2);
+                    }
+                    updaters.put(finalC, new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            updateLine(newTop, hologramLine, lines, finalC);
+                        }
+                    }.runTaskTimerAsynchronously(BkDuel.getInstance(), 0, 20 * placeholderUpdate));
                 }
             }
+
             if (swordAnim) topHologram.insertItemLine(hologramLines.size(), new ItemStack(Material.DIAMOND_SWORD));
             if (animators.values().size() > 0) {
                 neabyChecker = new BukkitRunnable() {
                     @Override
                     public void run() {
+                        if (!bkDuel.getHookManager().hasPlaceHolderHook()) cancel();
                         boolean hasLineOfSight = false;
-                        for (Player player : PLUGIN.getHandler().getMethodManager().getOnlinePlayers()) {
+                        for (Player player : bkDuel.getHandler().getMethodManager().getOnlinePlayers()) {
                             if (player.hasLineOfSight(getTopNpc().getEntity()) && player.getLocation().distance(getTopNpc().getEntity().getLocation()) < 35) {
-                                    hasLineOfSight = true;
+                                hasLineOfSight = true;
                                 break;
                             }
                         }
 
                         for (TextAnimator animator : animators.values()) {
-                            if (hasLineOfSight) {
-                                if (animator.getAnimatorRunnable() == null || animator.getAnimatorRunnable().isCancelled())
-                                    animator.animate();
-                            } else {
-                                if (animator.getAnimatorRunnable() != null) animator.pause();
+                            if (animator != null) {
+                                if (hasLineOfSight) {
+                                    if (animator.getAnimatorRunnable() == null || animator.getAnimatorRunnable().isCancelled())
+                                        animator.animate();
+                                } else {
+                                    if (animator.getAnimatorRunnable() != null) animator.pause();
+                                }
                             }
                         }
 
                     }
-                }.runTaskTimerAsynchronously(PLUGIN, 0, 20);
+                }.runTaskTimerAsynchronously(bkDuel, 0, 20);
             }
             if (!wasLoaded) chunk.unload();
         }
     }
 
-    public static NPC getTopNpc() {
+    private void updateLine(PlayerStats newTop, String hologramLine, HashMap<Integer, TextLine> lines, int finalC) {
+        String updatedLine = bkDuel.isValidPlaceholder(hologramLine) ? PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(newTop.getUUID()), hologramLine) : hologramLine;
+        String test1 = AnimatorManager.cleanText(ChatColor.stripColor(updatedLine)).trim();
+        String test2 = AnimatorManager.cleanText(ChatColor.stripColor(lines.get(finalC).getText())).trim();
+        if (!test1.equalsIgnoreCase(test2)) {
+            try {
+                TextAnimator tempAnimator = animators.get(finalC);
+                if (tempAnimator != null) {
+                    tempAnimator.destroy();
+                    TextAnimator newAnimator = bkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, updatedLine);
+                    setLineAnimator(newTop, lines, finalC, updatedLine, newAnimator);
+                } else {
+                    lines.get(finalC).setText(updatedLine);
+                }
+            } catch (Exception ignored) {
+                lines.get(finalC).setText(updatedLine);
+            }
+        }
+    }
+
+    private void setLineAnimator(PlayerStats newTop, HashMap<Integer, TextLine> lines, int finalC, String hologramLine, TextAnimator animator) {
+        boolean isOptionText = AnimatorManager.isOptionText(hologramLine);
+        animator.setReceiver(animationFrame -> {
+            try {
+                if (isOptionText){
+                    if (bkDuel.isValidPlaceholder(hologramLine)) {
+                        lines.get(finalC).setText(PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(newTop.getUUID()), hologramLine).replaceAll("\\{([^}]*)}", animationFrame));
+                    } else {
+                        lines.get(finalC).setText(hologramLine.replaceAll("\\{([^}]*)}", animationFrame));
+                    }
+                }
+                else lines.get(finalC).setText(animationFrame);
+            } catch (Exception e) {
+                e.printStackTrace();
+                lines.get(finalC).setText("§cThis line had an error, check console!");
+            }
+        });
+        animators.put(finalC, animator);
+        animators.get(finalC).animate();
+    }
+
+    public NPC getTopNpc() {
         return topNpc;
     }
 
-    public static Hologram getTopHologram() {
+    public Hologram getTopHologram() {
         return topHologram;
     }
 
-    public static BukkitTask getNeabyChecker() {
+    public BukkitTask getNeabyChecker() {
         return neabyChecker;
     }
 
-    public static Listener getInteractListener() {
+    public Listener getInteractListener() {
         return interactListener;
     }
 
-    public static HashMap<Integer, TextAnimator> getAnimators() {
+    public HashMap<Integer, TextAnimator> getAnimators() {
         return animators;
     }
 
-    public static void removeNpc(NPCUpdateReason reason) {
-        if (reason.equals(NPCUpdateReason.UPDATE_NPC)) {
+    public void remove(UpdateReason reason) {
+        if (reason.equals(UpdateReason.NPC_AND_STATS)) {
             if (getTopNpc() != null) {
                 getTopNpc().getOrAddTrait(LookClose.class).lookClose(false);
                 getTopNpc().destroy();
             }
-            NPC configNpc = CitizensAPI.getNPCRegistry().getById(PLUGIN.getConfig().getInt("top-1-npc.npc.id"));
+            NPC configNpc = CitizensAPI.getNPCRegistry().getById(BkDuel.getInstance().getConfig().getInt("top-1-npc.npc.id"));
             if (configNpc != null) {
                 configNpc.getOrAddTrait(LookClose.class).lookClose(false);
                 configNpc.destroy();
@@ -196,6 +265,11 @@ public class NPCManager {
         if (animators != null) {
             for (TextAnimator animator : animators.values()) {
                 if (animator != null) animator.destroy();
+            }
+        }
+        if (updaters != null) {
+            for (BukkitTask updater : updaters.values()) {
+                updater.cancel();
             }
         }
         if (topHologram != null) getTopHologram().delete();

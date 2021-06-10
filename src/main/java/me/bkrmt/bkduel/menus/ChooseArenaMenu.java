@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static me.bkrmt.bkduel.BkDuel.PLUGIN;
-
 public class ChooseArenaMenu {
     private static ArrayList<Arena> arenas;
     private static ArrayList<Page> pages;
@@ -40,7 +38,7 @@ public class ChooseArenaMenu {
 
         boolean hasValidArena = false;
         if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
-            for (Duel ongoingDuel : BkDuel.getOngoingDuels().values()) {
+            for (Duel ongoingDuel : BkDuel.getInstance().getOngoingDuels().values()) {
                 boolean contains = false;
                 for (Arena arena : arenas) {
                     try {
@@ -50,24 +48,24 @@ public class ChooseArenaMenu {
                             break;
                         }
                     } catch (Exception ignored) {
-                        PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(PLUGIN).replace("{0}", arena.getName())));
-                        duel.getFighter1().sendMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(PLUGIN).replace("{0}", arena.getName())));
+                        BkDuel.getInstance().sendConsoleMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(BkDuel.getInstance()).replace("{0}", arena.getName())));
+                        duel.getFighter1().sendMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(BkDuel.getInstance()).replace("{0}", arena.getName())));
                         return;
                     }
                 }
                 if (!contains) arenas.add(ongoingDuel.getArena());
             }
         } else {
-            File[] listFiles = PLUGIN.getFile("", "arenas").listFiles();
+            File[] listFiles = BkDuel.getInstance().getFile("", "arenas").listFiles();
             if (listFiles.length > 0) {
                 for (File arena : listFiles) {
                     try {
-                        Arena tempArena = new Arena(PLUGIN, arena.getName().replace(".yml", ""));
+                        Arena tempArena = new Arena(BkDuel.getInstance(), arena.getName().replace(".yml", ""));
                         if (tempArena.isValidArena(duel.getFighter1())) hasValidArena = true;
                         arenas.add(tempArena);
                     } catch (Exception ignored) {
-                        PLUGIN.sendConsoleMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(PLUGIN).replace("{0}", arena.getName())));
-                        duel.getFighter1().sendMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(PLUGIN).replace("{0}", arena.getName())));
+                        BkDuel.getInstance().sendConsoleMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(BkDuel.getInstance()).replace("{0}", arena.getName())));
+                        duel.getFighter1().sendMessage(Utils.translateColor(InternalMessages.CORRUPT_ARENA.getMessage(BkDuel.getInstance()).replace("{0}", arena.getName())));
                         return;
                     }
                 }
@@ -79,7 +77,7 @@ public class ChooseArenaMenu {
         int rowSize = duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? 5 : 7;
         int pagesSize = (int) Math.ceil((double) tempSize / (double) rowSize);
         for (int c = 0; c < pagesSize; c++) {
-            Page page = new Page(PLUGIN, BkDuel.getAnimatorManager(), new GUI(PLUGIN.getLangFile().get("info.choose-arena-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR), c + 1);
+            Page page = new Page(BkDuel.getInstance(), BkDuel.getInstance().getAnimatorManager(), new GUI(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.choose-arena-title").replace("{page}", String.valueOf(c + 1)).replace("{total-pages}", String.valueOf(pagesSize)), duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) ? Rows.THREE : Rows.FOUR), c + 1);
             pages.add(page);
             if (previousPage != null) {
                 page.setPreviousPage(previousPage);
@@ -90,7 +88,7 @@ public class ChooseArenaMenu {
 
         List<String> newLore = new ArrayList<>();
         newLore.add(" ");
-        newLore.add(PLUGIN.getLangFile().get("info.arena-selected"));
+        newLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-selected"));
 
         int arenaIndex = 0;
         boolean first = true;
@@ -103,16 +101,16 @@ public class ChooseArenaMenu {
                         if (getArenas().size() > 0) {
                             int finalIndex = index;
                             if (first && !duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) && !duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                                String tempName = PLUGIN.getLangFile().get("gui-buttons.random-arena-button.name");
+                                String tempName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.random-arena-button.name");
                                 ItemBuilder randomArena = new ItemBuilder(Material.ENDER_PEARL)
                                         .setName(tempName)
-                                        .setLore(PLUGIN.getLangFile().get("gui-buttons.random-arena-button.description"))
+                                        .setLore(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.random-arena-button.description"))
                                         .setUnchangedName(tempName)
                                         .hideTags();
                                 if (!hasValidArena) {
                                     randomArena.setName(Utils.translateColor("&4" + ChatColor.stripColor(randomArena.getItem().getItemMeta().getDisplayName())));
                                     randomArena.setUnchangedName("&4" + ChatColor.stripColor(randomArena.getItem().getItemMeta().getDisplayName()));
-                                    randomArena.setLore(PLUGIN.getLangFile().get("error.no-valid-arenas"));
+                                    randomArena.setLore(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.no-valid-arenas"));
                                 }
                                 AtomicInteger inte = new AtomicInteger((int) (Math.random() * arenas.size()));
 
@@ -120,7 +118,7 @@ public class ChooseArenaMenu {
                                 page.pageSetItem(10, randomArena, "choose-arena-random-arena", event -> {
                                     List<String> randomLore = new ArrayList<>();
                                     randomLore.add(" ");
-                                    randomLore.add(PLUGIN.getLangFile().get("info.arena-selected"));
+                                    randomLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-selected"));
                                     if (finalHasValidArena) {
                                         Page.clearUnclickable(duel.getKitPages());
 
@@ -139,14 +137,14 @@ public class ChooseArenaMenu {
                                         duel.getOptions().add(DuelOptions.RANDOM_ARENA);
                                         refreshButtons(duel);
                                     } else {
-                                        event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("error.arena-error.not-valid-arena"));
+                                        event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.not-valid-arena"));
                                     }
                                 });
                                 first = false;
                             } else {
                                 Arena arena = getArenas().get(arenaIndex++);
                                 ItemStack display = arena.getDisplayItem();
-                                double playerMoney = BkDuel.getEconomy().getBalance(duel.getFighter1());
+                                double playerMoney = BkDuel.getInstance().getEconomy().getBalance(duel.getFighter1());
 
                                 List<String> extraLore = display.getItemMeta().getLore() == null ? new ArrayList<>() : display.getItemMeta().getLore();
                                 if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
@@ -154,9 +152,9 @@ public class ChooseArenaMenu {
                                     if (arena.isInUse()) {
                                         Duel inUse = Duel.findDuel(arena);
                                         extraLore = new ArrayList<>();
-                                        extraLore.add(PLUGIN.getLangFile().get("info.already-in-use"));
-                                        extraLore.add(PLUGIN.getLangFile().get("info.currently-fighting"));
-                                        extraLore.add(PLUGIN.getLangFile().get("info.fighter-vs-fighter")
+                                        extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.already-in-use"));
+                                        extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.currently-fighting"));
+                                        extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.fighter-vs-fighter")
                                                 .replace("{fighter1}", inUse.getFighter1().getName())
                                                 .replace("{fighter2}", inUse.getFighter2().getName()));
                                     } else {
@@ -165,39 +163,39 @@ public class ChooseArenaMenu {
                                         if (arena.getBoundKit() != null || !isValidArena) extraLore.add(" ");
 
                                         if (arena.getBoundKit() != null)
-                                            extraLore.add(PLUGIN.getLangFile().get("info.bound-kit-lore")
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.bound-kit-lore")
                                                     .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(arena.getBoundKit().getName()))));
 
                                         if (arena.getName() == null)
-                                            extraLore.add(PLUGIN.getLangFile().get("error.arena-error.invalid-name"));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.invalid-name"));
                                         if (arena.getLocation1() == null)
-                                            extraLore.add(PLUGIN.getLangFile().get("error.arena-error.no-location-1"));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.no-location-1"));
                                         if (arena.getLocation2() == null)
-                                            extraLore.add(PLUGIN.getLangFile().get("error.arena-error.no-location-2"));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.no-location-2"));
                                         if (arena.getSpectators() == null)
-                                            extraLore.add(PLUGIN.getLangFile().get("error.arena-error.no-location-spectators"));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.no-location-spectators"));
                                         if (arena.getLocation1() != null && arena.getLocation2() != null) {
                                             if (!arena.getLocation1().getWorld().getName().equals(arena.getLocation2().getWorld().getName()))
-                                                extraLore.add(PLUGIN.getLangFile().get("error.arena-error.not-same-world"));
+                                                extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.not-same-world"));
                                             if (Bukkit.getServer().getWorld(arena.getLocation1().getWorld().getName()) == null)
-                                                extraLore.add(PLUGIN.getLangFile().get("error.arena-error.invalid-world"));
+                                                extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.invalid-world"));
                                         }
 
                                         if (isValidArena) {
                                             if (arena.getPrice() == 0 || arena.isOwner(duel.getFighter1()) && !duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                 if (!extraLore.isEmpty()) extraLore.add(" ");
                                                 if (arena.getPrice() == 0)
-                                                    extraLore.add(PLUGIN.getLangFile().get("info.free-arena"));
-                                                else extraLore.add(PLUGIN.getLangFile().get("info.arena-bought"));
+                                                    extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.free-arena"));
+                                                else extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-bought"));
                                             } else {
                                                 if (!extraLore.isEmpty()) extraLore.add(" ");
-                                                extraLore.add(PLUGIN.getLangFile().get("info.price").replace("{price}", String.valueOf((int) arena.getPrice())));
+                                                extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.price").replace("{price}", String.valueOf((int) arena.getPrice())));
                                                 if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                     if (!extraLore.isEmpty()) extraLore.add(" ");
                                                     if (playerMoney >= arena.getPrice())
-                                                        extraLore.add(PLUGIN.getLangFile().get("info.click-to-buy"));
+                                                        extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.click-to-buy"));
                                                     else
-                                                        extraLore.add(PLUGIN.getLangFile().get("info.not-enough-money"));
+                                                        extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.not-enough-money"));
                                                 }
                                             }
                                         }
@@ -205,21 +203,21 @@ public class ChooseArenaMenu {
                                         if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                             if (arena.isInUse()) {
                                                 if (!extraLore.isEmpty()) extraLore.add(" ");
-                                                extraLore.add(PLUGIN.getLangFile().get("info.arena-in-use"));
+                                                extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-in-use"));
                                             } else {
                                                 if (!extraLore.isEmpty()) extraLore.add(" ");
-                                                extraLore.add(PLUGIN.getLangFile().get("info.click-to-edit-arena"));
+                                                extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.click-to-edit-arena"));
                                             }
                                         }
 
                                         if (!duel.getFighter1().hasPermission("bkduel.arenas") && !duel.getFighter1().hasPermission("bkduel.arena." + arena.getId())) {
                                             if (extraLore.size() > 0 && !extraLore.get(extraLore.size()-1).equalsIgnoreCase(" ")) extraLore.add(" ");
-                                            extraLore.add(PLUGIN.getLangFile().get("error.no-arena-perm"));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.no-arena-perm"));
                                         }
 
                                         if (duel.getFighter1().hasPermission("bkduel.admin") || duel.getFighter1().hasPermission("bkduel.edit")) {
                                             if (extraLore.size() > 0 && !extraLore.get(extraLore.size()-1).equalsIgnoreCase(" ")) extraLore.add(" ");
-                                            extraLore.add(PLUGIN.getLangFile().get("info.arena-id").replace("{id}", String.valueOf(arena.getId())));
+                                            extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-id").replace("{id}", String.valueOf(arena.getId())));
                                         }
                                     }
 
@@ -232,10 +230,10 @@ public class ChooseArenaMenu {
                                     if (spectatedDuel != null) {
                                         List<String> specLore = arena.getConfig().getLore("display-item.lore");
                                         specLore.add(" ");
-                                        specLore.add(PLUGIN.getLangFile().get("info.fighter1").replace("{fighter}", spectatedDuel.getFighter1().getName()));
-                                        specLore.add(PLUGIN.getLangFile().get("info.fighter2").replace("{fighter}", spectatedDuel.getFighter2().getName()));
+                                        specLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.fighter1").replace("{fighter}", spectatedDuel.getFighter1().getName()));
+                                        specLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.fighter2").replace("{fighter}", spectatedDuel.getFighter2().getName()));
                                         specLore.add(" ");
-                                        specLore.add(PLUGIN.getLangFile().get("info.click-to-teleport"));
+                                        specLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.click-to-teleport"));
                                         ItemMeta meta = display.getItemMeta();
                                         meta.setLore(specLore);
                                         display.setItemMeta(meta);
@@ -244,24 +242,23 @@ public class ChooseArenaMenu {
 
                                 if (duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                                     if (arena.isInUse()) {
-                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(arena.getConfig().getString("name")), "choose-arena-spectator-display-" + finalIndex, event -> {
+                                        page.pageSetItem(finalIndex, new ItemBuilder(display).setUnchangedName(arena.getName()), "choose-arena-spectator-display-" + finalIndex, event -> {
                                             duel.getFighter1().closeInventory();
-                                            if (!BkDuel.getOngoingDuels().containsKey(duel.getFighter1().getUniqueId())) {
-                                                new Teleport(PLUGIN, duel.getFighter1(), false)
+                                            if (!BkDuel.getInstance().getOngoingDuels().containsKey(duel.getFighter1().getUniqueId())) {
+                                                new Teleport(BkDuel.getInstance(), duel.getFighter1(), false)
                                                         .setLocation(arena.getName(), arena.getSpectators())
                                                         .setDuration(3)
                                                         .setIsCancellable(true)
                                                         .startTeleport();
                                             } else {
-                                                duel.getFighter1().sendMessage(PLUGIN.getLangFile().get("error.cant-spectate"));
+                                                duel.getFighter1().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.cant-spectate"));
                                             }
                                         });
                                         index++;
                                     }
                                 } else {
-
                                     if (!duel.getOptions().contains(DuelOptions.BOUND_KIT_SELECTION) && !duel.getOptions().contains(DuelOptions.EDIT_MODE) && !duel.getFighter1().hasPermission("bkduel.arenas") && !duel.getFighter1().hasPermission("bkduel.arena." + arena.getId())) {
-                                        String arenaName = arena.getConfig().getString("name");
+                                        String arenaName = arena.getName();
                                         for (String line : extraLore) {
                                             if (extraLore.indexOf(line) < (extraLore.size() - (duel.getFighter1().hasPermission("bkduel.edit") || duel.getFighter1().hasPermission("bkduel.admin") ? 3 : 2))) {
                                                 extraLore.set(extraLore.indexOf(line), ChatColor.DARK_GRAY + ChatColor.stripColor(Utils.translateColor(line)));
@@ -277,7 +274,7 @@ public class ChooseArenaMenu {
                                         );
                                     } else {
                                         page.pageSetItem(
-                                                finalIndex, new ItemBuilder(display).setUnchangedName(arena.getConfig().getString("name")), "choose-arena-display-" + finalIndex,
+                                                finalIndex, new ItemBuilder(display).setUnchangedName(arena.getName()), "choose-arena-display-" + finalIndex,
                                                 event -> {
                                                     if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                         if (!arena.isInUse()) {
@@ -305,26 +302,26 @@ public class ChooseArenaMenu {
                                                                 } else {
                                                                     if (!duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                                                                         if (playerMoney >= arena.getPrice()) {
-                                                                            EconomyResponse r = BkDuel.getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
+                                                                            EconomyResponse r = BkDuel.getInstance().getEconomy().withdrawPlayer((OfflinePlayer) event.getWhoClicked(), arena.getPrice());
                                                                             if (r.transactionSuccess()) {
                                                                                 arena.addOwner((Player) event.getWhoClicked());
-                                                                                event.getWhoClicked().sendMessage(PLUGIN.getLangFile()
+                                                                                event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile()
                                                                                         .get("info.player-bought-message.arena")
                                                                                         .replace("{arena}", AnimatorManager.cleanText(Utils.translateColor(arena.getName())))
-                                                                                        .replace("{balance}", BkDuel.getEconomy().format(r.balance)));
+                                                                                        .replace("{balance}", BkDuel.getInstance().getEconomy().format(r.balance)));
                                                                                 event.getWhoClicked().closeInventory();
                                                                                 page.setBuilt(false);
                                                                                 page.setSwitchingPages(true);
                                                                                 ChooseArenaMenu.showGUI(duel);
                                                                             } else {
-                                                                                event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(PLUGIN).replace("{0}", r.errorMessage));
+                                                                                event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(BkDuel.getInstance()).replace("{0}", r.errorMessage));
                                                                             }
                                                                         }
                                                                     }
                                                                 }
                                                             }
                                                         } else {
-                                                            event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("error.arena-error.not-valid-arena"));
+                                                            event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.not-valid-arena"));
                                                         }
 
                                                     }
@@ -341,34 +338,34 @@ public class ChooseArenaMenu {
                         }
 
                         if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
-                            String tempName = PLUGIN.getLangFile().get("gui-buttons.create-arena.name");
-                            page.pageSetItem(31, new ItemBuilder(Utils.createItem(PLUGIN.getHandler().getItemManager().getWritableBook(), true, tempName, Collections.singletonList(PLUGIN.getLangFile().get("gui-buttons.create-arena.description")))).setUnchangedName(tempName), "choose-arena-create-arena", event -> {
-                                new PlayerInput(PLUGIN, duel.getFighter1(), input -> {
+                            String tempName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.create-arena.name");
+                            page.pageSetItem(31, new ItemBuilder(Utils.createItem(BkDuel.getInstance().getHandler().getItemManager().getWritableBook(), true, tempName, Collections.singletonList(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.create-arena.description")))).setUnchangedName(tempName), "choose-arena-create-arena", event -> {
+                                new PlayerInput(BkDuel.getInstance(), duel.getFighter1(), input -> {
                                     String arenaName = Utils.cleanString(input.toLowerCase()
                                             .replace(" ", "-")
                                             .replaceAll("\\P{L}+", ""));
                                     if (!arenaName.isEmpty()) {
-                                        Arena newArena = new Arena(PLUGIN, arenaName);
+                                        Arena newArena = new Arena(BkDuel.getInstance(), arenaName);
                                         newArena.setName(input);
                                         duel.setArena(null);
                                         page.setSwitchingPages(true);
                                         ChooseArenaMenu.showGUI(duel);
                                     } else {
-                                        event.getWhoClicked().sendMessage(PLUGIN.getLangFile().get("error.no-letters"));
+                                        event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.no-letters"));
                                     }
                                 },
                                         input -> {
                                         })
                                         .setCancellable(false)
-                                        .setTitle(PLUGIN.getLangFile().get("info.input.arena-name"))
+                                        .setTitle(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.input.arena-name"))
                                         .setSubTitle("")
                                         .sendInput();
                             });
                         }/* else {
                             if (!duel.getOptions().contains(DuelOptions.SPECTATOR_MODE)) {
                                 page.pageSetItem(29, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
-                                        plugin.getLangFile().get("gui-buttons.back-to-kits.name"),
-                                        Collections.singletonList(plugin.getLangFile().get("gui-buttons.back-to-kits.description")))), event -> {
+                                        plugin.getLangFile().get(duel.getFighter1(), "gui-buttons.back-to-kits.name"),
+                                        Collections.singletonList(plugin.getLangFile().get(duel.getFighter1(), "gui-buttons.back-to-kits.description")))), event -> {
                                     ChooseKitsMenu.showGUI(duel);
                                 });
                             }
@@ -381,7 +378,7 @@ public class ChooseArenaMenu {
             if (duel.getOptions().contains(DuelOptions.RANDOM_ARENA) && duel.getArena() != null) {
                 List<String> randomLore = new ArrayList<>();
                 randomLore.add(" ");
-                randomLore.add(PLUGIN.getLangFile().get("info.arena-selected"));
+                randomLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.arena-selected"));
                 page.setUnclickable(10, true, ChatColor.GREEN + ChatColor.stripColor(page.getItems().get(10).getPageItem().getItem().getItemMeta().getDisplayName()), randomLore);
             }
             refreshButtons(duel);
@@ -405,23 +402,23 @@ public class ChooseArenaMenu {
             String displayName;
 
             if (duel.getArena() == null) {
-                tempLore.addAll(PLUGIN.getLangFile().getConfig().getStringList("gui-buttons.next-button.disabled.description"));
-                displayName = PLUGIN.getLangFile().get("gui-buttons.next-button.disabled.name");
+                tempLore.addAll(BkDuel.getInstance().getLangFile().getConfig().getStringList("gui-buttons.next-button.disabled.description"));
+                displayName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.next-button.disabled.name");
             } else {
                 String arena = duel.getOptions().contains(DuelOptions.RANDOM_ARENA) ?
-                        Utils.translateColor(PLUGIN.getConfig().getString("random-selection")) :
-                        Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getArena().getName()));
-                tempLore.add(PLUGIN.getLangFile().get("info.you-selected").replace("{name}", Utils.translateColor(arena)));
+                        Utils.translateColor(BkDuel.getInstance().getConfig().getString("random-selection")) :
+                        Utils.translateColor(BkDuel.getInstance().getAnimatorManager().cleanText(duel.getArena().getName()));
+                tempLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.you-selected").replace("{name}", Utils.translateColor(arena)));
 
                 if (duel.getOptions().contains(DuelOptions.BOUND_KIT) && duel.getArena().getBoundKit() != null) {
                     tempLore.add(" ");
-                    tempLore.add(PLUGIN.getLangFile().get("info.selected-kit-lore")
+                    tempLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.selected-kit-lore")
                             .replace("{kit}", Utils.translateColor(duel.getArena().getBoundKit().getName())));
                 }
 
                 tempLore.add(" ");
-                tempLore.add(PLUGIN.getLangFile().get("gui-buttons.next-button.enabled.description"));
-                displayName = PLUGIN.getLangFile().get("gui-buttons.next-button.enabled.name");
+                tempLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.next-button.enabled.description"));
+                displayName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.next-button.enabled.name");
             }
             nextButton = Page.buildButton(Material.SLIME_BALL, displayName, tempLore);
 

@@ -1,6 +1,5 @@
 package me.bkrmt.bkduel;
 
-import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkduel.commands.CmdDuel;
 import me.bkrmt.bkduel.enums.DuelOptions;
@@ -21,7 +20,7 @@ import java.util.List;
 public class DuelRequest {
     private Player senderPlayer;
     private Player targetPlayer;
-    private BkPlugin plugin;
+    private BkDuel plugin;
     private BukkitTask expireRunnable;
     private TextComponent tpaMessage;
     private Duel duel;
@@ -38,10 +37,10 @@ public class DuelRequest {
         this.duel = duel;
         this.plugin = duel.getPlugin();
         tpaMessage = new TextComponent("");
-        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getKit().getName()))) : plugin.getLangFile().get("info.own-items");
-        arena = Utils.translateColor(BkDuel.getAnimatorManager().cleanText(duel.getArena().getName()));
-        String yes = plugin.getLangFile().get("info.true");
-        String no = plugin.getLangFile().get("info.false");
+        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(BkDuel.getInstance().getAnimatorManager().cleanText(duel.getKit().getName()))) : plugin.getLangFile().get(duel.getFighter1(), "info.own-items");
+        arena = Utils.translateColor(BkDuel.getInstance().getAnimatorManager().cleanText(duel.getArena().getName()));
+        String yes = plugin.getLangFile().get(duel.getFighter1(), "info.true");
+        String no = plugin.getLangFile().get(duel.getFighter1(), "info.false");
         itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? yes : no;
         expDrop = duel.getOptions().contains(DuelOptions.DROP_EXP) ? yes : no;
         price = String.valueOf((int) plugin.getConfig().getDouble("duel-cost"));
@@ -50,19 +49,19 @@ public class DuelRequest {
     }
 
     public DuelRequest sendMessage() {
-        BkDuel.getOngoingDuels().put(senderPlayer.getUniqueId(), duel);
-        BkDuel.getOngoingDuels().put(targetPlayer.getUniqueId(), duel);
+        BkDuel.getInstance().getOngoingDuels().put(senderPlayer.getUniqueId(), duel);
+        BkDuel.getInstance().getOngoingDuels().put(targetPlayer.getUniqueId(), duel);
         if (plugin.getConfig().getBoolean("broadcast-to-all")) broadcastToAll();
         targetPlayer.spigot().sendMessage(tpaMessage);
         duel.setStatus(DuelStatus.AWAITING_REPLY);
         expireRunnable = new BukkitRunnable() {
             @Override
             public void run() {
-                duel.getFighter1().sendMessage(plugin.getLangFile().get("info.request-expired.self").replace("{player}", duel.getFighter2().getName()));
-                duel.getFighter2().sendMessage(plugin.getLangFile().get("info.request-expired.others").replace("{player}", duel.getFighter1().getName()));
+                duel.getFighter1().sendMessage(plugin.getLangFile().get(duel.getFighter1(), "info.request-expired.self").replace("{player}", duel.getFighter2().getName()));
+                duel.getFighter2().sendMessage(plugin.getLangFile().get(duel.getFighter1(), "info.request-expired.others").replace("{player}", duel.getFighter1().getName()));
                 duel.endWithoutPlayers();
-                BkDuel.getOngoingDuels().remove(duel.getFighter1().getUniqueId());
-                BkDuel.getOngoingDuels().remove(duel.getFighter2().getUniqueId());
+                BkDuel.getInstance().getOngoingDuels().remove(duel.getFighter1().getUniqueId());
+                BkDuel.getInstance().getOngoingDuels().remove(duel.getFighter2().getUniqueId());
             }
         }.runTaskLater(plugin, 20 * Integer.parseInt(expire));
         return this;
@@ -101,16 +100,16 @@ public class DuelRequest {
             String hover;
             switch (section) {
                 case "accept-button":
-                    buttonAccept = new TextComponent(plugin.getLangFile().get(sectionName + "." + section));
-                    duelReply += plugin.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("accept");
-                    hover = plugin.getLangFile().get(sectionName + ".accept-hover");
+                    buttonAccept = new TextComponent(plugin.getLangFile().get(duel.getFighter1(), sectionName + "." + section));
+                    duelReply += plugin.getLangFile().get(duel.getFighter1(), "commands.duel.command") + " " + CmdDuel.getSubCommands().get("accept");
+                    hover = plugin.getLangFile().get(duel.getFighter1(), sectionName + ".accept-hover");
                     buttonAccept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, duelReply));
                     buttonAccept.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
                     break;
                 case "deny-button":
-                    buttonDeny = new TextComponent(plugin.getLangFile().get(sectionName + "." + section));
-                    duelReply += plugin.getLangFile().get("commands.duel.command") + " " + CmdDuel.getSubCommands().get("decline");
-                    hover = plugin.getLangFile().get(sectionName + ".deny-hover");
+                    buttonDeny = new TextComponent(plugin.getLangFile().get(duel.getFighter1(), sectionName + "." + section));
+                    duelReply += plugin.getLangFile().get(duel.getFighter1(), "commands.duel.command") + " " + CmdDuel.getSubCommands().get("decline");
+                    hover = plugin.getLangFile().get(duel.getFighter1(), sectionName + ".deny-hover");
                     buttonDeny.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, duelReply));
                     buttonDeny.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(hover).create()));
                     break;

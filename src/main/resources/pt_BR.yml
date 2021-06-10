@@ -319,6 +319,7 @@ info:
     self: '&cO pedido de X1 para o jogador {player} expirou.'
     others: '&cO pedido de X1 do jogador {player} expirou.'
 
+  power-loss-negated: '&aPerda de power está desativada e você nao perdeu power.'
   arena-id: '&8arena id: {id}'
   kit-id: '&8kit id: {id}'
   kit-items-set: '&aItens do kit setados com sucesso.'
@@ -393,6 +394,16 @@ info:
 
 # *---------------*=/[Mensagens de Erro]\=*-------------*
 error:
+  waiting-tp:
+    self: '&cVocê tem um pedido de teleporte pendente.'
+    others: '&cO jogador {player} tem um pedido de teleporte pendente.'
+  waiting-teleport:
+    self: '&cVocê está esperando um teleporte.'
+    others: '&cO jogador {player} está esperando um teleporte.'
+  no-ability-in-duel: '&cVocê nao pode usar habilidades em um X1.'
+  in-combat:
+    self: '&cVocê nao pode fazer isso em combate.'
+    others: '&cVocê nao pode fazer isso agora, o jogador &4{player} &cestá em combate.'
   no-kit-perm: '&cSem permissao para esse kit.'
   no-arena-perm: '&cSem permissao para essa arena.'
   duel-disabled: '&cO jogador {player} desativou o X1 e nao pode ser desafiado.'
