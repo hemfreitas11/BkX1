@@ -218,12 +218,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
+            <groupId>net.milkbowl</groupId>
+            <artifactId>vault</artifactId>
             <version>1.7</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>me.bkrmt</groupId>
             <artifactId>v1_8_R1</artifactId>

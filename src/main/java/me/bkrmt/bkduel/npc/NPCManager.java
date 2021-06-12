@@ -129,7 +129,7 @@ public class NPCManager {
 
                 lines.put(finalC, topHologram.appendTextLine(hologramLine));
 
-                TextAnimator animator = bkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, hologramLine);
+                TextAnimator animator = bkDuel.getAnimatorManager().getTextAnimator(Utils.addHashCode("top-npc-hologram-line-" + finalC, hashCode()), hologramLine);
                 if (animator != null) {
                     setLineAnimator(newTop, lines, finalC, hologramLine, animator);
                 }
@@ -197,7 +197,7 @@ public class NPCManager {
                 TextAnimator tempAnimator = animators.get(finalC);
                 if (tempAnimator != null) {
                     tempAnimator.destroy();
-                    TextAnimator newAnimator = bkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, updatedLine);
+                    TextAnimator newAnimator = bkDuel.getAnimatorManager().getTextAnimator(Utils.addHashCode("top-npc-hologram-line-" + finalC, hashCode()), updatedLine);
                     setLineAnimator(newTop, lines, finalC, updatedLine, newAnimator);
                 } else {
                     lines.get(finalC).setText(updatedLine);
@@ -266,7 +266,14 @@ public class NPCManager {
             for (TextAnimator animator : animators.values()) {
                 if (animator != null) animator.destroy();
             }
-        }
+            for (String key : bkDuel.getAnimatorManager().getAnimators().keySet()) {
+                if (key.contains("@" + Integer.toHexString(hashCode()))) {
+                    TextAnimator animator = bkDuel.getAnimatorManager().getAnimators().get(key);
+                    if (animator != null && animator.getAnimatorRunnable() != null) animator.destroy();
+                    bkDuel.getAnimatorManager().getAnimators().remove(key);
+                }
+            }
+         }
         if (updaters != null) {
             for (BukkitTask updater : updaters.values()) {
                 updater.cancel();
