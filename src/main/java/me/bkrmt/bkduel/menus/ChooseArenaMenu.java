@@ -311,7 +311,7 @@ public class ChooseArenaMenu {
                                                                                         .replace("{balance}", BkDuel.getInstance().getEconomy().format(r.balance)));
                                                                                 event.getWhoClicked().closeInventory();
                                                                                 page.setBuilt(false);
-                                                                                page.setSwitchingPages(true);
+                                                                                page.setUnregisterOnClose(true);
                                                                                 ChooseArenaMenu.showGUI(duel);
                                                                             } else {
                                                                                 event.getWhoClicked().sendMessage(InternalMessages.ECONOMY_ERROR.getMessage(BkDuel.getInstance()).replace("{0}", r.errorMessage));
@@ -348,7 +348,7 @@ public class ChooseArenaMenu {
                                         Arena newArena = new Arena(BkDuel.getInstance(), arenaName);
                                         newArena.setName(input);
                                         duel.setArena(null);
-                                        page.setSwitchingPages(true);
+                                        page.setUnregisterOnClose(true);
                                         ChooseArenaMenu.showGUI(duel);
                                     } else {
                                         event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.no-letters"));

@@ -53,6 +53,13 @@ public final class BkDuel extends BkPlugin {
             npcManager = null;
             OpenGUI.INSTANCE.register(instance);
             start(true);
+
+            try {
+                TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started");
+            } catch (Exception ignored) {
+                TeleportCore.INSTANCE.start(this);
+            }
+
             hookManager = new HookManager(this);
             ArrayList<String> langs = new ArrayList<>();
             langs.add("en_US");
@@ -96,12 +103,6 @@ public final class BkDuel extends BkPlugin {
                 restoreInventories();
                 statsManager = new StatsManager(this);
                 ongoingDuels = new ConcurrentHashMap<>();
-                try {
-                    TeleportCore.playersInCooldown.get("Core-Started");
-                } catch (NullPointerException ignored) {
-                    new TeleportCore(this);
-                    TeleportCore.playersInCooldown.put("Core-Started", true);
-                }
                 getServer().getPluginManager().registerEvents(new ConstantListener(), instance);
                 if (getHookManager().hasHologramHook() && getStatsManager().getStats().size() > 0 && getNpcManager() != null)
                     getNpcManager().setTopNpc(getStatsManager().getStats().get(0), UpdateReason.NPC_AND_STATS);
@@ -173,12 +174,12 @@ public final class BkDuel extends BkPlugin {
             return true;
         }
 
-        if (TeleportCore.playersInCooldown.get(sender.getName()) != null) {
+        if (TeleportCore.INSTANCE.getPlayersInCooldown().get(sender.getName()) != null) {
             sender.sendMessage(getLangFile().get(target, "error.waiting-teleport.self"));
             return true;
         }
 
-        if (TeleportCore.playersInCooldown.get(target.getName()) != null) {
+        if (TeleportCore.INSTANCE.getPlayersInCooldown().get(target.getName()) != null) {
             sender.sendMessage(getLangFile().get(target, "error.waiting-teleport.others").replace("{player}", target.getName()));
             return true;
         }

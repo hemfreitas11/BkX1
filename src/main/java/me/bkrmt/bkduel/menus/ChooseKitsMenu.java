@@ -111,7 +111,7 @@ public class ChooseKitsMenu {
                                     bindingArena.saveBoundKit(-1);
                                     event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.bound-kit-set"));
                                     duel.getOptions().remove(DuelOptions.BOUND_KIT_SELECTION);
-                                    page.setSwitchingPages(true);
+                                    page.setUnregisterOnClose(true);
                                     bindingArena.showEditMenu(duel);
                                 });
                             } else {
@@ -225,7 +225,7 @@ public class ChooseKitsMenu {
                                                     bindingArena.saveBoundKit(kit.getId());
                                                     event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.bound-kit-set"));
                                                     duel.getOptions().remove(DuelOptions.BOUND_KIT_SELECTION);
-                                                    page.setSwitchingPages(true);
+                                                    page.setUnregisterOnClose(true);
                                                     bindingArena.showEditMenu(duel);
                                                 } else {
                                                     if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
@@ -284,7 +284,7 @@ public class ChooseKitsMenu {
                                     Kit newKit = new Kit(BkDuel.getInstance(), kitName);
                                     newKit.setName(input);
                                     duel.setKit(null);
-                                    page.setSwitchingPages(true);
+                                    page.setUnregisterOnClose(true);
                                     page.setBuilt(false);
                                     ChooseKitsMenu.showGUI(duel);
                                 } else {
@@ -382,7 +382,7 @@ public class ChooseKitsMenu {
                 page.pageSetItem(NEXT_SLOT, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
                         tempName,
                         Collections.singletonList(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.back-to-arenas.description")))).setUnchangedName(tempName), "choose-kits-next-button", event -> {
-                    page.setSwitchingPages(false);
+                    page.setUnregisterOnClose(false);
                     duel.getKitPages().set(finalX, page);
                     ChooseArenaMenu.showGUI(duel);
                 });

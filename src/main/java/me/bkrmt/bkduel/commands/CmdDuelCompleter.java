@@ -22,7 +22,6 @@ public class CmdDuelCompleter implements TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String s, String[] args) {
-
         List<String> completions = new ArrayList<>();
 
         String challenge = plugin.getLangFile().get((OfflinePlayer) sender,  "commands.duel.subcommands.challenge.command");
