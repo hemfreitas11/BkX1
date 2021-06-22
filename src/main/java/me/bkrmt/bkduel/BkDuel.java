@@ -54,11 +54,8 @@ public final class BkDuel extends BkPlugin {
             OpenGUI.INSTANCE.register(instance);
             start(true);
 
-            try {
-                TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started");
-            } catch (Exception ignored) {
-                TeleportCore.INSTANCE.start(this);
-            }
+        if (TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started") == null)
+            TeleportCore.INSTANCE.start(this);
 
             hookManager = new HookManager(this);
             ArrayList<String> langs = new ArrayList<>();
