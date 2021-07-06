@@ -3,7 +3,6 @@ package me.bkrmt.bkduel.commands;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.command.Executor;
 import me.bkrmt.bkcore.config.Configuration;
-import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
 import me.bkrmt.bkduel.enums.DuelOptions;
@@ -131,7 +130,7 @@ public class CmdDuel extends Executor {
                 Duel spectate = Duel.findDuel(args[1]);
                 if (spectate != null) {
                     new Teleport(getPlugin(), player, false)
-                            .setLocation(AnimatorManager.cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
+                            .setLocation(BkDuel.getInstance().getAnimatorManager().cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
                             .setDuration(3)
                             .setIsCancellable(true)
                             .startTeleport();

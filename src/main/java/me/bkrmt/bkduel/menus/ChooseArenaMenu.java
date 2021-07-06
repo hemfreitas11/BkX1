@@ -2,7 +2,6 @@ package me.bkrmt.bkduel.menus;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
-import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.Arena;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
@@ -164,7 +163,7 @@ public class ChooseArenaMenu {
 
                                         if (arena.getBoundKit() != null)
                                             extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.bound-kit-lore")
-                                                    .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(arena.getBoundKit().getName()))));
+                                                    .replace("{kit}", BkDuel.getInstance().getAnimatorManager().cleanText(Utils.translateColor(arena.getBoundKit().getName()))));
 
                                         if (arena.getName() == null)
                                             extraLore.add(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "error.arena-error.invalid-name"));
@@ -266,8 +265,8 @@ public class ChooseArenaMenu {
                                         }
 
                                         ItemBuilder newDisplay = new ItemBuilder(Material.BARRIER)
-                                            .setName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + AnimatorManager.cleanText(arenaName))
-                                            .setUnchangedName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + AnimatorManager.cleanText(arenaName))
+                                            .setName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + BkDuel.getInstance().getAnimatorManager().cleanText(arenaName))
+                                            .setUnchangedName(ChatColor.DARK_GRAY + "" +ChatColor.BOLD + BkDuel.getInstance().getAnimatorManager().cleanText(arenaName))
                                             .setLore(extraLore);
                                         page.pageSetItem(
                                             finalIndex, newDisplay, "choose-arena-display-" + finalIndex, event -> {}
@@ -307,7 +306,7 @@ public class ChooseArenaMenu {
                                                                                 arena.addOwner((Player) event.getWhoClicked());
                                                                                 event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile()
                                                                                         .get("info.player-bought-message.arena")
-                                                                                        .replace("{arena}", AnimatorManager.cleanText(Utils.translateColor(arena.getName())))
+                                                                                        .replace("{arena}", BkDuel.getInstance().getAnimatorManager().cleanText(Utils.translateColor(arena.getName())))
                                                                                         .replace("{balance}", BkDuel.getInstance().getEconomy().format(r.balance)));
                                                                                 event.getWhoClicked().closeInventory();
                                                                                 page.setBuilt(false);

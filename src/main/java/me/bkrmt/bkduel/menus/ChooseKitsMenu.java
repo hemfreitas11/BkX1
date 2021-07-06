@@ -2,7 +2,6 @@ package me.bkrmt.bkduel.menus;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
-import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.*;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.opengui.GUI;
@@ -210,8 +209,8 @@ public class ChooseKitsMenu {
                                     }
 
                                     ItemBuilder newDisplay = new ItemBuilder(Material.BARRIER)
-                                            .setName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + AnimatorManager.cleanText(kitName))
-                                            .setUnchangedName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + AnimatorManager.cleanText(kitName))
+                                            .setName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + BkDuel.getInstance().getAnimatorManager().cleanText(kitName))
+                                            .setUnchangedName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + BkDuel.getInstance().getAnimatorManager().cleanText(kitName))
                                             .setLore(extraLore);
                                     page.pageSetItem(
                                             finalIndex, newDisplay, "choose-kits-display-" + finalIndex, event -> {
@@ -252,7 +251,7 @@ public class ChooseKitsMenu {
                                                                     if (r.transactionSuccess()) {
                                                                         kit.addOwner((Player) event.getWhoClicked());
                                                                         event.getWhoClicked().sendMessage(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "info.kit-bought-message")
-                                                                                .replace("{kit}", AnimatorManager.cleanText(Utils.translateColor(kit.getName())))
+                                                                                .replace("{kit}", BkDuel.getInstance().getAnimatorManager().cleanText(Utils.translateColor(kit.getName())))
                                                                                 .replace("{balance}", BkDuel.getInstance().getEconomy().format(r.balance)));
                                                                         event.getWhoClicked().closeInventory();
                                                                         page.setBuilt(false);

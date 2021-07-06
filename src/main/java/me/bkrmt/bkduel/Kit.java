@@ -2,7 +2,6 @@ package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
-import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import me.bkrmt.opengui.GUI;
 import me.bkrmt.opengui.ItemBuilder;
@@ -137,7 +136,7 @@ public class Kit extends Purchasable {
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(AnimatorManager.cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
+        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
 
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-name.name"),

@@ -4,7 +4,6 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import me.bkrmt.bkcore.Utils;
-import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkcore.textanimator.TextAnimator;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.InternalMessages;
@@ -190,8 +189,8 @@ public class NPCManager {
 
     private void updateLine(PlayerStats newTop, String hologramLine, HashMap<Integer, TextLine> lines, int finalC) {
         String updatedLine = bkDuel.isValidPlaceholder(hologramLine) ? PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(newTop.getUUID()), hologramLine) : hologramLine;
-        String test1 = AnimatorManager.cleanText(ChatColor.stripColor(updatedLine)).trim();
-        String test2 = AnimatorManager.cleanText(ChatColor.stripColor(lines.get(finalC).getText())).trim();
+        String test1 = BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(updatedLine)).trim();
+        String test2 = BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(lines.get(finalC).getText())).trim();
         if (!test1.equalsIgnoreCase(test2)) {
             try {
                 TextAnimator tempAnimator = animators.get(finalC);
@@ -209,7 +208,7 @@ public class NPCManager {
     }
 
     private void setLineAnimator(PlayerStats newTop, HashMap<Integer, TextLine> lines, int finalC, String hologramLine, TextAnimator animator) {
-        boolean isOptionText = AnimatorManager.isOptionText(hologramLine);
+        boolean isOptionText = BkDuel.getInstance().getAnimatorManager().isOptionText(hologramLine);
         animator.setReceiver(animationFrame -> {
             try {
                 if (isOptionText){
