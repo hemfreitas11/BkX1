@@ -2,10 +2,10 @@ package me.bkrmt.bkduel.menus;
 
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.stats.PlayerStats;
-import me.bkrmt.opengui.GUI;
-import me.bkrmt.opengui.ItemBuilder;
-import me.bkrmt.opengui.Page;
-import me.bkrmt.opengui.Rows;
+import me.bkrmt.opengui.gui.GUI;
+import me.bkrmt.opengui.item.ItemBuilder;
+import me.bkrmt.opengui.page.Page;
+import me.bkrmt.opengui.gui.Rows;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;

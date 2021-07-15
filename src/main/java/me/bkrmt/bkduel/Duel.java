@@ -7,7 +7,7 @@ import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
 import me.bkrmt.bkduel.enums.EndCause;
-import me.bkrmt.opengui.Page;
+import me.bkrmt.opengui.page.Page;
 import me.bkrmt.teleport.Teleport;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
