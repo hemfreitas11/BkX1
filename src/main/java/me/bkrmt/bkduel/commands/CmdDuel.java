@@ -3,6 +3,7 @@ package me.bkrmt.bkduel.commands;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.command.Executor;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
 import me.bkrmt.bkduel.enums.DuelOptions;
@@ -129,9 +130,9 @@ public class CmdDuel extends Executor {
             if (BkDuel.getInstance().getOngoingDuels().keySet().size() > 0) {
                 Duel spectate = Duel.findDuel(args[1]);
                 if (spectate != null) {
-                    new Teleport(getPlugin(), player, false)
-                            .setLocation(BkDuel.getInstance().getAnimatorManager().cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
-                            .setDuration(3)
+                    new Teleport(getPlugin(), player, true)
+                            .setLocation(AnimatorManager.cleanText(spectate.getArena().getName()), spectate.getArena().getSpectators())
+                            .setDuration(getPlugin().getConfigManager().getConfig().getInt("teleport-countdown.spectator-countdown"))
                             .setIsCancellable(true)
                             .startTeleport();
                 } else {
@@ -168,14 +169,14 @@ public class CmdDuel extends Executor {
             if (getPlugin().getFile("arenas", "").listFiles().length > 0) {
                 if (!BkDuel.getInstance().getOngoingDuels().containsKey(player.getUniqueId())) {
                     double playerMoney = BkDuel.getInstance().getEconomy().getBalance(player);
-                    double duelCost = getPlugin().getConfig().getDouble("duel-cost");
+                    double duelCost = getPlugin().getConfigManager().getConfig().getDouble("duel-cost");
 
                     if (playerMoney >= duelCost) {
                         Player targetPlayer = Utils.getPlayer(args[1]);
                         if (targetPlayer != null) {
                             if (BkDuel.getInstance().isInvalidChallenge(player, targetPlayer, duelCost)) return;
 
-                            Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
+                            Configuration config = getPlugin().getConfigManager().getConfig("player-data", "player-stats.yml");
                             if (!config.getBoolean(targetPlayer.getUniqueId().toString() + ".duel-disabled")) {
                                 if (!targetPlayer.isDead()) {
                                     if (!targetPlayer.getUniqueId().equals(player.getUniqueId())) {
@@ -183,7 +184,7 @@ public class CmdDuel extends Executor {
                                             Duel duel = new Duel();
                                             duel.setFighter1(player);
                                             duel.setFighter2(targetPlayer);
-                                            ChooseArenaMenu.showGUI(duel);
+                                            ChooseArenaMenu.showGUI(duel, null);
                                         } else {
                                             Duel duel = BkDuel.getInstance().getOngoingDuels().get(targetPlayer.getUniqueId());
                                             if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
@@ -225,9 +226,9 @@ public class CmdDuel extends Executor {
 
     private void editCommand(Player commandSender, String[] args, Player player) {
         if (args[1].equalsIgnoreCase(subcommands.get("edit.arenas"))) {
-            ChooseArenaMenu.showGUI(new Duel(true).setFighter1(commandSender));
+            ChooseArenaMenu.showGUI(new Duel(true).setFighter1(commandSender), null);
         } else if (args[1].equalsIgnoreCase(subcommands.get("edit.kits"))) {
-            ChooseKitsMenu.showGUI(new Duel(true).setFighter1(commandSender));
+            ChooseKitsMenu.showGUI(new Duel(true).setFighter1(commandSender), null);
         } else {
             wrongCommandUsage(player, "commands.duel.subcommands.edit.usage");
         }
@@ -235,9 +236,9 @@ public class CmdDuel extends Executor {
 
     private void npcCommand(CommandSender commandSender, String[] args, Player player) {
         if (args[1].equalsIgnoreCase(subcommands.get("npc.location"))) {
-            Configuration config = getPlugin().getConfig();
+            Configuration config = getPlugin().getConfigManager().getConfig();
             config.setLocation("top-1-npc.npc.location", ((Player) commandSender).getLocation());
-            config.save(false);
+            config.saveToFile();
             commandSender.sendMessage(getPlugin().getLangFile().get(player, "info.location-set"));
         } else if (args[1].equalsIgnoreCase(subcommands.get("npc.update"))) {
             if (BkDuel.getInstance().getHookManager().hasHologramHook()) {
@@ -304,7 +305,7 @@ public class CmdDuel extends Executor {
             if (player.getUniqueId().equals(duel.getFighter2().getUniqueId())) {
                 if (duel.getStatus().equals(DuelStatus.AWAITING_REPLY)) {
                     double playerMoney = BkDuel.getInstance().getEconomy().getBalance(duel.getFighter1());
-                    double duelCost = getPlugin().getConfig().getDouble("duel-cost");
+                    double duelCost = getPlugin().getConfigManager().getConfig().getDouble("duel-cost");
 
                     Player otherPlayer = duel.getFighter1();
 
@@ -339,7 +340,7 @@ public class CmdDuel extends Executor {
         if (BkDuel.getInstance().getOngoingDuels().keySet().size() > 0) {
             Duel spectate = new Duel().setFighter1(commandSender);
             spectate.getOptions().add(DuelOptions.SPECTATOR_MODE);
-            ChooseArenaMenu.showGUI(spectate);
+            ChooseArenaMenu.showGUI(spectate, null);
         } else {
             player.sendMessage(getPlugin().getLangFile().get(player, "error.no-duels"));
         }
@@ -360,9 +361,9 @@ public class CmdDuel extends Executor {
     }
 
     private void toggleCommand(Player player, boolean b, String s) {
-        Configuration config = getPlugin().getConfig("player-data", "player-stats.yml");
+        Configuration config = getPlugin().getConfigManager().getConfig("player-data", "player-stats.yml");
         config.set(player.getUniqueId().toString() + ".duel-disabled", b);
-        config.save(false);
+        config.saveToFile();
         player.sendMessage(getPlugin().getLangFile().get(player, s));
     }
 

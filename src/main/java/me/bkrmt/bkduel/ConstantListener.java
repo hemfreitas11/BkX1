@@ -21,7 +21,7 @@ public class ConstantListener implements Listener {
 
     @EventHandler
     public void onStatUpdate(StatsUpdateEvent event) {
-        if (bkDuel.getHookManager().hasHologramHook() && bkDuel.getConfig().getBoolean("top-1-npc.enabled")) {
+        if (bkDuel.getHookManager().hasHologramHook() && bkDuel.getConfigManager().getConfig().getBoolean("top-1-npc.enabled")) {
             if (event.getOldStatsList().size() > 0 && event.getNewStatsList().size() > 0) {
                 PlayerStats oldTopStats = event.getOldStatsList().get(0);
                 PlayerStats newTopStats = event.getNewStatsList().get(0);
@@ -33,13 +33,13 @@ public class ConstantListener implements Listener {
 
     @EventHandler
     public void onNewTop(NewTopPlayerEvent event) {
-        if (bkDuel.getHookManager().hasHologramHook() && bkDuel.getConfig().getBoolean("top-1-npc.enabled") && bkDuel.getNpcManager() != null)
+        if (bkDuel.getHookManager().hasHologramHook() && bkDuel.getConfigManager().getConfig().getBoolean("top-1-npc.enabled") && bkDuel.getNpcManager() != null)
             bkDuel.getNpcManager().setTopNpc(event.getNewPlayer(), UpdateReason.NPC_AND_STATS);
     }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
-        Configuration config = bkDuel.getConfig("player-data", "player-inventories.yml");
+        Configuration config = bkDuel.getConfigManager().getConfig("player-data", "player-inventories.yml");
         Player player = event.getPlayer();
 
         if (config.get(player.getUniqueId().toString()) != null) {
@@ -48,14 +48,14 @@ public class ConstantListener implements Listener {
             } else {
                 player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
                 config.set(player.getUniqueId().toString(), null);
-                config.save(false);
+                config.saveToFile();
             }
         }
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        Configuration config = bkDuel.getConfig("player-data", "player-inventories.yml");
+        Configuration config = bkDuel.getConfigManager().getConfig("player-data", "player-inventories.yml");
         Player player = event.getPlayer();
 
         if (config.get(player.getUniqueId().toString()) != null) {
@@ -64,7 +64,7 @@ public class ConstantListener implements Listener {
             } else {
                 player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
                 config.set(player.getUniqueId().toString(), null);
-                config.save(false);
+                config.saveToFile();
             }
         }
     }

@@ -17,7 +17,6 @@ import me.bkrmt.bkduel.npc.UpdateReason;
 import me.bkrmt.bkduel.placeholder.PlaceholderLangFile;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import me.bkrmt.bkduel.stats.StatsManager;
-import me.bkrmt.bkteleport.TpaUtils;
 import me.bkrmt.opengui.OpenGUI;
 import me.bkrmt.teleport.TeleportCore;
 import net.milkbowl.vault.economy.Economy;
@@ -54,8 +53,8 @@ public final class BkDuel extends BkPlugin {
             OpenGUI.INSTANCE.register(instance);
             start(true);
 
-        if (TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started") == null)
-            TeleportCore.INSTANCE.start(this);
+            if (TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started") == null)
+                TeleportCore.INSTANCE.start(this);
 
             hookManager = new HookManager(this);
             ArrayList<String> langs = new ArrayList<>();
@@ -65,9 +64,15 @@ public final class BkDuel extends BkPlugin {
             File playerData = getFile("player-data", "");
             File arenas = getFile("arenas", "");
             File kits = getFile("kits", "");
+            File purchases = getFile("player-data", "player-purchases.yml");
+            File invs = getFile("player-data", "player-inventories.yml");
+            File stats = getFile("player-data", "player-stats.yml");
             if (!playerData.exists()) playerData.mkdir();
             if (!arenas.exists()) arenas.mkdir();
             if (!kits.exists()) kits.mkdir();
+            if (!stats.exists()) stats.createNewFile();
+            if (!invs.exists()) invs.createNewFile();
+            if (!purchases.exists()) purchases.createNewFile();
             sendConsoleMessage("§e__________ __    §6_______               .__");
             sendConsoleMessage("§e\\______   \\  | __§6\\_____ \\  __ __  ____ |  |");
             sendConsoleMessage("§e |    |  _/  |/ / §6|   |  \\|  |  \\/ __ \\|  |");
@@ -78,14 +83,12 @@ public final class BkDuel extends BkPlugin {
             sendConsoleMessage("     §e© BkPlugins | discord.gg/2MHgyjCuPc");
             sendConsoleMessage("");
 
-            getConfig("player-data", "player-purchases.yml");
-            getConfig("player-data", "player-stats.yml");
-
             if (!setupEconomy()) {
                 sendConsoleMessage(Utils.translateColor(InternalMessages.NO_ECONOMY.getMessage(instance).replace("{0}", PREFIX)));
                 getServer().getPluginManager().disablePlugin(this);
             } else {
                 setRunning(true);
+                getConfigManager().loadAllConfigs();
                 getHookManager().setupHooks();
                 animatorManager = new AnimatorManager(this);
 
@@ -181,7 +184,7 @@ public final class BkDuel extends BkPlugin {
             return true;
         }
 
-        Plugin bkteleport = getServer().getPluginManager().getPlugin("BkTeleport");
+        /*Plugin bkteleport = getServer().getPluginManager().getPlugin("BkTeleport");
         if (bkteleport != null && bkteleport.isEnabled()) {
             for (String key : TpaUtils.playerExpiredChecker.keySet()) {
                 if (key.toLowerCase().contains(target.getName().toLowerCase())) {
@@ -193,7 +196,7 @@ public final class BkDuel extends BkPlugin {
                     return true;
                 }
             }
-        }
+        }*/
         if (isInCombat(sender, target)) {
             return true;
         }
@@ -264,7 +267,7 @@ public final class BkDuel extends BkPlugin {
                     }
                 }
             }
-            if (getConfig().getBoolean("close-inventory-on-reload")) {
+            if (BkDuel.getInstance().getConfigManager().getConfig().getBoolean("close-inventory-on-reload")) {
                 for (Player player : getHandler().getMethodManager().getOnlinePlayers()) {
                     player.closeInventory();
                 }
@@ -277,7 +280,7 @@ public final class BkDuel extends BkPlugin {
     }
 
     private void restoreInventories() {
-        Configuration config = getConfig("player-data", "player-inventories.yml");
+        Configuration config = getConfigManager().getConfig("player-data", "player-inventories.yml");
         for (Player player : getHandler().getMethodManager().getOnlinePlayers()) {
 
             if (config.get(player.getUniqueId().toString()) != null) {
@@ -286,7 +289,7 @@ public final class BkDuel extends BkPlugin {
                 } else {
                     player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
                     config.set(player.getUniqueId().toString(), null);
-                    config.save(false);
+                    config.saveToFile();
                 }
             }
         }
@@ -332,9 +335,9 @@ public final class BkDuel extends BkPlugin {
         File[] listFiles = getFile("", "arenas").listFiles();
         if (listFiles != null && listFiles.length > 0) {
             for (File arena : listFiles) {
-                Configuration config = getConfig("arenas", arena.getName());
+                Configuration config = getConfigManager().getConfig("arenas", arena.getName());
                 config.set("in-use", false);
-                config.save(false);
+                config.saveToFile();
             }
         }
     }

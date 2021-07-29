@@ -1,6 +1,7 @@
 package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.commands.CmdDuel;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
@@ -37,21 +38,21 @@ public class DuelRequest {
         this.duel = duel;
         this.plugin = duel.getPlugin();
         tpaMessage = new TextComponent("");
-        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(BkDuel.getInstance().getAnimatorManager().cleanText(duel.getKit().getName()))) : plugin.getLangFile().get(duel.getFighter1(), "info.own-items");
-        arena = Utils.translateColor(BkDuel.getInstance().getAnimatorManager().cleanText(duel.getArena().getName()));
+        kit = duel.getKit() != null ? ChatColor.stripColor(Utils.translateColor(AnimatorManager.cleanText(duel.getKit().getName()))) : plugin.getLangFile().get(duel.getFighter1(), "info.own-items");
+        arena = Utils.translateColor(AnimatorManager.cleanText(duel.getArena().getName()));
         String yes = plugin.getLangFile().get(duel.getFighter1(), "info.true");
         String no = plugin.getLangFile().get(duel.getFighter1(), "info.false");
         itemDrop = duel.getOptions().contains(DuelOptions.DROP_ITEMS) ? yes : no;
         expDrop = duel.getOptions().contains(DuelOptions.DROP_EXP) ? yes : no;
-        price = String.valueOf((int) plugin.getConfig().getDouble("duel-cost"));
-        expire = String.valueOf(plugin.getConfig().getInt("challenge-expire"));
+        price = String.valueOf((int) plugin.getConfigManager().getConfig().getDouble("duel-cost"));
+        expire = String.valueOf(plugin.getConfigManager().getConfig().getInt("challenge-expire"));
         buildMessage();
     }
 
     public DuelRequest sendMessage() {
         BkDuel.getInstance().getOngoingDuels().put(senderPlayer.getUniqueId(), duel);
         BkDuel.getInstance().getOngoingDuels().put(targetPlayer.getUniqueId(), duel);
-        if (plugin.getConfig().getBoolean("broadcast-to-all")) broadcastToAll();
+        if (plugin.getConfigManager().getConfig().getBoolean("broadcast-to-all")) broadcastToAll();
         targetPlayer.spigot().sendMessage(tpaMessage);
         duel.setStatus(DuelStatus.AWAITING_REPLY);
         expireRunnable = new BukkitRunnable() {

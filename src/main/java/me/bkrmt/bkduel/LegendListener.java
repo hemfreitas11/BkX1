@@ -24,7 +24,7 @@ public class LegendListener implements Listener {
             if (playerStat != null) {
                 UUID topUUID = playerStat.getUUID();
                 if (event.getTags().contains("bkduel_top") && event.getSender().getUniqueId().toString().equalsIgnoreCase(topUUID.toString()))
-                    event.setTagValue("bkduel_top", Utils.translateColor(bkDuel.getConfig().getString("top-1-tag")));
+                    event.setTagValue("bkduel_top", Utils.translateColor(bkDuel.getConfigManager().getConfig().getString("top-1-tag")));
             }
         }
     }

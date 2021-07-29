@@ -1,6 +1,7 @@
 package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.config.ConfigType;
 import me.bkrmt.bkcore.config.Configuration;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,7 +28,14 @@ public abstract class Purchasable {
     public Purchasable(BkDuel plugin, String name, String keyName) {
         this.plugin = plugin;
         this.keyName = keyName;
-        this.config = plugin.getConfig(keyName, name + ".yml");
+        Configuration managerConfig = plugin.getConfigManager().getConfig(keyName, name + ".yml");
+        if (managerConfig != null) this.config = managerConfig;
+        else {
+            Configuration newConfig = new Configuration(plugin, plugin.getFile(keyName, name + ".yml"), ConfigType.Player_Data);
+            newConfig.saveToFile();
+            plugin.getConfigManager().addConfig(newConfig);
+            this.config = newConfig;
+        }
 
         if (config.get("name") == null) setName(name);
         else this.purchasableName = config.getString("name");
@@ -40,7 +48,7 @@ public abstract class Purchasable {
             int newId = generateID();
             this.id = newId;
             config.set("id", newId);
-            config.save(false);
+            config.saveToFile();
         }
 
         if (config.get("display-item") == null) {
@@ -90,7 +98,7 @@ public abstract class Purchasable {
 
         config.setItemStack("display-item", displayItem);
         config.set("display-item.name", null);
-        config.save(false);
+        config.saveToFile();
     }
 
     private int generateID() {
@@ -101,7 +109,7 @@ public abstract class Purchasable {
         if (listFiles.length > 0) {
             List<Integer> purchasableIDs = new ArrayList<>();
             for (File listFile : listFiles) {
-                purchasableIDs.add(plugin.getConfig(keyName, listFile.getName()).getInt("id"));
+                purchasableIDs.add(plugin.getConfigManager().getConfig(keyName, listFile.getName()).getInt("id"));
             }
 
             while (purchasableIDs.contains(returnId)) {
@@ -113,11 +121,11 @@ public abstract class Purchasable {
 
     public void setPrice(double price) {
         getConfig().set("price", price);
-        getConfig().save(false);
+        getConfig().saveToFile();
     }
 
     public boolean isOwner(Player player) {
-        Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
+        Configuration config = getPlugin().getConfigManager().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
         if (config.get(uuid + "." + getKeyName()) == null) return false;
         List<String> ownedKits = config.getStringList(uuid + "." + getKeyName());
@@ -125,12 +133,12 @@ public abstract class Purchasable {
     }
 
     public void addOwner(Player player) {
-        Configuration config = getPlugin().getConfig("player-data", "player-purchases.yml");
+        Configuration config = getPlugin().getConfigManager().getConfig("player-data", "player-purchases.yml");
         String uuid = String.valueOf(player.getUniqueId());
         List<String> ownedPurchasables = config.get(uuid + "." + getKeyName()) == null ? new ArrayList<>() : config.getStringList(uuid + "." + getKeyName());
         ownedPurchasables.add(String.valueOf(getId()));
         config.set(uuid + "." + getKeyName(), ownedPurchasables);
-        config.save(false);
+        config.saveToFile();
     }
 
     public boolean setName(String purchasableName) {
@@ -145,12 +153,15 @@ public abstract class Purchasable {
                 e.printStackTrace();
                 return false;
             }
-            Configuration newConfig = plugin.getConfig(getKeyName(), newName + ".yml");
+            Configuration newConfig = plugin.getConfigManager().getConfig(getKeyName(), newName + ".yml");
+            newConfig.saveToFile();
             config.getFile().delete();
+            getPlugin().getConfigManager().removeConfig(getKeyName(), getConfig().getFile().getName());
+            getPlugin().getConfigManager().addConfig(newConfig);
             config = newConfig;
             this.purchasableName = purchasableName;
             config.set("name", purchasableName);
-            config.save(false);
+            config.saveToFile();
             returnValue = true;
         }
         return returnValue;
@@ -163,7 +174,7 @@ public abstract class Purchasable {
         newDisplay.setItemMeta(meta);
         displayItem = newDisplay;
         config.set("display-item.lore", lore);
-        config.save(false);
+        config.saveToFile();
     }
 
 }

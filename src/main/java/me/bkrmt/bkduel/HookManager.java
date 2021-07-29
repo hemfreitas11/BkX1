@@ -109,7 +109,7 @@ public class HookManager {
 
         if (bkDuel.getHookManager().getSimpleClansHook() != null) {
             bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.SIMPLECLANS_FOUND.getMessage(bkDuel)));
-            if (bkDuel.getConfig().getBoolean("simpleclans.disable-death-incremet")) {
+            if (bkDuel.getConfigManager().getConfig().getBoolean("simpleclans.disable-death-incremet")) {
                 Listener simpleClansListener = new Listener() {
                     @EventHandler
                     public void onDeathAdd(AddKillEvent event) {
@@ -126,7 +126,7 @@ public class HookManager {
 
         if (bkDuel.getHookManager().getMcMMOHook() != null) {
             bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.MCMMO_FOUND.getMessage(bkDuel)));
-            if (bkDuel.getConfig().getBoolean("mcmmo.disable-abilities")) {
+            if (bkDuel.getConfigManager().getConfig().getBoolean("mcmmo.disable-abilities")) {
                 Listener mcmmoListener = new Listener() {
                     @EventHandler
                     public void onAbility(McMMOPlayerAbilityActivateEvent event) {
@@ -146,8 +146,8 @@ public class HookManager {
             String factionsName = bkDuel.getHookManager().getFactionsName(factions);
             bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.FACTIONS_FOUND.getMessage(bkDuel).replace("{0}", factionsName)));
             Listener factionsListener = null;
-            boolean allyDamage = bkDuel.getConfig().getBoolean("factions.enable-ally-damage");
-            boolean disablePowerLoss = bkDuel.getConfig().getBoolean("factions.disable-power-loss");
+            boolean allyDamage = bkDuel.getConfigManager().getConfig().getBoolean("factions.enable-ally-damage");
+            boolean disablePowerLoss = bkDuel.getConfigManager().getConfig().getBoolean("factions.disable-power-loss");
             if (factionsName.equalsIgnoreCase("FactionsLegacy")) {
                 factionsListener = new Listener() {
                     @EventHandler

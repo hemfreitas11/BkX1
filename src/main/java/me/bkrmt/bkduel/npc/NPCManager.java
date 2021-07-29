@@ -4,6 +4,7 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
 import com.gmail.filoghost.holographicdisplays.api.line.TextLine;
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkcore.textanimator.TextAnimator;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.InternalMessages;
@@ -49,30 +50,30 @@ public class NPCManager {
     }
 
     public void setTopNpc(final PlayerStats newTop, UpdateReason reason) {
-        boolean npcEnabled = bkDuel.getConfig().getBoolean("top-1-npc.enabled");
+        boolean npcEnabled = bkDuel.getConfigManager().getConfig().getBoolean("top-1-npc.enabled");
         if (npcEnabled && bkDuel.getHookManager().hasHologramHook()) {
             remove(reason);
-            boolean swordAnim = bkDuel.getConfig().getBoolean("top-1-npc.hologram.sword-animation");
+            boolean swordAnim = bkDuel.getConfigManager().getConfig().getBoolean("top-1-npc.hologram.sword-animation");
             List<String> hologramLines = null;
             try {
-                hologramLines = bkDuel.getConfig().getStringList("top-1-npc.hologram.lines");
+                hologramLines = bkDuel.getConfigManager().getConfig().getStringList("top-1-npc.hologram.lines");
             } catch (Exception ignored) {
                 bkDuel.sendConsoleMessage(Utils.translateColor(InternalMessages.HOLOGRAM_LINES_ERROR.getMessage()));
                 return;
             }
 
-            int placeholderUpdate = bkDuel.getConfig().getInt("top-1-npc.hologram.placeholder-update");
-            boolean lookAtPlayers = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfig().getBoolean("top-1-npc.npc.look-at-players.enabled");
-            int lookDistance = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAtPlayers ? 0 : bkDuel.getConfig().getInt("top-1-npc.npc.look-at-players.distance-to-look");
-            boolean lookAround = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfig().getBoolean(("top-1-npc.npc.random-look-around.enabled"));
-            float leftRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.left-range");
-            float rightRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.right-range");
-            float upRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.up-range");
-            float downRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.down-range");
+            int placeholderUpdate = bkDuel.getConfigManager().getConfig().getInt("top-1-npc.hologram.placeholder-update");
+            boolean lookAtPlayers = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfigManager().getConfig().getBoolean("top-1-npc.npc.look-at-players.enabled");
+            int lookDistance = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAtPlayers ? 0 : bkDuel.getConfigManager().getConfig().getInt("top-1-npc.npc.look-at-players.distance-to-look");
+            boolean lookAround = !reason.equals(UpdateReason.NPC_AND_STATS) ? false : bkDuel.getConfigManager().getConfig().getBoolean(("top-1-npc.npc.random-look-around.enabled"));
+            float leftRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfigManager().getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.left-range");
+            float rightRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfigManager().getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.right-range");
+            float upRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfigManager().getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.up-range");
+            float downRange = !reason.equals(UpdateReason.NPC_AND_STATS) || !lookAround ? 0f : (float) bkDuel.getConfigManager().getConfig().getDouble("top-1-npc.npc.random-look-around.radom-look-range.down-range");
 
             Location location = null;
             try {
-                location = bkDuel.getConfig().getLocation("top-1-npc.npc.location");
+                location = bkDuel.getConfigManager().getConfig().getLocation("top-1-npc.npc.location");
                 ;
             } catch (Exception ignored) {
                 bkDuel.sendConsoleMessage(Utils.translateColor(InternalMessages.NPC_LOCATION_ERROR.getMessage()));
@@ -105,7 +106,7 @@ public class NPCManager {
                         }
                     }
                 };
-                bkDuel.getConfig().set("top-1-npc.npc.id", getTopNpc().getId());
+                bkDuel.getConfigManager().getConfig().set("top-1-npc.npc.id", getTopNpc().getId());
                 Bukkit.getServer().getPluginManager().registerEvents(interactListener, bkDuel);
             }
 
@@ -189,8 +190,8 @@ public class NPCManager {
 
     private void updateLine(PlayerStats newTop, String hologramLine, HashMap<Integer, TextLine> lines, int finalC) {
         String updatedLine = bkDuel.isValidPlaceholder(hologramLine) ? PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(newTop.getUUID()), hologramLine) : hologramLine;
-        String test1 = BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(updatedLine)).trim();
-        String test2 = BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(lines.get(finalC).getText())).trim();
+        String test1 = AnimatorManager.cleanText(ChatColor.stripColor(updatedLine)).trim();
+        String test2 = AnimatorManager.cleanText(ChatColor.stripColor(lines.get(finalC).getText())).trim();
         if (!test1.equalsIgnoreCase(test2)) {
             try {
                 TextAnimator tempAnimator = animators.get(finalC);
@@ -254,7 +255,7 @@ public class NPCManager {
                 getTopNpc().getOrAddTrait(LookClose.class).lookClose(false);
                 getTopNpc().destroy();
             }
-            NPC configNpc = CitizensAPI.getNPCRegistry().getById(BkDuel.getInstance().getConfig().getInt("top-1-npc.npc.id"));
+            NPC configNpc = CitizensAPI.getNPCRegistry().getById(BkDuel.getInstance().getConfigManager().getConfig().getInt("top-1-npc.npc.id"));
             if (configNpc != null) {
                 configNpc.getOrAddTrait(LookClose.class).lookClose(false);
                 configNpc.destroy();

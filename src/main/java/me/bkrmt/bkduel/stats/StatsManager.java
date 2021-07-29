@@ -31,7 +31,7 @@ public class StatsManager {
     public StatsManager updateStats() {
         ArrayList<PlayerStats> oldList = statsList;
         statsList = new ArrayList<>();
-        Configuration config = plugin.getConfig("player-data", "player-stats.yml");
+        Configuration config = plugin.getConfigManager().getConfig("player-data", "player-stats.yml");
         Set<String> keys = config.getKeys(false);
 
         for (String key : keys) {
@@ -165,13 +165,13 @@ public class StatsManager {
     }
 
     public PlayerStats createStats(Player target) {
-        Configuration statsConfig = BkDuel.getInstance().getConfig("player-data", "player-stats.yml");
+        Configuration statsConfig = BkDuel.getInstance().getConfigManager().getConfig("player-data", "player-stats.yml");
         statsConfig.set(target.getUniqueId().toString() + ".name", target.getName());
         statsConfig.set(target.getUniqueId().toString() + ".duels", 0);
         statsConfig.set(target.getUniqueId().toString() + ".wins", 0);
         statsConfig.set(target.getUniqueId().toString() + ".defeats", 0);
         statsConfig.set(target.getUniqueId().toString() + ".disconnects", 0);
-        statsConfig.save(false);
+        statsConfig.saveToFile();
         BkDuel.getInstance().getStatsManager().updateStats();
         return new PlayerStats(target.getName(), target.getUniqueId(), 0, 0, 0, 0);
     }

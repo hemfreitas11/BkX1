@@ -2,13 +2,14 @@ package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.menus.ChooseArenaMenu;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import me.bkrmt.opengui.gui.GUI;
+import me.bkrmt.opengui.gui.Rows;
 import me.bkrmt.opengui.item.ItemBuilder;
 import me.bkrmt.opengui.page.Page;
-import me.bkrmt.opengui.gui.Rows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -47,26 +48,26 @@ public class Arena extends Purchasable {
     public void setLocation1(Location location1) {
         this.location1 = location1;
         getConfig().setLocation("locations.fighter1", location1);
-        getConfig().save(false);
+        getConfig().saveToFile();
     }
 
     public void setLocation2(Location location2) {
         this.location2 = location2;
         getConfig().setLocation("locations.fighter2", location2);
-        getConfig().save(false);
+        getConfig().saveToFile();
     }
 
     public void setSpectators(Location spectators) {
         this.spectators = spectators;
         getConfig().setLocation("locations.spectators", spectators);
-        getConfig().save(false);
+        getConfig().saveToFile();
     }
 
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(ChatColor.stripColor(BkDuel.getInstance().getAnimatorManager().cleanText(getName())), Rows.SIX), 1);
-        
+        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(ChatColor.stripColor(AnimatorManager.cleanText(getName())), Rows.SIX), 1);
+
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-name.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-name.description"))));
@@ -99,12 +100,12 @@ public class Arena extends Purchasable {
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.select-bound-kit.description"))));
 
         menu.setItemOnXY(5, 6, backButton, "arena-edit-back-button", event -> {
-            ChooseArenaMenu.showGUI(duel);
+            ChooseArenaMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
         });
 
         menu.setItemOnXY(5, 4, selectKit,"arena-edit-select-kit-button", event -> {
             duel.getOptions().add(DuelOptions.BOUND_KIT_SELECTION);
-            ChooseKitsMenu.showGUI(duel, this, 0);
+            ChooseKitsMenu.showGUI(duel, null, this, 0);
         });
 
         menu.setItemOnXY(2, 2, name,"arena-edit-name-button", event -> {
@@ -113,14 +114,13 @@ public class Arena extends Purchasable {
                     event.getWhoClicked().sendMessage(getPlugin().getLangFile().get(player, "error.no-letters"));
                     return;
                 }
-                ChooseArenaMenu.showGUI(duel);
+                ChooseArenaMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
             },
                     input -> {
-                        if (input.equalsIgnoreCase(getPlugin().getConfig().getString("cancel-input"))) showEditMenu(duel);
                     })
                     .setCancellable(true)
                     .setTitle(getPlugin().getLangFile().get(player, "info.input.arena-name"))
-                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
+                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfigManager().getConfig().getString("cancel-input")))
                     .sendInput();
         });
 
@@ -139,7 +139,7 @@ public class Arena extends Purchasable {
                     lore.add(Utils.translateColor(input));
                 }
                 setDescription(lore);
-                ChooseArenaMenu.showGUI(duel);
+                ChooseArenaMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
             },
                     input -> {
                     })
@@ -167,17 +167,15 @@ public class Arena extends Purchasable {
                     getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.enter-item.name"),
                     Arrays.asList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.enter-item.description"), " ", getPlugin().getLangFile().get(player, "gui-buttons.back-button.description")))),"arena-edit-item-input-button",
                     event1 -> {
-                        showEditMenu(duel);
+                        ChooseKitsMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
                     });
 
             page.openGui(player);
         });
         menu.setItemOnXY(8, 3, spec,"arena-edit-spectate-button", event -> {
             setLocation(player, "spectators");
-            showEditMenu(duel);
         });
         menu.setItemOnXY(6, 2, price,"arena-edit-price-button", event -> {
-            event.getWhoClicked().closeInventory();
             new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
                 double newPrice = 0;
                 try {
@@ -188,18 +186,16 @@ public class Arena extends Purchasable {
                 }
                 setPrice(newPrice);
                 event.getWhoClicked().sendMessage(getPlugin().getLangFile().get(player, "info.price-set"));
-                showEditMenu(duel);
             },
                     input -> {
                     })
                     .setCancellable(false)
                     .setTitle(getPlugin().getLangFile().get(player, "info.input.price"))
-                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
+                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfigManager().getConfig().getString("cancel-input")))
                     .sendInput();
         });
         menu.setItemOnXY(4, 3, pos1,"arena-edit-position1-button", event -> {
             setLocation(player, "fighter1");
-            showEditMenu(duel);
         });
         menu.setItemOnXY(8, 2, deleteButton,"arena-edit-delete-button", event -> {
             ItemBuilder greenPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getGreenPane()).setName(getPlugin().getLangFile().get(player, "info.confirm"));
@@ -227,7 +223,7 @@ public class Arena extends Purchasable {
             for (int i = 2; i < 5; i++) {
                 for (int c = 6; c < 9; c++) {
                     page.setItemOnXY(c, i, redPane,"arena-edit-red-confirmation-button-" + c + "-" + i, event1 -> {
-                        showEditMenu(duel);
+                        event.getWhoClicked().closeInventory();
                     });
                 }
             }
@@ -245,16 +241,14 @@ public class Arena extends Purchasable {
         });
         menu.setItemOnXY(6, 3, pos2, "arena-edit-position2-button", event -> {
             setLocation(player, "fighter2");
-            showEditMenu(duel);
         });
 
         menu.openGui(player);
     }
 
     private void setLocation(Player player, String key) {
-        player.closeInventory();
         getConfig().setLocation("locations." + key, player.getLocation());
-        getConfig().save(false);
+        getConfig().saveToFile();
         player.sendMessage(getPlugin().getLangFile().get(player, "info.location-set"));
     }
 
@@ -298,7 +292,7 @@ public class Arena extends Purchasable {
         } else {
             getConfig().set("kit", kitId);
         }
-        getConfig().save(false);
+        getConfig().saveToFile();
 
         setBoundKit();
     }
@@ -328,7 +322,7 @@ public class Arena extends Purchasable {
 
     public void setInUse(boolean inUse) {
         getConfig().set("in-use", inUse);
-        getConfig().save(false);
+        getConfig().saveToFile();
     }
 
     public Location getLocation1() {

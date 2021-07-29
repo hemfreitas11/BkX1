@@ -2,11 +2,12 @@ package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.input.PlayerInput;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import me.bkrmt.opengui.gui.GUI;
+import me.bkrmt.opengui.gui.Rows;
 import me.bkrmt.opengui.item.ItemBuilder;
 import me.bkrmt.opengui.page.Page;
-import me.bkrmt.opengui.gui.Rows;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -136,7 +137,7 @@ public class Kit extends Purchasable {
     public void showEditMenu(Duel duel) {
         Player player = duel.getFighter1();
 
-        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(BkDuel.getInstance().getAnimatorManager().cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
+        Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(AnimatorManager.cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
 
         ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-name.name"),
@@ -171,13 +172,13 @@ public class Kit extends Purchasable {
                     getConfig().setItemStack("items." + keyName, armor);
                 }
             }
-            getConfig().save(false);
+            getConfig().saveToFile();
             duel.getFighter1().sendMessage(getPlugin().getLangFile().get(player, "info.kit-items-set"));
-            showEditMenu(duel);
+                        event.getWhoClicked().closeInventory();
         });
 
         menu.setItemOnXY(5, 5, backButton, "kit-edit-back-button", event -> {
-            ChooseKitsMenu.showGUI(duel);
+            ChooseKitsMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
         });
 
         menu.setItemOnXY(2, 2, name, "kit-edit-name-button", event -> {
@@ -186,14 +187,13 @@ public class Kit extends Purchasable {
                     event.getWhoClicked().sendMessage(getPlugin().getLangFile().get(player, "error.no-letters"));
                     return;
                 }
-                ChooseKitsMenu.showGUI(duel);
+                ChooseKitsMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
             },
                     input -> {
-                        if (input.equalsIgnoreCase(getPlugin().getConfig().getString("cancel-input"))) showEditMenu(duel);
                     })
                     .setCancellable(true)
                     .setTitle(getPlugin().getLangFile().get(player, "info.input.kit-name"))
-                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
+                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfigManager().getConfig().getString("cancel-input")))
                     .sendInput();
         });
 
@@ -212,7 +212,7 @@ public class Kit extends Purchasable {
                     lore.add(Utils.translateColor(input));
                 }
                 setDescription(lore);
-                ChooseKitsMenu.showGUI(duel);
+                ChooseKitsMenu.showGUI(new Duel(true).setFighter1(duel.getFighter1()), null);
             },
                     input -> {
                     })
@@ -240,13 +240,12 @@ public class Kit extends Purchasable {
                     getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.enter-item.name"),
                     Arrays.asList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.enter-item.description"), " ", getPlugin().getLangFile().get(player, "gui-buttons.back-button.description")))), "kit-edit-item-input-button",
                     event1 -> {
-                        showEditMenu(duel);
+                        event1.getWhoClicked().closeInventory();
                     });
 
             page.openGui(player);
         });
         menu.setItemOnXY(6, 2, price, "kit-edit-price-button", event -> {
-            event.getWhoClicked().closeInventory();
             new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
                 double newPrice = 0;
                 try {
@@ -257,13 +256,12 @@ public class Kit extends Purchasable {
                 }
                 setPrice(newPrice);
                 event.getWhoClicked().sendMessage(getPlugin().getLangFile().get(player, "info.price-set"));
-                showEditMenu(duel);
             },
                     input -> {
                     })
                     .setCancellable(false)
                     .setTitle(getPlugin().getLangFile().get(player, "info.input.price"))
-                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfig().getString("cancel-input")))
+                    .setSubTitle(getPlugin().getLangFile().get(player, "info.input.type-to-cancel").replace("{cancel-input}", getPlugin().getConfigManager().getConfig().getString("cancel-input")))
                     .sendInput();
         });
 
@@ -293,7 +291,7 @@ public class Kit extends Purchasable {
             for (int i = 2; i < 5; i++) {
                 for (int c = 6; c < 9; c++) {
                     page.setItemOnXY(c, i, redPane, "kit-edit-red-confirmation-button-" + c + "-" + i, event1 -> {
-                        showEditMenu(duel);
+                        event1.getWhoClicked().closeInventory();
                     });
                 }
             }

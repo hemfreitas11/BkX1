@@ -4,10 +4,10 @@ import de.Keyle.MyPet.MyPetPlugin;
 import de.Keyle.MyPet.api.entity.MyPet;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
 import me.bkrmt.bkduel.enums.EndCause;
-import me.bkrmt.opengui.page.Page;
 import me.bkrmt.teleport.Teleport;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -81,7 +81,7 @@ public class Duel implements Listener {
     private Arena arena;
     private Kit kit;
 
-    private final ArrayList<Page> kitPages;
+//    private final ArrayList<Page> kitPages;
 
     private EndCause endDuelCause;
 
@@ -96,7 +96,7 @@ public class Duel implements Listener {
     public Duel(boolean editMode) {
         this.plugin = BkDuel.getInstance();
         this.options = new ArrayList<>();
-        this.kitPages = new ArrayList<>();
+//        this.kitPages = new ArrayList<>();
         if (editMode) {
             options.add(DuelOptions.EDIT_MODE);
             options.add(DuelOptions.OWN_ITEMS);
@@ -143,7 +143,7 @@ public class Duel implements Listener {
             //Teleport player 1
             this.fighter1Return = fighter1.getLocation();
 
-            boolean disablePets = plugin.getConfig().getBoolean("mypets.disable-in-duels");
+            boolean disablePets = plugin.getConfigManager().getConfig().getBoolean("mypets.disable-in-duels");
             if (disablePets) {
                 Plugin petPlugin = plugin.getHookManager().getMyPetHook();
                 if (petPlugin != null) {
@@ -156,7 +156,7 @@ public class Duel implements Listener {
                 }
             }
 
-            boolean enableAllyDamage = plugin.getConfig().getBoolean("simpleclans.enable-ally-damage");
+            boolean enableAllyDamage = plugin.getConfigManager().getConfig().getBoolean("simpleclans.enable-ally-damage");
             if (enableAllyDamage) {
                 Plugin clansPlugin = plugin.getHookManager().getSimpleClansHook();
                 if (clansPlugin != null) {
@@ -176,7 +176,7 @@ public class Duel implements Listener {
                             setKit(fighter1, fighter1Return);
                         }
                     })
-                    .setLocation(BkDuel.getInstance().getAnimatorManager().cleanText(getArena().getName()), getArena().getLocation1())
+                    .setLocation(AnimatorManager.cleanText(getArena().getName()), getArena().getLocation1())
                     .setDuration(0)
                     .setIsCancellable(false)
                     .startTeleport();
@@ -190,12 +190,12 @@ public class Duel implements Listener {
                             setKit(fighter2, fighter2Return);
                         }
                     })
-                    .setLocation(BkDuel.getInstance().getAnimatorManager().cleanText(getArena().getName()), getArena().getLocation2())
+                    .setLocation(AnimatorManager.cleanText(getArena().getName()), getArena().getLocation2())
                     .setDuration(0)
                     .setIsCancellable(false)
                     .startTeleport();
 
-            int tempInt = plugin.getConfig().getInt("start-countdown");
+            int tempInt = plugin.getConfigManager().getConfig().getInt("start-countdown");
             int timerCount = tempInt > 0 ? tempInt : 1;
 
             startListener();
@@ -401,7 +401,7 @@ public class Duel implements Listener {
 
     public void startRequest() {
         double playerMoney = BkDuel.getInstance().getEconomy().getBalance(getFighter1());
-        double duelCost = plugin.getConfig().getDouble("duel-cost");
+        double duelCost = plugin.getConfigManager().getConfig().getDouble("duel-cost");
         if (playerMoney >= duelCost) {
             EconomyResponse r = BkDuel.getInstance().getEconomy().withdrawPlayer(getFighter1(), duelCost);
             getFighter1().closeInventory();
@@ -509,7 +509,7 @@ public class Duel implements Listener {
 
     private void waitForPickUp(Player player) {
         setStatus(DuelStatus.AWAITING_WINNER_PICKUP);
-        int time = getOptions().contains(DuelOptions.OWN_ITEMS) ? plugin.getConfig().getInt("time-to-pick-items") : 3;
+        int time = getOptions().contains(DuelOptions.OWN_ITEMS) ? plugin.getConfigManager().getConfig().getInt("time-to-pick-items") : 3;
         if (getOptions().contains(DuelOptions.OWN_ITEMS))
             player.sendMessage(getPlugin().getLangFile().get(player, "info.time-to-pickup").replace("{seconds}", String.valueOf(time)));
         final int[] timesRun = {0};
@@ -544,7 +544,7 @@ public class Duel implements Listener {
     }
 
     public static void returnItems(BkDuel plugin, Player player, boolean returnLocation) {
-        Configuration config = plugin.getConfig("player-data", "player-inventories.yml");
+        Configuration config = plugin.getConfigManager().getConfig("player-data", "player-inventories.yml");
         ItemStack[] invContents = new ItemStack[]{new ItemStack(Material.DIRT)};
 
         if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
@@ -578,13 +578,13 @@ public class Duel implements Listener {
         if (returnLocation) player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
 
         config.set(player.getUniqueId().toString(), null);
-        config.save(false);
+        config.saveToFile();
     }
 
     private void updateStatistics() {
         setStatus(DuelStatus.UPDATING_STATS);
         if (!endDuelCause.equals(EndCause.PLUGIN_RELOAD)) {
-            Configuration statsConfig = plugin.getConfig("player-data", "player-stats.yml");
+            Configuration statsConfig = plugin.getConfigManager().getConfig("player-data", "player-stats.yml");
 
             if (statsConfig.get(winner.getUniqueId().toString() + ".name") == null)
                 statsConfig.set(winner.getUniqueId().toString() + ".name", winner.getName());
@@ -601,7 +601,7 @@ public class Duel implements Listener {
             if (endDuelCause.equals(EndCause.DISCONNECT))
                 statsConfig.set(loser.getUniqueId().toString() + ".disconnects", statsConfig.getInt(loser.getUniqueId().toString() + ".disconnects") + 1);
 
-            statsConfig.save(false);
+            statsConfig.saveToFile();
             BkDuel.getInstance().getStatsManager().updateStats();
         }
     }
@@ -675,12 +675,12 @@ public class Duel implements Listener {
         void run();
     }*/
 
-    public ArrayList<Page> getKitPages() {
-        return kitPages;
-    }
+//    public ArrayList<Page> getKitPages() {
+//        return kitPages;
+//    }
 
     private void setKit(Player player, Location returnLoc) {
-        Configuration invStorage = plugin.getConfig("player-data", "player-inventories.yml");
+        Configuration invStorage = plugin.getConfigManager().getConfig("player-data", "player-inventories.yml");
 
         if (kit != null) {
             PlayerInventory inv = player.getInventory();
@@ -698,7 +698,7 @@ public class Duel implements Listener {
         }
 
         invStorage.setLocation(player.getUniqueId().toString() + ".return-location", returnLoc);
-        invStorage.save(false);
+        invStorage.saveToFile();
     }
 
     public Duel setFighter1(Player fighter1) {

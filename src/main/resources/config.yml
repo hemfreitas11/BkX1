@@ -64,6 +64,24 @@ language: en_US
 # O que você precisa digitar para cancelar os inputs no plugin.
 cancel-input: 'cancel'
 
+# Teleport countdown options
+teleport-countdown:
+  # When true the plugin will make sounds for the teleport countdown
+  # Quando true o plugin irá fazer soms na contagem do teleporte
+  use-sound: true
+  # When true the plugin will display a title with the seconds remaining
+  # Quando true mostra a contagem do teleporte no Title
+  use-title: true
+  # When true the plugin will display an action bar with the seconds remaining
+  # Quando true mostra a contagem do teleporte na action bar
+  use-actionbar: true
+  # You can change the length of the countdown by giving a group the permission 'bkshop.countdown.<0-99>'. Example: bkshop.countdown.15 will give the group a countdown of 15 seconds
+  # When true the teleport countdown will be canceled when a player moves
+  cancel-on-move: true
+  # The amount of seconds for the teleport to spectate a duel
+  # A quantitade de segundos para o teleporte de espectar um X1
+  spectator-countdown: 5
+
 # (In a future version, not implemented yet) Choose if you want the plugin to display 5 or 15 kits per page.
 # (Em uma versão futura, ainda não implementado) Escolha se você quer que o plugin mostre 5 ou 15 kits por página.
 expanded-kit-list: false
