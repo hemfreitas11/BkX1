@@ -31,7 +31,7 @@ public abstract class Purchasable {
         Configuration managerConfig = plugin.getConfigManager().getConfig(keyName, name + ".yml");
         if (managerConfig != null) this.config = managerConfig;
         else {
-            Configuration newConfig = new Configuration(plugin, plugin.getFile(keyName, name + ".yml"), ConfigType.Player_Data);
+            Configuration newConfig = new Configuration(plugin, plugin.getFile(keyName, name + ".yml"), ConfigType.PLAYER_DATA);
             newConfig.saveToFile();
             plugin.getConfigManager().addConfig(newConfig);
             this.config = newConfig;
