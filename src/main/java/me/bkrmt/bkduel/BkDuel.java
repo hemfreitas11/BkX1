@@ -88,7 +88,7 @@ public final class BkDuel extends BkPlugin {
                 getServer().getPluginManager().disablePlugin(this);
             } else {
                 setRunning(true);
-                getConfigManager().loadAllConfigs();
+                getConfigManager().loadAllConfigs(this);
                 getHookManager().setupHooks();
                 animatorManager = new AnimatorManager(this);
 
