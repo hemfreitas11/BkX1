@@ -129,7 +129,7 @@ public class NPCManager {
 
                 lines.put(finalC, topHologram.appendTextLine(hologramLine));
 
-                TextAnimator animator = bkDuel.getAnimatorManager().getTextAnimator(Utils.addHashCode("top-npc-hologram-line-" + finalC, hashCode()), hologramLine);
+                TextAnimator animator = bkDuel.getAnimatorManager().getTextAnimator("bkduel-top-npc-hologram-line-" + finalC, hologramLine);
                 if (animator != null) {
                     setLineAnimator(newTop, lines, finalC, hologramLine, animator);
                 }
@@ -196,8 +196,8 @@ public class NPCManager {
             try {
                 TextAnimator tempAnimator = animators.get(finalC);
                 if (tempAnimator != null) {
-                    tempAnimator.destroy();
-                    TextAnimator newAnimator = bkDuel.getAnimatorManager().getTextAnimator(Utils.addHashCode("top-npc-hologram-line-" + finalC, hashCode()), updatedLine);
+                    bkDuel.getAnimatorManager().destroy(tempAnimator);
+                    TextAnimator newAnimator = bkDuel.getAnimatorManager().getTextAnimator("top-npc-hologram-line-" + finalC, updatedLine);
                     setLineAnimator(newTop, lines, finalC, updatedLine, newAnimator);
                 } else {
                     lines.get(finalC).setText(updatedLine);
@@ -264,14 +264,7 @@ public class NPCManager {
         if (neabyChecker != null) neabyChecker.cancel();
         if (animators != null) {
             for (TextAnimator animator : animators.values()) {
-                if (animator != null) animator.destroy();
-            }
-            for (String key : bkDuel.getAnimatorManager().getAnimators().keySet()) {
-                if (key.contains("@" + Integer.toHexString(hashCode()))) {
-                    TextAnimator animator = bkDuel.getAnimatorManager().getAnimators().get(key);
-                    if (animator != null && animator.getAnimatorRunnable() != null) animator.destroy();
-                    bkDuel.getAnimatorManager().getAnimators().remove(key);
-                }
+                if (animator != null) bkDuel.getAnimatorManager().destroy(animator);
             }
          }
         if (updaters != null) {

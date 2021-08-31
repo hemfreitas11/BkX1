@@ -4,6 +4,7 @@ import com.SirBlobman.combatlogx.api.ICombatLogX;
 import me.NoChance.PvPManager.PvPManager;
 import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.bkgui.BkGUI;
 import me.bkrmt.bkcore.command.CommandModule;
 import me.bkrmt.bkcore.command.HelpCmd;
 import me.bkrmt.bkcore.config.Configuration;
@@ -17,7 +18,6 @@ import me.bkrmt.bkduel.npc.UpdateReason;
 import me.bkrmt.bkduel.placeholder.PlaceholderLangFile;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import me.bkrmt.bkduel.stats.StatsManager;
-import me.bkrmt.opengui.OpenGUI;
 import me.bkrmt.teleport.TeleportCore;
 import net.milkbowl.vault.economy.Economy;
 import net.minelink.ctplus.CombatTagPlus;
@@ -50,7 +50,7 @@ public final class BkDuel extends BkPlugin {
         try {
             instance = this;
             npcManager = null;
-            OpenGUI.INSTANCE.register(instance);
+            BkGUI.INSTANCE.register(instance);
             start(true);
 
             if (TeleportCore.INSTANCE.getPlayersInCooldown().get("Core-Started") == null)
@@ -88,7 +88,7 @@ public final class BkDuel extends BkPlugin {
                 getServer().getPluginManager().disablePlugin(this);
             } else {
                 setRunning(true);
-                getConfigManager().loadAllConfigs(this);
+                getConfigManager().loadAllConfigs();
                 getHookManager().setupHooks();
                 animatorManager = new AnimatorManager(this);
 

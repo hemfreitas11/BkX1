@@ -1,11 +1,11 @@
 package me.bkrmt.bkduel.menus;
 
+import me.bkrmt.bkcore.bkgui.gui.GUI;
+import me.bkrmt.bkcore.bkgui.gui.Rows;
+import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
+import me.bkrmt.bkcore.bkgui.page.Page;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.stats.PlayerStats;
-import me.bkrmt.opengui.gui.GUI;
-import me.bkrmt.opengui.item.ItemBuilder;
-import me.bkrmt.opengui.page.Page;
-import me.bkrmt.opengui.gui.Rows;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;

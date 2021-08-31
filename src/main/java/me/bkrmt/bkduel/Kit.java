@@ -1,13 +1,13 @@
 package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.Utils;
+import me.bkrmt.bkcore.bkgui.gui.GUI;
+import me.bkrmt.bkcore.bkgui.gui.Rows;
+import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
+import me.bkrmt.bkcore.bkgui.page.Page;
 import me.bkrmt.bkcore.input.PlayerInput;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
-import me.bkrmt.opengui.gui.GUI;
-import me.bkrmt.opengui.gui.Rows;
-import me.bkrmt.opengui.item.ItemBuilder;
-import me.bkrmt.opengui.page.Page;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -182,7 +182,7 @@ public class Kit extends Purchasable {
         });
 
         menu.setItemOnXY(2, 2, name, "kit-edit-name-button", event -> {
-            new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
+            new PlayerInput(getPlugin(), duel.getFighter1(), menu, input -> {
                 if (!setName(input)) {
                     event.getWhoClicked().sendMessage(getPlugin().getLangFile().get(player, "error.no-letters"));
                     return;
@@ -198,7 +198,7 @@ public class Kit extends Purchasable {
         });
 
         menu.setItemOnXY(4, 3, desc, "kit-edit-description-button", event -> {
-            new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
+            new PlayerInput(getPlugin(), duel.getFighter1(), menu, input -> {
                 List<String> lore = new ArrayList<>();
 
                 if (input.contains("#")) {
@@ -246,7 +246,7 @@ public class Kit extends Purchasable {
             page.openGui(player);
         });
         menu.setItemOnXY(6, 2, price, "kit-edit-price-button", event -> {
-            new PlayerInput(getPlugin(), duel.getFighter1(), input -> {
+            new PlayerInput(getPlugin(), duel.getFighter1(), menu, input -> {
                 double newPrice = 0;
                 try {
                     newPrice = Double.parseDouble(input);
