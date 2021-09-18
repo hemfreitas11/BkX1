@@ -6,8 +6,9 @@ import me.bkrmt.bkcore.BkPlugin;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.bkgui.BkGUI;
 import me.bkrmt.bkcore.command.CommandModule;
-import me.bkrmt.bkcore.command.HelpCmd;
+import me.bkrmt.bkcore.command.MainCommand;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.guiconfig.GUIConfig;
 import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.bkcore.message.LangFile;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
@@ -29,7 +30,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -94,7 +94,7 @@ public final class BkDuel extends BkPlugin {
 
                 // Create commands
                 getCommandMapper()
-                        .addCommand(new CommandModule(new HelpCmd(instance, "bkduel", ""), (a, b, c, d) -> Collections.singletonList("")))
+                        .addCommand(new CommandModule(new MainCommand(this, "bkduel.admin", GUIConfig::openMenu), null))
                         .addCommand(new CommandModule(new CmdDuel(this, "duel", ""), new CmdDuelCompleter()))
                         .registerAll();
 
@@ -122,17 +122,33 @@ public final class BkDuel extends BkPlugin {
             if (player != null)
                 stats = manager.getPlayerStat(player.getUniqueId());
 
-            if (stats != null && identifier != null) {
-                if (identifier.equalsIgnoreCase("defeats")) {
-                    returnValue = String.valueOf(stats.getDefeats());
-                } else if (identifier.equalsIgnoreCase("wins")) {
-                    returnValue = String.valueOf(stats.getWins());
-                } else if (identifier.equalsIgnoreCase("duels")) {
-                    returnValue = String.valueOf(stats.getDuels());
-                } else if (identifier.equalsIgnoreCase("disconnects")) {
-                    returnValue = String.valueOf(stats.getDisconnects());
-                } else if (identifier.equalsIgnoreCase("kdr")) {
-                    returnValue = String.valueOf(stats.getKDR());
+            if (identifier != null) {
+                if (identifier.equalsIgnoreCase("top-name")) {
+                    if (manager.getStats().size() > 0) {
+                        returnValue = manager.getStats().get(0).getPlayerName();
+                    }
+                } else if (identifier.equalsIgnoreCase("top-tag")) {
+                    if (manager.getStats().size() > 0) {
+                        if (player != null && manager.getStats().get(0).getUUID().equals(player.getUniqueId())) {
+                            returnValue = BkDuel.getInstance().getConfigManager().getConfig().getString("top-1-tag");
+                        } else {
+                            returnValue = "";
+                        }
+                    }
+                } else {
+                    if (stats != null) {
+                        if (identifier.equalsIgnoreCase("defeats")) {
+                            returnValue = String.valueOf(stats.getDefeats());
+                        } else if (identifier.equalsIgnoreCase("wins")) {
+                            returnValue = String.valueOf(stats.getWins());
+                        } else if (identifier.equalsIgnoreCase("duels")) {
+                            returnValue = String.valueOf(stats.getDuels());
+                        } else if (identifier.equalsIgnoreCase("disconnects")) {
+                            returnValue = String.valueOf(stats.getDisconnects());
+                        } else if (identifier.equalsIgnoreCase("kdr")) {
+                            returnValue = String.valueOf(stats.getKDR());
+                        }
+                    }
                 }
             }
         }
@@ -256,7 +272,7 @@ public final class BkDuel extends BkPlugin {
     @Override
     public void onDisable() {
         if (isRunning()) {
-            if (getHookManager().hasHologramHook()) getNpcManager().remove(UpdateReason.NPC_AND_STATS);
+            if (npcManager != null) getNpcManager().remove(UpdateReason.NPC_AND_STATS);
 
             if (ongoingDuels != null && !ongoingDuels.isEmpty()) {
                 Collection<Duel> duels = ongoingDuels.values();

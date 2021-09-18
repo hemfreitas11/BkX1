@@ -27,10 +27,21 @@ commands:
   usage-format: '&cUse: {usage}'
 
   # BkDuel Command
-  bkduel:
+  # This command can't be changed, it's only here for the help command
+  bkcommand:
     command: 'bkduel'
-    description: 'Shows the help of the plugin.'
-    usage: '/bkduel'
+    description: 'Help of the plugin.'
+    usage: '/bkduel [config | messages | reload]'
+    subcommands:
+      config:
+        command: 'config'
+        usage: '/bkduel config'
+      reload:
+        command: 'reload'
+        usage: '/bkduel reload'
+      messages:
+        command: 'messages'
+        usage: '/bkduel messages'
 
   # Duel Command
   duel:
@@ -229,6 +240,17 @@ gui-buttons:
 # To remove the blank spaces simply change the message from ' ' to ''
 # *-----------------*=/[Info Messages]\=*---------------*
 info:
+  number-input:
+    go-back:
+      - '&7Click here to confirm and go back.'
+    increase:
+      name: '&7&lIncrease {amount}'
+      description:
+        - '&7Click to increase {amount}'
+    decrease:
+      name: '&7&lDecrease {amount}'
+      description:
+        - '&7Click to decrease {amount}'
   request-message:
     accept-button: '&2&l[HERE]'
     deny-button: '&c&l[HERE]'
@@ -329,6 +351,7 @@ info:
   option-locked: '&cOption Locked'
   select-own-items: '&cYou need to select ''Own Items'''
   drop-exp-title: '&aDrop Experience'
+  configs-reloaded: '&aAll configs and messages reloaded sucessfully.'
   drop-item-title: '&aDrop Items'
   click-to-enable: '&7Click to enable.'
   click-to-disable: '&7Click to disable.'

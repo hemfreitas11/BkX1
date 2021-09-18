@@ -3,6 +3,7 @@ package me.bkrmt.bkduel;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.ConfigType;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.xlibs.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -52,7 +53,7 @@ public abstract class Purchasable {
         }
 
         if (config.get("display-item") == null) {
-            setDisplayItem(Material.DIRT);
+            setDisplayItem(XMaterial.DIRT.parseMaterial());
         } else {
             setDisplayItem(config.getItemStack("display-item").getType());
         }

@@ -7,6 +7,7 @@ import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
 import me.bkrmt.bkcore.bkgui.page.Page;
 import me.bkrmt.bkcore.input.PlayerInput;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
+import me.bkrmt.bkcore.xlibs.XMaterial;
 import me.bkrmt.bkduel.Arena;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
@@ -103,7 +104,7 @@ public class ChooseArenaMenu {
                         int finalIndex = index;
                         if (first && !duel.getOptions().contains(DuelOptions.SPECTATOR_MODE) && !duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                             String tempName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.random-arena-button.name");
-                            ItemBuilder randomArena = new ItemBuilder(Material.ENDER_PEARL)
+                            ItemBuilder randomArena = new ItemBuilder(XMaterial.ENDER_PEARL)
                                     .setName(tempName)
                                     .setLore(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.random-arena-button.description"))
                                     .hideTags();
@@ -266,7 +267,7 @@ public class ChooseArenaMenu {
                                         }
                                     }
 
-                                    ItemBuilder newDisplay = new ItemBuilder(Material.BARRIER)
+                                    ItemBuilder newDisplay = new ItemBuilder(XMaterial.BARRIER)
                                             .setName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + AnimatorManager.cleanText(arenaName))
                                             .setLore(extraLore);
                                     page.pageSetItem(
@@ -337,7 +338,7 @@ public class ChooseArenaMenu {
 
                     if (duel.getOptions().contains(DuelOptions.EDIT_MODE)) {
                         String tempName = BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.create-arena.name");
-                        page.pageSetItem(31, new ItemBuilder(Utils.createItem(BkDuel.getInstance().getHandler().getItemManager().getWritableBook(), true, tempName, Collections.singletonList(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.create-arena.description")))), duel.getFighter1().getName().toLowerCase() + "choose-arena-create-arena", event -> {
+                        page.pageSetItem(31, new ItemBuilder(Utils.createItem(XMaterial.WRITABLE_BOOK.parseItem(), true, tempName, Collections.singletonList(BkDuel.getInstance().getLangFile().get(duel.getFighter1(), "gui-buttons.create-arena.description")))), duel.getFighter1().getName().toLowerCase() + "choose-arena-create-arena", event -> {
                             new PlayerInput(BkDuel.getInstance(), duel.getFighter1(), page, input -> {
                                 String arenaName = Utils.cleanString(input.toLowerCase()
                                         .replace(" ", "-")

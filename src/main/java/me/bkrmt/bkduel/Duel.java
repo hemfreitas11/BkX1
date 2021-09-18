@@ -2,9 +2,11 @@ package me.bkrmt.bkduel;
 
 import de.Keyle.MyPet.MyPetPlugin;
 import de.Keyle.MyPet.api.entity.MyPet;
+import me.bkrmt.bkcore.MovementBlocker;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
+import me.bkrmt.bkcore.xlibs.XMaterial;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
 import me.bkrmt.bkduel.enums.EndCause;
@@ -18,12 +20,13 @@ import net.sacredlabyrinth.phaed.simpleclans.SimpleClans;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -168,7 +171,6 @@ public class Duel implements Listener {
                 }
             }
 
-
             new Teleport(plugin, fighter1, false)
                     .setRunnable((player, location, isCanceled) -> {
                         if (!isCanceled) {
@@ -216,8 +218,8 @@ public class Duel implements Listener {
                         if (remaining > 0) {
                             plugin.sendTitle(getFighter1(), 0, 21, 0, plugin.getLangFile().get(fighter1, "info.seconds-remaining").replace("{seconds}", String.valueOf(remaining)), "");
                             plugin.sendTitle(getFighter2(), 0, 21, 0, plugin.getLangFile().get(fighter2, "info.seconds-remaining").replace("{seconds}", String.valueOf(remaining)), "");
-
                         } else {
+                            setStatus(DuelStatus.FIGHTING);
                             plugin.sendTitle(getFighter1(), 0, 15, 0, plugin.getLangFile().get(fighter1, "info.go"), "");
                             plugin.sendTitle(getFighter2(), 0, 15, 0, plugin.getLangFile().get(fighter2, "info.go"), "");
 
@@ -359,8 +361,29 @@ public class Duel implements Listener {
             @EventHandler
             public void onMove(PlayerMoveEvent event) {
                 Player player = event.getPlayer();
-                if (player.getUniqueId().equals(getFighter1().getUniqueId()) || player.getUniqueId().equals(getFighter2().getUniqueId())) {
-                    if (!playersReady[0] || !playersReady[1]) {
+                if (isValidDuelist(player)) {
+                    MovementBlocker.processMovement(event);
+                }
+            }
+
+            @EventHandler
+            public void onPlayerTakeDamage(EntityDamageEvent event) {
+                if (event.getEntity() instanceof Player) {
+                    if (isValidDuelist((Player) event.getEntity())) {
+                        event.setCancelled(true);
+                    }
+                }
+            }
+
+            @EventHandler
+            public void onPlayerDealDamage(EntityDamageByEntityEvent event) {
+                if (event.getEntity() instanceof Player) {
+                    if (isValidDuelist((Player) event.getEntity())) {
+                        event.setCancelled(true);
+                    }
+                }
+                if (event.getDamager() instanceof Player) {
+                    if (isValidDuelist((Player) event.getDamager())) {
                         event.setCancelled(true);
                     }
                 }
@@ -399,14 +422,25 @@ public class Duel implements Listener {
         plugin.getServer().getPluginManager().registerEvents(duelListener, plugin);
     }
 
+    private boolean isValidDuelist(Player player) {
+        if (player.getUniqueId().equals(getFighter1().getUniqueId()) || player.getUniqueId().equals(getFighter2().getUniqueId())) {
+            return !playersReady[0] || !playersReady[1];
+        }
+        return false;
+    }
+
     public void startRequest() {
         double playerMoney = BkDuel.getInstance().getEconomy().getBalance(getFighter1());
         double duelCost = plugin.getConfigManager().getConfig().getDouble("duel-cost");
         if (playerMoney >= duelCost) {
             EconomyResponse r = BkDuel.getInstance().getEconomy().withdrawPlayer(getFighter1(), duelCost);
-            getFighter1().closeInventory();
-            getFighter1().sendMessage(plugin.getLangFile().get(fighter1, "info.request-sent"));
-            setRequest(new DuelRequest(this).sendMessage());
+            if (r.transactionSuccess()) {
+                getFighter1().closeInventory();
+                getFighter1().sendMessage(plugin.getLangFile().get(fighter1, "info.request-sent"));
+                setRequest(new DuelRequest(this).sendMessage());
+            } else {
+                getFighter1().sendMessage("§cAn error occured when trying to change your money balance: " + r.errorMessage);
+            }
         } else {
             getFighter1().sendMessage(plugin.getLangFile().get(fighter1, "error.no-money.self"));
         }
@@ -421,18 +455,20 @@ public class Duel implements Listener {
     }
 
     private void checkDuelEnd(Player player) {
-        if (getFighter1() != null && getFighter2() != null) {
-            if (player.getUniqueId().equals(fighter1.getUniqueId())) {
-                winner = fighter2;
-                loser = fighter1;
-                endDuel();
-            } else if (player.getUniqueId().equals(fighter2.getUniqueId())) {
-                winner = fighter1;
-                loser = fighter2;
-                endDuel();
+        if (status.equals(DuelStatus.FIGHTING)) {
+            if (getFighter1() != null && getFighter2() != null) {
+                if (player.getUniqueId().equals(fighter1.getUniqueId())) {
+                    winner = fighter2;
+                    loser = fighter1;
+                    endDuel();
+                } else if (player.getUniqueId().equals(fighter2.getUniqueId())) {
+                    winner = fighter1;
+                    loser = fighter2;
+                    endDuel();
+                }
+            } else {
+                endWithoutPlayers();
             }
-        } else {
-            endWithoutPlayers();
         }
     }
 
@@ -445,56 +481,58 @@ public class Duel implements Listener {
     }
 
     private void endDuel() {
-        startTimer.cancel();
+        if (status.equals(DuelStatus.FIGHTING)) {
+            startTimer.cancel();
 
-        // Broadcast Winner
+            // Broadcast Winner
 
-        // Ending Title
+            // Ending Title
 
-        if (!endDuelCause.equals(EndCause.PLUGIN_RELOAD)) {
-            plugin.sendTitle(winner, 10, 50, 10, plugin.getLangFile().get(winner, "info.duel-end").replace("{player}", winner.getName()), "");
-            plugin.sendTitle(loser, 10, 50, 10, plugin.getLangFile().get(loser, "info.duel-end").replace("{player}", winner.getName()), "");
+            if (!endDuelCause.equals(EndCause.PLUGIN_RELOAD)) {
+                plugin.sendTitle(winner, 10, 50, 10, plugin.getLangFile().get(winner, "info.duel-end").replace("{player}", winner.getName()), "");
+                plugin.sendTitle(loser, 10, 50, 10, plugin.getLangFile().get(loser, "info.duel-end").replace("{player}", winner.getName()), "");
+            }
+
+            //Return player items
+            if (kit != null) {
+                setStatus(DuelStatus.RETURNING_ITEMS);
+                returnItems(plugin, winner, false);
+            }
+
+            if (fighter1.isOnline()) {
+                fighter1.setFlying(fighter1IsFlying);
+                fighter1.setGameMode(fighter1Gamemode);
+            }
+            if (fighter2.isOnline()) {
+                fighter2.setFlying(fighter2IsFlying);
+                fighter2.setGameMode(fighter2Gamemode);
+            }
+
+            Plugin petPlugin = plugin.getHookManager().getMyPetHook();
+            if (petPlugin != null) {
+                MyPetPlugin myPet = (MyPetPlugin) petPlugin;
+                MyPet pet1 = myPet.getMyPetManager().getMyPet(fighter1);
+                MyPet pet2 = myPet.getMyPetManager().getMyPet(fighter2);
+                if (fighter1HasPet) spawnPet(pet1);
+                if (fighter2HasPet) spawnPet(pet2);
+            }
+
+            Plugin clansPlugin = plugin.getHookManager().getSimpleClansHook();
+            if (clansPlugin != null) {
+                SimpleClans simpleClans = (SimpleClans) clansPlugin;
+                ClanPlayer clanPlayer1 = simpleClans.getClanManager().getClanPlayer(fighter1.getUniqueId());
+                ClanPlayer clanPlayer2 = simpleClans.getClanManager().getClanPlayer(fighter2.getUniqueId());
+                if (fighter1HasFF) setFriendlyFire(clanPlayer1, false);
+                if (fighter2HasFF) setFriendlyFire(clanPlayer2, false);
+            }
+
+            arena.setInUse(false);
+
+            updateStatistics();
+
+            //Teleport player back
+            returnLocation(winner);
         }
-
-        //Return player items
-        if (kit != null) {
-            setStatus(DuelStatus.RETURNING_ITEMS);
-            returnItems(plugin, winner, false);
-        }
-
-        if (fighter1.isOnline()) {
-            fighter1.setFlying(fighter1IsFlying);
-            fighter1.setGameMode(fighter1Gamemode);
-        }
-        if (fighter2.isOnline()) {
-            fighter2.setFlying(fighter2IsFlying);
-            fighter2.setGameMode(fighter2Gamemode);
-        }
-
-        Plugin petPlugin = plugin.getHookManager().getMyPetHook();
-        if (petPlugin != null) {
-            MyPetPlugin myPet = (MyPetPlugin) petPlugin;
-            MyPet pet1 = myPet.getMyPetManager().getMyPet(fighter1);
-            MyPet pet2 = myPet.getMyPetManager().getMyPet(fighter2);
-            if (fighter1HasPet) spawnPet(pet1);
-            if (fighter2HasPet) spawnPet(pet2);
-        }
-
-        Plugin clansPlugin = plugin.getHookManager().getSimpleClansHook();
-        if (clansPlugin != null) {
-            SimpleClans simpleClans = (SimpleClans) clansPlugin;
-            ClanPlayer clanPlayer1 = simpleClans.getClanManager().getClanPlayer(fighter1.getUniqueId());
-            ClanPlayer clanPlayer2 = simpleClans.getClanManager().getClanPlayer(fighter2.getUniqueId());
-            if (fighter1HasFF) setFriendlyFire(clanPlayer1, false);
-            if (fighter2HasFF) setFriendlyFire(clanPlayer2, false);
-        }
-
-        arena.setInUse(false);
-
-        updateStatistics();
-
-        //Teleport player back
-        returnLocation(winner);
     }
 
     private void returnLocation(Player player) {
@@ -545,15 +583,15 @@ public class Duel implements Listener {
 
     public static void returnItems(BkDuel plugin, Player player, boolean returnLocation) {
         Configuration config = plugin.getConfigManager().getConfig("player-data", "player-inventories.yml");
-        ItemStack[] invContents = new ItemStack[]{new ItemStack(Material.DIRT)};
+        ItemStack[] invContents = new ItemStack[]{XMaterial.DIRT.parseItem()};
 
         if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
             if (plugin.getNmsVer().number < 9) {
                 String stringInventory = config.getString(player.getUniqueId().toString() + ".inventory");
                 String stringArmor = config.getString(player.getUniqueId().toString() + ".armor");
 
-                ItemStack[] tempInv = new ItemStack[]{new ItemStack(Material.DIRT)};
-                ItemStack[] tempArmor = new ItemStack[]{new ItemStack(Material.DIRT)};
+                ItemStack[] tempInv = new ItemStack[]{XMaterial.DIRT.parseItem()};
+                ItemStack[] tempArmor = new ItemStack[]{XMaterial.DIRT.parseItem()};
                 try {
                     tempInv = Utils.itemStackArrayFromBase64(stringInventory);
                     tempArmor = Utils.itemStackArrayFromBase64(stringArmor);

@@ -7,13 +7,13 @@ import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
 import me.bkrmt.bkcore.bkgui.page.Page;
 import me.bkrmt.bkcore.input.PlayerInput;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
+import me.bkrmt.bkcore.xlibs.XMaterial;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.menus.ChooseArenaMenu;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -68,34 +68,34 @@ public class Arena extends Purchasable {
 
         Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(ChatColor.stripColor(AnimatorManager.cleanText(getName())), Rows.SIX), 1);
 
-        ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
+        ItemBuilder name = new ItemBuilder(Utils.createItem(XMaterial.OAK_SIGN.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-name.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-name.description"))));
-        ItemBuilder desc = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getWritableBook(), true,
+        ItemBuilder desc = new ItemBuilder(Utils.createItem(XMaterial.WRITABLE_BOOK.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-description.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-description.description"))));
-        ItemBuilder pos1 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getCyanDye(), true,
+        ItemBuilder pos1 = new ItemBuilder(Utils.createItem(XMaterial.CYAN_DYE.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-position1.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-position1.description"))));
-        ItemBuilder pos2 = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getRedDye(), true,
+        ItemBuilder pos2 = new ItemBuilder(Utils.createItem(XMaterial.RED_DYE.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-position2.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-position2.description"))));
-        ItemBuilder spec = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getEnderEye(), true,
+        ItemBuilder spec = new ItemBuilder(Utils.createItem(XMaterial.ENDER_EYE.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-spectator.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-spectator.description"))));
-        ItemBuilder item = new ItemBuilder(Utils.createItem(Material.ITEM_FRAME, true,
+        ItemBuilder item = new ItemBuilder(Utils.createItem(XMaterial.ITEM_FRAME.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-display-item.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.edit-display-item.description"))));
-        ItemBuilder price = new ItemBuilder(Utils.createItem(Material.EMERALD, true,
+        ItemBuilder price = new ItemBuilder(Utils.createItem(XMaterial.EMERALD.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-price.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.set-price.description"))));
-        ItemBuilder backButton = new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+        ItemBuilder backButton = new ItemBuilder(Utils.createItem(XMaterial.REDSTONE_BLOCK.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.back-button.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.back-button.description"))));
-        ItemBuilder deleteButton = new ItemBuilder(Utils.createItem(Material.TNT, true,
+        ItemBuilder deleteButton = new ItemBuilder(Utils.createItem(XMaterial.TNT.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.delete-button.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.delete-button.description"))));
-        ItemBuilder selectKit = new ItemBuilder(Utils.createItem(Material.IRON_CHESTPLATE, true,
+        ItemBuilder selectKit = new ItemBuilder(Utils.createItem(XMaterial.IRON_CHESTPLATE.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.select-bound-kit.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.select-bound-kit.description"))));
 
@@ -157,13 +157,13 @@ public class Arena extends Purchasable {
             page.getGuiSettings().setEnteredItemResponse(event1 -> {
                 event.setCancelled(true);
                 ItemStack cursor = event.getCursor();
-                if (cursor != null && !cursor.getType().equals(Material.AIR)) {
+                if (cursor != null && !cursor.getType().equals(XMaterial.AIR.parseMaterial())) {
                     setDisplayItem(event.getCursor().getType());
                     player.sendMessage(getPlugin().getLangFile().get(player, "info.item-set"));
                 }
             });
 
-            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(XMaterial.REDSTONE_BLOCK.parseItem(), true,
                     getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.enter-item.name"),
                     Arrays.asList(getPlugin().getLangFile().get(player, "gui-buttons.arena-edit.enter-item.description"), " ", getPlugin().getLangFile().get(player, "gui-buttons.back-button.description")))),"arena-edit-item-input-button",
                     event1 -> {
@@ -198,8 +198,8 @@ public class Arena extends Purchasable {
             setLocation(player, "fighter1");
         });
         menu.setItemOnXY(8, 2, deleteButton,"arena-edit-delete-button", event -> {
-            ItemBuilder greenPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getGreenPane()).setName(getPlugin().getLangFile().get(player, "info.confirm"));
-            ItemBuilder redPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getRedPane()).setName(getPlugin().getLangFile().get(player, "info.cancel"));
+            ItemBuilder greenPane = new ItemBuilder(XMaterial.GREEN_STAINED_GLASS_PANE).setName(getPlugin().getLangFile().get(player, "info.confirm"));
+            ItemBuilder redPane = new ItemBuilder(XMaterial.RED_STAINED_GLASS_PANE).setName(getPlugin().getLangFile().get(player, "info.cancel"));
 
             String arenaDeletedMessage = getPlugin().getLangFile().get(player, "info.arena-deleted");
             Page page = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
@@ -228,7 +228,7 @@ public class Arena extends Purchasable {
                 }
             }
 
-            ItemBuilder confirmBuilder = new ItemBuilder(getPlugin().getHandler().getItemManager().getWritableBook())
+            ItemBuilder confirmBuilder = new ItemBuilder(XMaterial.WRITABLE_BOOK)
                     .setName(getPlugin().getLangFile().get(player, "gui-buttons.delete-confirm.name"))
                     .setLore(getPlugin().getLangFile().get(player, "gui-buttons.delete-confirm.description"))
                     .hideTags();

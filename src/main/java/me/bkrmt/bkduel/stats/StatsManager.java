@@ -2,9 +2,9 @@ package me.bkrmt.bkduel.stats;
 
 import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkduel.BkDuel;
+import me.bkrmt.bkduel.api.events.NewTopPlayerEvent;
+import me.bkrmt.bkduel.api.events.StatsUpdateEvent;
 import me.bkrmt.bkduel.commands.CmdDuel;
-import me.bkrmt.bkduel.events.NewTopPlayerEvent;
-import me.bkrmt.bkduel.events.StatsUpdateEvent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -102,6 +102,7 @@ public class StatsManager {
     }
 
     public void sendRankPage(Player player, int page) {
+        page = Math.max(page, 0);
         String message = page == 0 ? plugin.getLangFile().get(player, "info.rank-list.top") : plugin.getLangFile().get(player, "info.rank-list.rank");
         String[] components = message.split("\\{player-button}");
         String playerFormat = plugin.getLangFile().get(player, "info.rank-list.player-button");

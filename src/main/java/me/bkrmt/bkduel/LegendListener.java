@@ -15,7 +15,6 @@ public class LegendListener implements Listener {
     public LegendListener(BkDuel bkDuel) {
         this.bkDuel = bkDuel;
     }
-
     @EventHandler
     public void onChat(ChatMessageEvent event) {
         StatsManager manager = bkDuel.getStatsManager();

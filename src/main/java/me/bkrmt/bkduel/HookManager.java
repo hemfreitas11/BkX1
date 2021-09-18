@@ -59,6 +59,11 @@ public class HookManager {
                 (holoapi != null && holoapi.isEnabled());
     }
 
+    public boolean hasCitizensHook() {
+        Plugin citizens = bkDuel.getServer().getPluginManager().getPlugin("Citizens");
+        return (citizens != null && citizens.isEnabled());
+    }
+
     public Plugin getFactionHook() {
         Plugin factions = bkDuel.getServer().getPluginManager().getPlugin("Factions");
         return (factions != null && factions.isEnabled()) ? factions : null;

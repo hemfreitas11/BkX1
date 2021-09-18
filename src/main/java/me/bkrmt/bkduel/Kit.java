@@ -7,9 +7,9 @@ import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
 import me.bkrmt.bkcore.bkgui.page.Page;
 import me.bkrmt.bkcore.input.PlayerInput;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
+import me.bkrmt.bkcore.xlibs.XMaterial;
 import me.bkrmt.bkduel.menus.ChooseKitsMenu;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -139,25 +139,25 @@ public class Kit extends Purchasable {
 
         Page menu = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(AnimatorManager.cleanText(ChatColor.stripColor(getName())), Rows.FIVE), 1);
 
-        ItemBuilder name = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getSign(), true,
+        ItemBuilder name = new ItemBuilder(Utils.createItem(XMaterial.OAK_SIGN.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-name.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-name.description"))));
-        ItemBuilder desc = new ItemBuilder(Utils.createItem(getPlugin().getHandler().getItemManager().getWritableBook(), true,
+        ItemBuilder desc = new ItemBuilder(Utils.createItem(XMaterial.WRITABLE_BOOK.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-description.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-description.description"))));
-        ItemBuilder item = new ItemBuilder(Utils.createItem(Material.ITEM_FRAME, true,
+        ItemBuilder item = new ItemBuilder(Utils.createItem(XMaterial.ITEM_FRAME.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-display-item.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.edit-display-item.description"))));
-        ItemBuilder price = new ItemBuilder(Utils.createItem(Material.EMERALD, true,
+        ItemBuilder price = new ItemBuilder(Utils.createItem(XMaterial.EMERALD.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.set-price.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.set-price.description"))));
-        ItemBuilder backButton = new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+        ItemBuilder backButton = new ItemBuilder(Utils.createItem(XMaterial.REDSTONE_BLOCK.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.back-button.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.back-button.description"))));
-        ItemBuilder setItems = new ItemBuilder(Utils.createItem(Material.CHEST, true,
+        ItemBuilder setItems = new ItemBuilder(Utils.createItem(XMaterial.CHEST.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.set-from-inventory.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.set-from-inventory.description"))));
-        ItemBuilder deleteButton = new ItemBuilder(Utils.createItem(Material.TNT, true,
+        ItemBuilder deleteButton = new ItemBuilder(Utils.createItem(XMaterial.TNT.parseItem(), true,
                 getPlugin().getLangFile().get(player, "gui-buttons.delete-button.name"),
                 Collections.singletonList(getPlugin().getLangFile().get(player, "gui-buttons.delete-button.description"))));
 
@@ -230,13 +230,13 @@ public class Kit extends Purchasable {
             page.getGuiSettings().setEnteredItemResponse(event1 -> {
                 event.setCancelled(true);
                 ItemStack cursor = event.getCursor();
-                if (cursor != null && !cursor.getType().equals(Material.AIR)) {
+                if (cursor != null && !cursor.getType().equals(XMaterial.AIR.parseMaterial())) {
                     setDisplayItem(event.getCursor().getType());
                     player.sendMessage(getPlugin().getLangFile().get(player, "info.item-set"));
                 }
             });
 
-            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(Material.REDSTONE_BLOCK, true,
+            page.setItemOnXY(5, 3, new ItemBuilder(Utils.createItem(XMaterial.REDSTONE_BLOCK.parseItem(), true,
                     getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.enter-item.name"),
                     Arrays.asList(getPlugin().getLangFile().get(player, "gui-buttons.kit-edit.enter-item.description"), " ", getPlugin().getLangFile().get(player, "gui-buttons.back-button.description")))), "kit-edit-item-input-button",
                     event1 -> {
@@ -266,8 +266,8 @@ public class Kit extends Purchasable {
         });
 
         menu.setItemOnXY(8, 2, deleteButton, "kit-edit-delete-button", event -> {
-            ItemBuilder greenPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getGreenPane()).setName(getPlugin().getLangFile().get(player, "info.confirm"));
-            ItemBuilder redPane = new ItemBuilder(getPlugin().getHandler().getItemManager().getRedPane()).setName(getPlugin().getLangFile().get(player, "info.cancel"));
+            ItemBuilder greenPane = new ItemBuilder(XMaterial.GREEN_STAINED_GLASS_PANE).setName(getPlugin().getLangFile().get(player, "info.confirm"));
+            ItemBuilder redPane = new ItemBuilder(XMaterial.RED_STAINED_GLASS_PANE).setName(getPlugin().getLangFile().get(player, "info.cancel"));
 
             String kitDeletedMessage = getPlugin().getLangFile().get(player, "info.kit-deleted");
             Page page = new Page(getPlugin(), BkDuel.getInstance().getAnimatorManager(), new GUI(ChatColor.stripColor(getName()), Rows.SIX), 1);
@@ -296,7 +296,7 @@ public class Kit extends Purchasable {
                 }
             }
 
-            ItemBuilder confirmBuilder = new ItemBuilder(getPlugin().getHandler().getItemManager().getWritableBook())
+            ItemBuilder confirmBuilder = new ItemBuilder(XMaterial.WRITABLE_BOOK)
                     .setName(getPlugin().getLangFile().get(player, "gui-buttons.delete-confirm.name"))
                     .setLore(getPlugin().getLangFile().get(player, "gui-buttons.delete-confirm.description"))
                     .hideTags();

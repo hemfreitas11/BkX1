@@ -1,4 +1,4 @@
-package me.bkrmt.bkduel.events;
+package me.bkrmt.bkduel.api.events;
 
 import me.bkrmt.bkduel.stats.PlayerStats;
 import org.bukkit.event.Event;

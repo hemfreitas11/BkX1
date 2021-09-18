@@ -14,45 +14,7 @@
 #         ® BkPlugins | discord.gg/2MHgyjCuPc
 #                    Made by: Bkr__
 #
-# *----------------------*=/[HOW TO USE THE TEXT ANIMATOR]\=*---------------------*
-#
-# Currently you can only add animation to item names (the GUI buttons), and the NPC hologram. Only one animation per line is allowed.
-# Item lore animations coming in the future.
-#
-# To animate a text, you need to provide the animation you want, and the color of the text.
-# Example: "{shine red} Hello, World!"
-# This will animate the entire line.
-#
-# You may also provide some options.
-# You can make the text bold, change the speed of the animation, the amount of time
-# to pause between every cycle of the animation, and the size of the animation.
-# Example: "{shine red bold speed[5]} Hello, World!"
-# This will make the shine animation that is bold red and updates every 5 ticks.
-#
-# If you don't want to animate the entire line, you need to use the text[] option
-# and put only the text you want to animate inside of it.
-# Example: "This is an {shine red text[animated text]}, this is not."
-# The result will be "This is an animated text, this is not." but only the words "animated text" will be animated.
-# ------
-# The available options are:
-#
-# speed[<number>] | How fast does the animation update (in ticks), lowest is 1. Default is 3 if none is provided.
-# pause[<number>] | The amount of time the animation will be paused after it finishes. The lower the speed, the higher this needs to be. Default is 3.
-# size[<number>]  | The size of the animation, has different effects for different animations. Default is 3 if none is provided.
-# text[<text>]    | The text that you want to animate. (If you don't want to animate the entire line)
-# bold            | Makes the text and the animation bold.
-# ------
-# Available animations: (more in the future)
-#
-# shine | Gives a "reflective shine" effect to texts.
-# ------
-#
-# Colors (use the color names, not the symbols):
-# yellow is &e   | blue is &9      | green is &2      | red is &4      | purple is &5   |
-# white is &f    | black is &0     | gray is &7       | darkblue is &1 | darkgray is &8 |
-# lightred is &c | lightblue is &b | lightgreen is &a | pink is &d
-# *----------------------------------*=[|]=*-------------------------------------*
-
+# **** Go to the end of the file to learn how to use the text animator. ****
 
 # You can add any language by creating a file in the "langs" folder then setting it's name in the "language" option bellow
 # Languages that come with the plugin are: en_US and pt_BR.
@@ -219,6 +181,8 @@ top-1-npc:
       z: '0'
       pitch: '0'
       yaw: '0'
+    # Nao mude isso
+    id: 0
 
 # (In a future version, not implemented yet) Options for the player bets.
 # (Em uma versão futura, ainda não implementado) Opções para as apostas de jogadores.
@@ -229,3 +193,42 @@ player-bets:
     max: 5000
   item-bet:
     enabled: false
+
+# *----------------------*=/[HOW TO USE THE TEXT ANIMATOR]\=*---------------------*
+#
+# Currently you can only add animation to item names (the GUI buttons), and the NPC hologram. Only one animation per line is allowed.
+# Item lore animations coming in the future.
+#
+# To animate a text, you need to provide the animation you want, and the color of the text.
+# Example: "{shine red} Hello, World!"
+# This will animate the entire line.
+#
+# You may also provide some options.
+# You can make the text bold, change the speed of the animation, the amount of time
+# to pause between every cycle of the animation, and the size of the animation.
+# Example: "{shine red bold speed[5]} Hello, World!"
+# This will make the shine animation that is bold red and updates every 5 ticks.
+#
+# If you don't want to animate the entire line, you need to use the text[] option
+# and put only the text you want to animate inside of it.
+# Example: "This is an {shine red text[animated text]}, this is not."
+# The result will be "This is an animated text, this is not." but only the words "animated text" will be animated.
+# ------
+# The available options are:
+#
+# speed[<number>] | How fast does the animation update (in ticks), lowest is 1. Default is 3 if none is provided.
+# pause[<number>] | The amount of time the animation will be paused after it finishes. The lower the speed, the higher this needs to be. Default is 3.
+# size[<number>]  | The size of the animation, has different effects for different animations. Default is 3 if none is provided.
+# text[<text>]    | The text that you want to animate. (If you don't want to animate the entire line)
+# bold            | Makes the text and the animation bold.
+# ------
+# Available animations: (more in the future)
+#
+# shine | Gives a "reflective shine" effect to texts.
+# ------
+#
+# Colors (use the color names, not the symbols):
+# yellow is &e   | blue is &9      | green is &2      | red is &4      | purple is &5   |
+# white is &f    | black is &0     | gray is &7       | darkblue is &1 | darkgray is &8 |
+# lightred is &c | lightblue is &b | lightgreen is &a | pink is &d
+# *----------------------------------*=[|]=*-------------------------------------*

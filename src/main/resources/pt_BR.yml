@@ -25,12 +25,23 @@ commands:
     
   # Mensagem para quando o jogador usar o comando incorretamente
   usage-format: '&cUse: {usage}'
-  
+
   # Comando BkDuel
-  bkduel:
-    command: 'bkx1'
-    description: 'Mostra a ajuda do plugin.'
-    usage: '/bkx1'
+  # Este comando não pode ser alterado, ele está aqui apenas para que apareça no comando de ajuda
+  bkcommand:
+    command: 'bkduel'
+    description: 'Ajuda do plugin.'
+    usage: '/bkduel [config | mensagens | reload]'
+    subcommands:
+      config:
+        command: 'config'
+        usage: '/bkduel config'
+      reload:
+        command: 'reload'
+        usage: '/bkduel reload'
+      messages:
+        command: 'mensagens'
+        usage: '/bkduel mensagens'
     
   # Comando X1
   duel:
@@ -231,6 +242,17 @@ gui-buttons:
 # Para remover espaços vazios basta mudar a mensagem de ' ' para ''
 # *---------------*=/[Mensagens Gerais]\=*--------------*
 info:
+  number-input:
+    go-back:
+      - '&7Clique aqui para confirmar e voltar.'
+    increase:
+      name: '&7&lAumentar {amount}'
+      description:
+        - '&7Clique para aumentar {amount}'
+    decrease:
+      name: '&7&lDiminuir {amount}'
+      description:
+        - '&7Clique para diminuir {amount}'
   request-message:
     accept-button: '&2&l[AQUI]'
     deny-button: '&c&l[AQUI]'
@@ -327,6 +349,7 @@ info:
   duel-disabled: '&aVocê desativou os desafios de X1 para você.'
   waiting-other: '&eEsperando o outro jogador...'
   go: '&aVai!'
+  configs-reloaded: '&aTodas as configurações e mensagens foram recarregadas com sucesso.'
   seconds-remaining: '&a{seconds}'
   option-locked: '&cOpção Bloqueada'
   select-own-items: '&cVocê precisa selecionar ''Proprios Items'''
@@ -430,7 +453,10 @@ error:
   cant-spectate: '&cVocê não pode ir ao camarote enquanto estiver em um X1.'
   no-valid-arenas: '&cNão existem arenas válidas que podem ser selecionadas.'
   not-a-number: '&cVocê não digitou um número.'
-  no-money: '&cVocê não tem dinheiro suficiente para fazer isso.'
+  configs-reloaded: '&aAll configs and messages reloaded sucessfully.'
+  no-money:
+    self: '&cVocê não possui dinheiro suficiente para fazer isso.'
+    others: '&cO jogador {player} não possui dinheiro suficiente.'
   cant-duel-self: '&cVocê não pode lutar contra você mesmo.'
   no-ranks: '&cNinguém lutou um X1 ainda.'
   invalid-page: '&cA página &4{page} &cnão existe.'

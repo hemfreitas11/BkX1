@@ -1,8 +1,8 @@
 package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.config.Configuration;
-import me.bkrmt.bkduel.events.NewTopPlayerEvent;
-import me.bkrmt.bkduel.events.StatsUpdateEvent;
+import me.bkrmt.bkduel.api.events.NewTopPlayerEvent;
+import me.bkrmt.bkduel.api.events.StatsUpdateEvent;
 import me.bkrmt.bkduel.npc.UpdateReason;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import org.bukkit.entity.Player;
