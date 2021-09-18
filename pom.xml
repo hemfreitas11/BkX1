@@ -238,54 +238,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_8_R1</artifactId>
-            <version>v1_8_R1</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_8_R2</artifactId>
-            <version>v1_8_R2</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_8_R3</artifactId>
-            <version>v1_8_R3</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_9_R1</artifactId>
-            <version>v1_9_R1</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_13_R1</artifactId>
-            <version>v1_13_R1</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt</groupId>
-            <artifactId>v1_14_R1</artifactId>
-            <version>v1_14_R1</version>
-            <type>jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.bkrmt.bkcore</groupId>
-            <artifactId>teleport</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.gmail</groupId>
             <artifactId>nossr50</artifactId>
             <version>2.1.197-SNAPSHOT</version>
