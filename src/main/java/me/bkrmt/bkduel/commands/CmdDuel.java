@@ -6,6 +6,8 @@ import me.bkrmt.bkcore.config.Configuration;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkduel.BkDuel;
 import me.bkrmt.bkduel.Duel;
+import me.bkrmt.bkduel.api.events.DuelAcceptEvent;
+import me.bkrmt.bkduel.api.events.DuelDeclineEvent;
 import me.bkrmt.bkduel.enums.DuelOptions;
 import me.bkrmt.bkduel.enums.DuelStatus;
 import me.bkrmt.bkduel.menus.ChooseArenaMenu;
@@ -15,6 +17,7 @@ import me.bkrmt.bkduel.npc.UpdateReason;
 import me.bkrmt.bkduel.stats.PlayerStats;
 import me.bkrmt.teleport.Teleport;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -282,6 +285,8 @@ public class CmdDuel extends Executor {
                     fighter1.sendMessage(getPlugin().getLangFile().get(player, "info.duel-declined.self").replace("{player}", fighter2.getName()));
                     fighter2.sendMessage(getPlugin().getLangFile().get(player, "info.duel-declined.others").replace("{player}", fighter1.getName()));
 
+                    Bukkit.getPluginManager().callEvent(new DuelDeclineEvent(fighter1, fighter2));
+
                     //Broadcast to all
                     broadcastToAll();
 
@@ -317,7 +322,9 @@ public class CmdDuel extends Executor {
                             player.sendMessage(paid);
                             otherPlayer.sendMessage(paid);
                             duel.getRequest().getExpireRunnable().cancel();
+
                             duel.startDuel();
+                            Bukkit.getPluginManager().callEvent(new DuelAcceptEvent(duel.getFighter1(), duel.getFighter2()));
                         } else {
                             String errorMessage = r.transactionSuccess() ? r2.errorMessage : r.errorMessage;
                             player.sendMessage(String.format("An error occured: %s", errorMessage));
