@@ -5,6 +5,7 @@ import me.bkrmt.bkcore.bkgui.gui.GUI;
 import me.bkrmt.bkcore.bkgui.gui.Rows;
 import me.bkrmt.bkcore.bkgui.item.ItemBuilder;
 import me.bkrmt.bkcore.bkgui.page.Page;
+import me.bkrmt.bkcore.config.InvalidLocationException;
 import me.bkrmt.bkcore.input.PlayerInput;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkcore.xlibs.XMaterial;
@@ -38,9 +39,13 @@ public class Arena extends Purchasable {
             location2 = null;
             spectators = null;
         } else {
-            location1 = getConfig().getLocation("locations.fighter1");
-            location2 = getConfig().getLocation("locations.fighter2");
-            spectators = getConfig().getLocation("locations.spectators");
+            try {
+                location1 = getConfig().getLocation("locations.fighter1");
+                location2 = getConfig().getLocation("locations.fighter2");
+                spectators = getConfig().getLocation("locations.spectators");
+            } catch (InvalidLocationException e) {
+                e.printStackTrace();
+            }
         }
         setBoundKit();
     }

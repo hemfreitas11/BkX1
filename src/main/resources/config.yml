@@ -52,6 +52,10 @@ expanded-kit-list: false
 # Custo para iniciar um X1. Os dois jogadores prrecisam pagar
 duel-cost: 100
 
+# Wether the player will be healed when the duel starts and ends
+# Se o jogador será curado quando o X1 inicia e termina
+heal-players: false
+
 # Change to "true" if you want to allow the fighters to choose if they drop items when they die. They can't allow the drop for kits.
 # Mude para "true" para permitir que os lutadores escolham se eles querem dropar itens ao morrer. Eles não podem dropar itens de kits.
 player-drop-item: false

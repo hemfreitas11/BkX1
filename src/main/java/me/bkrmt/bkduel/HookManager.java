@@ -205,27 +205,6 @@ public class HookManager {
         } else {
             bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CITIZENS.getMessage(bkDuel)));
         }
-
-        Listener chatListener = null;
-        String chatHook = bkDuel.getChatHook();
-        if (!bkDuel.getHookManager().hasChatHook()) {
-            bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.NO_CHAT.getMessage(bkDuel)));
-        } else {
-            switch (chatHook) {
-                case "LegendChat":
-                case "nChat":
-                    chatListener = new LegendListener(bkDuel);
-                    break;
-                case "HeroChat":
-                case "HeroChatPro":
-                    break;
-            }
-        }
-
-        if (chatListener != null) {
-            bkDuel.getServer().getPluginManager().registerEvents(chatListener, bkDuel);
-            bkDuel.sendConsoleMessage(Utils.translateColor(me.bkrmt.bkduel.InternalMessages.CHAT_FOUND.getMessage(bkDuel)));
-        }
     }
 
 }

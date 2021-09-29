@@ -4,6 +4,10 @@ main: me.bkrmt.bkduel.BkDuel
 depend:
   - 'Vault'
 softdepend:
+  - Multiverse-Core*
+  - Multiverse-Core
+  - MultiWorld
+  - WorldManager
   - 'Citizens'
   - 'HeroChat'
   - 'HeroChatPro'

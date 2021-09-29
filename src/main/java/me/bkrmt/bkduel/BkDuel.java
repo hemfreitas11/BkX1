@@ -8,6 +8,7 @@ import me.bkrmt.bkcore.bkgui.BkGUI;
 import me.bkrmt.bkcore.command.CommandModule;
 import me.bkrmt.bkcore.command.MainCommand;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.config.InvalidLocationException;
 import me.bkrmt.bkcore.guiconfig.GUIConfig;
 import me.bkrmt.bkcore.message.InternalMessages;
 import me.bkrmt.bkcore.message.LangFile;
@@ -303,7 +304,11 @@ public final class BkDuel extends BkPlugin {
                 if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
                     Duel.returnItems(instance, player, true);
                 } else {
-                    player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                    try {
+                        player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                    } catch (InvalidLocationException e) {
+                        e.printStackTrace();
+                    }
                     config.set(player.getUniqueId().toString(), null);
                     config.saveToFile();
                 }

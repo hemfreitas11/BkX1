@@ -5,6 +5,7 @@ import de.Keyle.MyPet.api.entity.MyPet;
 import me.bkrmt.bkcore.MovementBlocker;
 import me.bkrmt.bkcore.Utils;
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.config.InvalidLocationException;
 import me.bkrmt.bkcore.textanimator.AnimatorManager;
 import me.bkrmt.bkcore.xlibs.XMaterial;
 import me.bkrmt.bkduel.enums.DuelOptions;
@@ -20,6 +21,7 @@ import net.sacredlabyrinth.phaed.simpleclans.SimpleClans;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -175,6 +177,11 @@ public class Duel implements Listener {
                     .setRunnable((player, location, isCanceled) -> {
                         if (!isCanceled) {
                             playersInArena[0] = true;
+                            if (plugin.getConfigManager().getConfig().getBoolean("heal-players")) {
+                                fighter1.setHealth(fighter1.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                                fighter1.setFoodLevel(20);
+
+                            }
                             setKit(fighter1, fighter1Return);
                         }
                     })
@@ -189,6 +196,10 @@ public class Duel implements Listener {
                     .setRunnable((player, location, isCanceled) -> {
                         if (!isCanceled) {
                             playersInArena[1] = true;
+                            if (plugin.getConfigManager().getConfig().getBoolean("heal-players")) {
+                                fighter2.setHealth(fighter2.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                                fighter1.setFoodLevel(20);
+                            }
                             setKit(fighter2, fighter2Return);
                         }
                     })
@@ -394,7 +405,18 @@ public class Duel implements Listener {
                 Player player = event.getEntity();
                 if (isDuelPlayer(player)) {
                     if (!getOptions().contains(DuelOptions.DROP_ITEMS)) {
-                        event.setKeepInventory(true);
+                        // Save dead player's items if he is not using a kit
+                        if (kit == null && options.contains(DuelOptions.OWN_ITEMS)) {
+                            Configuration invStorage = plugin.getConfigManager().getConfig("player-data", "player-inventories.yml");
+
+                            PlayerInventory inv = player.getInventory();
+
+                            String[] deadPlayerInventory = Utils.playerInventoryToBase64(inv);
+
+                            invStorage.set(player.getUniqueId().toString() + ".inventory", deadPlayerInventory[0]);
+                            invStorage.set(player.getUniqueId().toString() + ".armor", deadPlayerInventory[1]);
+                        }
+                        event.getDrops().clear();
                     }
                     if (!getOptions().contains(DuelOptions.DROP_EXP)) {
                         event.setKeepLevel(true);
@@ -419,6 +441,7 @@ public class Duel implements Listener {
                 }
             }
         };
+
         plugin.getServer().getPluginManager().registerEvents(duelListener, plugin);
     }
 
@@ -459,10 +482,18 @@ public class Duel implements Listener {
             if (getFighter1() != null && getFighter2() != null) {
                 if (player.getUniqueId().equals(fighter1.getUniqueId())) {
                     winner = fighter2;
+                    if (plugin.getConfigManager().getConfig().getBoolean("heal-players")) {
+                        fighter2.setHealth(fighter2.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                        fighter1.setFoodLevel(20);
+                    }
                     loser = fighter1;
                     endDuel();
                 } else if (player.getUniqueId().equals(fighter2.getUniqueId())) {
                     winner = fighter1;
+                    if (plugin.getConfigManager().getConfig().getBoolean("heal-players")) {
+                        fighter1.setHealth(fighter1.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                        fighter1.setFoodLevel(20);
+                    }
                     loser = fighter2;
                     endDuel();
                 }
@@ -613,7 +644,13 @@ public class Duel implements Listener {
         Kit.clearPlayer(player);
         Kit.giveKit(player, invContents, true);
 
-        if (returnLocation) player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+        if (returnLocation) {
+            try {
+                player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+            } catch (InvalidLocationException e) {
+                e.printStackTrace();
+            }
+        }
 
         config.set(player.getUniqueId().toString(), null);
         config.saveToFile();

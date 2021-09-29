@@ -1,6 +1,7 @@
 package me.bkrmt.bkduel;
 
 import me.bkrmt.bkcore.config.Configuration;
+import me.bkrmt.bkcore.config.InvalidLocationException;
 import me.bkrmt.bkduel.api.events.NewTopPlayerEvent;
 import me.bkrmt.bkduel.api.events.StatsUpdateEvent;
 import me.bkrmt.bkduel.npc.UpdateReason;
@@ -46,7 +47,11 @@ public class ConstantListener implements Listener {
             if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
                 Duel.returnItems(bkDuel, player, true);
             } else {
-                player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                try {
+                    player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                } catch (InvalidLocationException e) {
+                    e.printStackTrace();
+                }
                 config.set(player.getUniqueId().toString(), null);
                 config.saveToFile();
             }
@@ -62,7 +67,11 @@ public class ConstantListener implements Listener {
             if (config.get(player.getUniqueId().toString() + ".inventory") != null && config.get(player.getUniqueId().toString() + ".armor") != null) {
                 Duel.returnItems(bkDuel, player, true);
             } else {
-                player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                try {
+                    player.teleport(config.getLocation(player.getUniqueId().toString() + ".return-location"));
+                } catch (InvalidLocationException e) {
+                    e.printStackTrace();
+                }
                 config.set(player.getUniqueId().toString(), null);
                 config.saveToFile();
             }
